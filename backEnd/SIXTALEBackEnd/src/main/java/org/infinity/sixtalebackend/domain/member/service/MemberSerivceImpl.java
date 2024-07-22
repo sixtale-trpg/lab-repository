@@ -30,7 +30,7 @@ public class MemberSerivceImpl implements MemberService {
      * @param files
      */
     @Override
-    public MemberResponseDto createMember(Long id, String nickName, MultipartFile[] files) throws IOException {
+    public MemberResponseDto createMemberInfo(Long id, String nickName, MultipartFile[] files) throws IOException {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Member with id " + id + " not found"));
 
@@ -50,5 +50,23 @@ public class MemberSerivceImpl implements MemberService {
         memberRepository.save(member); // 변경 사항 저장
 
         return memberResponseDto;
+    }
+
+
+    /**
+     * 회원 정보 조회
+     * @param id
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public MemberResponseDto getMemberInfo(Long id) throws IOException {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Member with id " + id + " not found"));
+
+        return MemberResponseDto.builder()
+                .nickName(member.getNickname())
+                .imageURL(member.getImageURL())
+                .build();
     }
 }

@@ -22,12 +22,12 @@ public class MemberDetailController {
      * 회원 상세 정보 생성
      */
     @PostMapping("")
-    public ResponseEntity createMemberDetail(@RequestBody MemberDetailRequestDto memberDetailRequestDto, Long memberID){
+    public ResponseEntity<?> createMemberDetail(@RequestBody MemberDetailRequestDto memberDetailRequestDto, Long memberID){
         try {
             memberDetailService.createMemberDetail(memberDetailRequestDto,memberID);
-            return  new ResponseEntity(DefaultResponse.res(StatusCode.CREATED,ResponseMessage.CREATED_MEMBER_DETAIL,null),HttpStatus.CREATED);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED,ResponseMessage.CREATED_MEMBER_DETAIL,null),HttpStatus.CREATED);
         }catch(Exception e){
-            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

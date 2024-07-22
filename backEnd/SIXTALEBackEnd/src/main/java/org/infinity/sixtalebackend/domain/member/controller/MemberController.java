@@ -2,20 +2,39 @@ package org.infinity.sixtalebackend.domain.member.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
 import org.infinity.sixtalebackend.domain.member.dto.MemberNicknameCheckResponse;
+import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
+import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
+import org.infinity.sixtalebackend.global.common.response.StatusCode;
+import org.infinity.sixtalebackend.infra.s3.S3Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/members")
 public class MemberController {
     private final MemberSerivceImpl memberSerivce;
 
-    @GetMapping("/members/check-nickname")
+    /**
+     * 회원 정보 생성(닉네임, 프로필 이미지)
+     */
+    @PostMapping(value = "",consumes = "multipart/*")
+    public ResponseEntity<?> createMember(String nickName, @RequestPart("files")MultipartFile[] files){
+        try {
+            Long memberId = 1L;
+            MemberResponseDto memberResponseDto = memberSerivce.createMember(memberId,nickName,files);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/check-nickname")
     public ResponseEntity checkNickname(@RequestParam String nickname) {
         if (nickname == null || nickname.isEmpty()) {
             return new ResponseEntity<>(new MemberNicknameCheckResponse(400, "잘못된 요청", null),
@@ -36,4 +55,5 @@ public class MemberController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }

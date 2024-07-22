@@ -45,4 +45,11 @@ public class Member extends BaseTimeEntity {
     @Column(name = "image_url")
     private String imageURL;
 
+    public void setNickName(String nickName) {
+        this.nickname = nickName;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
+    }
 }

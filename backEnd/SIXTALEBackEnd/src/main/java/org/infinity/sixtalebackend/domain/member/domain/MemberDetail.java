@@ -12,7 +12,11 @@ import lombok.*;
 public class MemberDetail {
 
     @Id
+    @Column(name = "member_id")
+    private Long id;
+
     @OneToOne
+    @MapsId
     @JoinColumn(name = "member_id")
     private Member member;
 

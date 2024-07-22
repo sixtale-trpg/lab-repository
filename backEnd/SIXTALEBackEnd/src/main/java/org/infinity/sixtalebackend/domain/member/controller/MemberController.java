@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.controller;
 
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
@@ -24,15 +25,31 @@ public class MemberController {
      * 회원 정보 생성(닉네임, 프로필 이미지)
      */
     @PostMapping(value = "",consumes = "multipart/*")
-    public ResponseEntity<?> createMember(String nickName, @RequestPart("files")MultipartFile[] files){
+    public ResponseEntity<?> createMemberInfo(String nickName, @RequestPart("files")MultipartFile[] files){
         try {
             Long memberId = 1L;
-            MemberResponseDto memberResponseDto = memberSerivce.createMember(memberId,nickName,files);
+            MemberResponseDto memberResponseDto = memberSerivce.createMemberInfo(memberId,nickName,files);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 회원 정보 조회(닉네임, 프로필 이미지)
+     */
+    @GetMapping("")
+    public ResponseEntity<?> getMemberInfo(){
+        try {
+            Long memberId = 1L;
+            MemberResponseDto memberResponseDto = memberSerivce.getMemberInfo(memberId);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
     @GetMapping("/check-nickname")
     public ResponseEntity checkNickname(@RequestParam String nickname) {

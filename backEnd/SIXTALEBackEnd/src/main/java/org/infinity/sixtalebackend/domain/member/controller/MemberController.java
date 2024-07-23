@@ -29,7 +29,7 @@ public class MemberController {
         try {
             Long memberId = 1L;
             MemberResponseDto memberResponseDto = memberSerivce.createMemberInfo(memberId,nickName,files);
-            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.CREATED_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -43,7 +43,7 @@ public class MemberController {
         try {
             Long memberId = 1L;
             MemberResponseDto memberResponseDto = memberSerivce.getMemberInfo(memberId);
-            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -57,7 +57,7 @@ public class MemberController {
         try {
             Long memberId = 1L;
             MemberResponseDto memberResponseDto = memberSerivce.updateMemberInfo(memberId,nickName,files);
-            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }

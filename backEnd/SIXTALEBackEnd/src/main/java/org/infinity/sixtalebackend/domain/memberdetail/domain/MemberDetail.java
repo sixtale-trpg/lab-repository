@@ -1,7 +1,8 @@
-package org.infinity.sixtalebackend.domain.member.domain;
+package org.infinity.sixtalebackend.domain.memberdetail.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.infinity.sixtalebackend.domain.member.domain.Member;
 
 @Entity
 @Getter

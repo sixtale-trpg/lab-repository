@@ -1,6 +1,6 @@
-package org.infinity.sixtalebackend.domain.member.service;
+package org.infinity.sixtalebackend.domain.memberdetail.service;
 
-import org.infinity.sixtalebackend.domain.member.dto.MemberDetailRequestDto;
+import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailRequestDto;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,4 +1,4 @@
-package org.infinity.sixtalebackend.domain.model;
+package org.infinity.sixtalebackend.domain.genre.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

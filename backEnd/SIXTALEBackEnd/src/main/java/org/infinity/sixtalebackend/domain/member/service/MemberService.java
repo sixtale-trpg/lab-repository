@@ -9,5 +9,6 @@ public interface MemberService {
 
     public boolean isNicknameDuplicated(String nickname);
     MemberResponseDto createMemberInfo(Long id, String nickName, MultipartFile[] files) throws IOException;
+    MemberResponseDto updateMemberInfo(Long id, String nickName, MultipartFile[] files) throws IOException;
     MemberResponseDto getMemberInfo(Long id) throws IOException;
 }

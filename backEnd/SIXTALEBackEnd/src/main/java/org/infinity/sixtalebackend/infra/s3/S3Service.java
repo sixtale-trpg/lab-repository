@@ -37,6 +37,13 @@ public class S3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    /**
+     * S3 이미지 생성
+     * @param multipartFiles
+     * @param dirName
+     * @return
+     * @throws IOException
+     */
     @Transactional
     public List<String> upload(MultipartFile[] multipartFiles, String dirName) throws IOException
     {
@@ -120,6 +127,19 @@ public class S3Service {
             } else {
                 log.info("파일이 삭제 실패");
             }
+        }
+    }
+
+    /**
+     * S3 이미지 삭제
+     * @param fileName
+     */
+    public void delete(String fileName) {
+        try {
+            s3Client.deleteObject(b -> b.bucket(bucket).key(fileName));
+        } catch (S3Exception e) {
+            log.error("S3 파일 삭제 중 에러 발생: {}", e.awsErrorDetails().errorMessage(), e);
+            throw new RuntimeException("S3 파일 삭제 실패", e);
         }
     }
 }

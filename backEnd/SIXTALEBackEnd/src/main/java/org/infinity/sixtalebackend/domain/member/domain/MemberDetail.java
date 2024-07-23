@@ -12,29 +12,33 @@ import lombok.*;
 public class MemberDetail {
 
     @Id
+    @Column(name = "member_id")
+    private Long id;
+
     @OneToOne
+    @MapsId
     @JoinColumn(name = "member_id")
     private Member member;
 
     private String favorRule;
 
     @Column(name = "rp_type",nullable = false)
-    private Integer rpType = 0;
+    private Integer rpType ;
 
     @Column(name = "chat_type", nullable = false)
-    private Integer chatType = 0;
+    private Integer chatType ;
 
     @Column(name = "talk_type", nullable = false)
-    private Integer talkType = 0;
+    private Integer talkType ;
 
     @Column(name = "taste_type", nullable = false)
-    private Integer tasteType = 0;
+    private Integer tasteType ;
 
     @Column(name = "system_type", nullable = false)
-    private Integer systemType = 0;
+    private Integer systemType ;
 
     @Column(name = "time_type", nullable = false)
-    private Integer timeType = 0;
+    private Integer timeType ;
 
     // 비트 연산을 위한 메서드들
     public void setBitForField(String fieldName, int position, boolean value) {

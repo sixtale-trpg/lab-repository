@@ -13,4 +13,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public interface MemberGenreRepository extends JpaRepository<MemberGenre, MemberGenreID> {
     List<MemberGenre> findMemberGenreByMember(Member member);
+    void deleteAllByMember(Member member);
+
 }

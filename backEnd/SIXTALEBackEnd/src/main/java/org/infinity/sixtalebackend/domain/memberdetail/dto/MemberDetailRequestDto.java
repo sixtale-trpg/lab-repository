@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.memberdetail.dto;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -17,17 +18,17 @@ public class MemberDetailRequestDto {
 
     private String favorRule;
 
-    @NotNull
+    @NotBlank // 공백, 빈문자열, null 제한
     private String rpType;
-    @NotNull
+    @NotBlank
     private String chatType;
-    @NotNull
+    @NotBlank
     private String talkType;
-    @NotNull
+    @NotBlank
     private String tasteType;
-    @NotNull
+    @NotBlank
     private String systemType;
-    @NotNull
+    @NotBlank
     private String timeType;
     @NotNull
     @NotEmpty

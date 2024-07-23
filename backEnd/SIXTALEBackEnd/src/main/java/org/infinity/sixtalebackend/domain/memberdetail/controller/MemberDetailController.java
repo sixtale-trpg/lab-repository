@@ -3,6 +3,7 @@ package org.infinity.sixtalebackend.domain.memberdetail.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailRequestDto;
+import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailResponseDto;
 import org.infinity.sixtalebackend.domain.memberdetail.service.MemberDetailService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
@@ -42,6 +43,20 @@ public class MemberDetailController {
             return  new ResponseEntity(DefaultResponse.res(StatusCode.OK,ResponseMessage.UPDATED_MEMBER_DETAIL,null),HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 회원 상세 정보 조회
+     */
+    @GetMapping("")
+    public ResponseEntity<?> readMemberDetail(){
+        try {
+            Long memberID = 1L;
+            MemberDetailResponseDto memberDetailResponseDto = memberDetailService.readMemberDetail(memberID);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK,ResponseMessage.READ_MEMBER_DETAIL,memberDetailResponseDto),HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

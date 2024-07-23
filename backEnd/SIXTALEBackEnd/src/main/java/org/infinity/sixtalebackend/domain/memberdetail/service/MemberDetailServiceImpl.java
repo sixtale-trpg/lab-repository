@@ -7,7 +7,9 @@ import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.memberdetail.domain.MemberDetail;
 import org.infinity.sixtalebackend.domain.memberdetail.domain.MemberGenre;
 import org.infinity.sixtalebackend.domain.memberdetail.domain.MemberGenreID;
+import org.infinity.sixtalebackend.domain.memberdetail.dto.GenreDto;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailRequestDto;
+import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailResponseDto;
 import org.infinity.sixtalebackend.domain.memberdetail.repository.MemberDetailRepository;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.genre.domain.Genre;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -87,8 +90,45 @@ public class MemberDetailServiceImpl implements MemberDetailService{
 
     }
 
+    /**
+     * 회원 상세 정보 조회
+     * @param memberID
+     * @return
+     */
+    @Override
+    public MemberDetailResponseDto readMemberDetail(Long memberID) {
+        // 회원 조회
+        Member member =findMember(memberID);
+
+        // 회원 상세 정보 조회
+        MemberDetail memberDetail = findMemberDetail(memberID);
+
+        // 장르 조회
+        List<MemberGenre> memberGenres = memberGenreRepository.findMemberGenreByMember(member); // 특정 회원에 대한 장르만 조회하는 메서드 필요
+
+        log.info(memberGenres.get(0).toString());
+
+        // DTO 생성
+        return MemberDetailResponseDto.builder()
+                .favorRule(memberDetail.getFavorRule())
+                .rpType(Integer.toBinaryString(memberDetail.getRpType()))
+                .chatType(Integer.toBinaryString(memberDetail.getChatType()))
+                .talkType(Integer.toBinaryString(memberDetail.getTalkType()))
+                .tasteType(Integer.toBinaryString(memberDetail.getTasteType()))
+                .systemType(Integer.toBinaryString(memberDetail.getSystemType()))
+                .timeType(Integer.toBinaryString(memberDetail.getTimeType()))
+                .genreList(memberGenres.stream()
+                        .map(memberGenre -> new GenreDto(memberGenre.getGenre().getId(), memberGenre.getGenre().getName())) // GenreDto 생성자 필요
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
     private Member findMember(Long id) {
         return memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    }
+
+    private MemberDetail findMemberDetail(Long id) {
+        return memberDetailRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("회원 상세정보가 존재하지 않습니다."));
     }
 
     private Genre findGenre(Long id) {

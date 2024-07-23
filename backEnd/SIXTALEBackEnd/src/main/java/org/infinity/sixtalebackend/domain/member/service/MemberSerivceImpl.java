@@ -76,13 +76,12 @@ public class MemberSerivceImpl implements MemberService {
             member.setNickName(nickName);
             memberResponseDto.setNickName(nickName);
         }
-        System.out.println(11);
 
         // 기존 프로필 이미지 삭제
         if (member.getImageURL() != null) {
             String oldImageName = member.getImageURL().substring(member.getImageURL().lastIndexOf("/")+1);
             System.out.println(oldImageName);
-            s3Service.delete(id + "/"+"profile" + oldImageName);
+            s3Service.delete(id + "/"+"profile/" + oldImageName);
         }
 
         // 프로필 이미지 저장

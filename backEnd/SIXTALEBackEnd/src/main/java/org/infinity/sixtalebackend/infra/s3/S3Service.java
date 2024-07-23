@@ -14,10 +14,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -49,17 +47,17 @@ public class S3Service {
     {
 
         // 파일 리스트 하나씩 업로드
-        List<String> listUrl = new ArrayList<>();
-        for(MultipartFile mf: multipartFiles) {
-            String contentType = mf.getContentType();
+                            List<String> listUrl = new ArrayList<>();
+            for(MultipartFile mf: multipartFiles) {
+                String contentType = mf.getContentType();
 
-            // 파일 확장자 체크
-            if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
-                throw new IllegalArgumentException("Invalid file content type: " + contentType);
-            }
+                // 파일 확장자 체크
+                if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png"))) {
+                    throw new IllegalArgumentException("Invalid file content type: " + contentType);
+                }
 
-            File uploadFile = convert(mf)
-                    .orElseThrow(()-> new IllegalArgumentException("MultipartFile -> File로 전환이 실패"));
+                File uploadFile = convert(mf)
+                        .orElseThrow(()-> new IllegalArgumentException("MultipartFile -> File로 전환이 실패"));
 
             // 파일명 중복을 피하기 위해 날짜 추가
             String formatDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("/yyyy-MM-dd_HH-mm-ss"));
@@ -136,7 +134,9 @@ public class S3Service {
      */
     public void delete(String fileName) {
         try {
-            s3Client.deleteObject(b -> b.bucket(bucket).key(fileName));
+            String decodedFileName = java.net.URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+            log.info("Deleting file: {}", decodedFileName);
+            s3Client.deleteObject(b -> b.bucket(bucket).key(decodedFileName));
         } catch (S3Exception e) {
             log.error("S3 파일 삭제 중 에러 발생: {}", e.awsErrorDetails().errorMessage(), e);
             throw new RuntimeException("S3 파일 삭제 실패", e);

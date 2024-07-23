@@ -49,6 +49,20 @@ public class MemberController {
         }
     }
 
+    /**
+     * 회원 정보 수정(닉네임, 프로필 이미지)
+     */
+    @PutMapping(value = "",consumes = "multipart/*")
+    public ResponseEntity<?> updateMemberInfo(String nickName, @RequestPart("files")MultipartFile[] files){
+        try {
+            Long memberId = 1L;
+            MemberResponseDto memberResponseDto = memberSerivce.updateMemberInfo(memberId,nickName,files);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_DETAIL,memberResponseDto),HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 
     @GetMapping("/check-nickname")

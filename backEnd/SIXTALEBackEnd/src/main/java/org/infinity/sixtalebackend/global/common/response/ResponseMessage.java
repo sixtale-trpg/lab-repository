@@ -28,4 +28,7 @@ public class ResponseMessage {
     public static final String UPDATE_USER = "회원 정보 수정 성공";
     public static final String WITHDRAWAL_USER = "회원 탈퇴 성공";
     public static final String INTERNAL_SERVER_ERROR = "서버 내부 에러";
+
+    public static final String ENTER_USER = "게임 방 유저 입장 성공";
+    public static final String ENTER_USER_FAIL = "게임 방 유저 입장 실패";
 }

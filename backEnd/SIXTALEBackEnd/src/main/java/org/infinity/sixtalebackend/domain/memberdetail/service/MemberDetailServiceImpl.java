@@ -86,8 +86,33 @@ public class MemberDetailServiceImpl implements MemberDetailService{
      * @param memberID
      */
     @Override
+    @Transactional
     public void updateMemberDetail(MemberDetailRequestDto memberDetailRequestDto, Long memberID) {
+        Member member = findMember(memberID);
 
+        // 멤버 상세 정보 수정
+        MemberDetail memberDetail = findMemberDetail(memberID);
+        memberDetail.updateDetails(memberDetailRequestDto);
+        memberDetailRepository.save(memberDetail);
+
+        // 기존 선호 장르 삭제
+       memberGenreRepository.deleteAllByMember(member);
+
+        // 새로운 선호 장르 저장
+        List<Long> genreList = memberDetailRequestDto.getGenreList();
+        List<MemberGenre> memberGenres = new ArrayList<>();
+        for(Long genreId : genreList) {
+            Genre genre = findGenre(genreId);
+            MemberGenre memberGenre = MemberGenre.builder()
+                    .id(new MemberGenreID(memberID, genreId))
+                    .member(member)
+                    .genre(genre)
+                    .build();
+
+            memberGenres.add(memberGenre);
+        }
+
+        memberGenreRepository.saveAll(memberGenres);
     }
 
     /**
@@ -105,8 +130,6 @@ public class MemberDetailServiceImpl implements MemberDetailService{
 
         // 장르 조회
         List<MemberGenre> memberGenres = memberGenreRepository.findMemberGenreByMember(member); // 특정 회원에 대한 장르만 조회하는 메서드 필요
-
-        log.info(memberGenres.get(0).toString());
 
         // DTO 생성
         return MemberDetailResponseDto.builder()

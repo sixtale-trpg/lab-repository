@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.memberdetail.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailRequestDto;
@@ -8,6 +9,7 @@ import org.infinity.sixtalebackend.domain.memberdetail.service.MemberDetailServi
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class MemberDetailController {
      * 회원 상세 정보 생성
      */
     @PostMapping("")
-    public ResponseEntity<?> createMemberDetail(@RequestBody MemberDetailRequestDto memberDetailRequestDto){
+    public ResponseEntity<?> createMemberDetail(@RequestBody @Valid MemberDetailRequestDto memberDetailRequestDto){
         try {
             Long memberID = 1L;
             memberDetailService.createMemberDetail(memberDetailRequestDto,memberID);
@@ -37,8 +39,9 @@ public class MemberDetailController {
      * 회원 상세 정보 수정
      */
     @PutMapping("")
-    public ResponseEntity updateMemberDetail(@RequestBody MemberDetailRequestDto memberDetailRequestDto, Long memberID){
+    public ResponseEntity updateMemberDetail(@RequestBody @Valid MemberDetailRequestDto memberDetailRequestDto){
         try {
+            Long memberID = 1L;
             memberDetailService.updateMemberDetail(memberDetailRequestDto,memberID);
             return  new ResponseEntity(DefaultResponse.res(StatusCode.OK,ResponseMessage.UPDATED_MEMBER_DETAIL,null),HttpStatus.OK);
         }catch(Exception e){

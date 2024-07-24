@@ -7,7 +7,6 @@ import org.infinity.sixtalebackend.domain.rule.domain.Stat;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @Table(name = "character_stat")
 @AllArgsConstructor

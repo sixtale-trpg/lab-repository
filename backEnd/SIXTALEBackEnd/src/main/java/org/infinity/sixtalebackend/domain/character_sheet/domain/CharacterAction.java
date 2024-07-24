@@ -8,7 +8,6 @@ import org.infinity.sixtalebackend.domain.rule.domain.JobAction;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @Table(name = "character_action")
 @AllArgsConstructor

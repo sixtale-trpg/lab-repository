@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @Table(name = "member")
 @AllArgsConstructor
@@ -37,7 +38,7 @@ public class Member extends BaseTimeEntity {
     private String providerUserID;
 
     @Column(nullable = false)
-    private Boolean isWithdrawn = false;
+    private Boolean isWithdrawn;
 
     @Column(nullable = false)
     private LocalDateTime lastLoginAt = LocalDateTime.now();
@@ -45,11 +46,13 @@ public class Member extends BaseTimeEntity {
     @Column(name = "image_url")
     private String imageURL;
 
-    public void setNickName(String nickName) {
-        this.nickname = nickName;
+    public Member(String email, String nickname, String accessToken, Provider provider, String providerUserID, boolean isWithdrawn) {
+        this.email = email;
+        this.nickname = nickname;
+        this.accessToken = accessToken;
+        this.provider = provider;
+        this.providerUserID = providerUserID;
+        this.isWithdrawn = isWithdrawn;
     }
 
-    public void setImageURL(String imageURL) {
-        this.imageURL = imageURL;
-    }
 }

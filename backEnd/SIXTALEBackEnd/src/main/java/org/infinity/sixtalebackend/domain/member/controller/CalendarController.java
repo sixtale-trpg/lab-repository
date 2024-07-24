@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.member.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.infinity.sixtalebackend.domain.member.service.CalendarServiceImpl;
 import org.infinity.sixtalebackend.domain.member.dto.CalendarListResponse;
@@ -16,12 +17,12 @@ import org.springframework.web.bind.annotation.*;
 public class CalendarController {
     private final CalendarServiceImpl calendarService;
 
-    //    bearer 처리?
-//    private final JwtTokenProvider jwtTokenProvider;
+    /**
+     *  회원 일정 조회(개인)
+     */
     @GetMapping
     public ResponseEntity getAllCalendars() {
         try {
-            // bearer 토큰 추출 대신 id = 1인 유저 가정
             long id = 1L;
             CalendarListResponse response = calendarService.getAllCalendars(id);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, "회원 일정 조회 성공"), HttpStatus.OK);
@@ -32,8 +33,12 @@ public class CalendarController {
         }
     }
 
+    /**
+     * 회원 일정 생성
+     * @param calendarRequest
+     */
     @PostMapping
-    public ResponseEntity createCalendar(@RequestBody CalendarRequest calendarRequest) {
+    public ResponseEntity createCalendar(@RequestBody @Valid CalendarRequest calendarRequest) {
         try {
             // bearer 토큰 추출 대신 id = 1인 유저 가정
             Long id = 1L;
@@ -46,6 +51,10 @@ public class CalendarController {
         }
     }
 
+    /**
+     * 회원 일정 삭제
+     * @param calendarId
+     */
     @DeleteMapping("/{calendarId}")
     public ResponseEntity deleteCalendar(@PathVariable Long calendarId) {
         try {

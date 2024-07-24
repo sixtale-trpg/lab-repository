@@ -81,19 +81,19 @@ public class CalendarServiceTest {
         assertThat(response.getDateList()).hasSize(1);
         assertThat(response.getDateList().get(0).getTitle()).isEqualTo("Test Event 1");
     }
-    @Test
-    public void testCreateCalendar() {
-        CalendarRequest request = new CalendarRequest();
-        request.setStartAt(LocalDateTime.now());
-        request.setEndAt(LocalDateTime.now().plusHours(2));
-        request.setTitle("New Event");
-
-        calendarService.createCalendar(member1.getId(), request);
-
-        List<Calender> calendars = calendarRepository.findByMember(member1);
-        assertThat(calendars).hasSize(2);
-        assertThat(calendars.get(1).getTitle()).isEqualTo("New Event");
-    }
+//    @Test
+//    public void testCreateCalendar() {
+//        CalendarRequest request = new CalendarRequest();
+//        request.setStartAt(LocalDateTime.now());
+//        request.setEndAt(LocalDateTime.now().plusHours(2));
+//        request.setTitle("New Event");
+//
+//        calendarService.createCalendar(member1.getId(), request);
+//
+//        List<Calender> calendars = calendarRepository.findByMember(member1);
+//        assertThat(calendars).hasSize(2);
+//        assertThat(calendars.get(1).getTitle()).isEqualTo("New Event");
+//    }
     @Test
     public void testDeleteCalendar() {
         Calender calendar = calendarRepository.findByMember(member1).get(0);

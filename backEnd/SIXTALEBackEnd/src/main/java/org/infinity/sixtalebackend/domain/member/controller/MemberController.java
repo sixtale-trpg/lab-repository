@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
     private final MemberSerivceImpl memberSerivce;
 
+    /**
+     * 닉네임 중복 검사
+     * @param nickname
+     */
     @GetMapping("/members/check-nickname")
     public ResponseEntity checkNickname(@RequestParam String nickname) {
         if (nickname == null || nickname.isEmpty()) {

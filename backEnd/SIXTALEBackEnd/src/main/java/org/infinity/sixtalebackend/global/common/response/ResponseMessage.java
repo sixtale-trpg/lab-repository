@@ -31,4 +31,6 @@ public class ResponseMessage {
 
     public static final String ENTER_USER = "게임 방 유저 입장 성공";
     public static final String ENTER_USER_FAIL = "게임 방 유저 입장 실패";
+    public static final String EXIT_USER = "게임 방 유저 퇴장 성공";
+    public static final String EXIT_USER_FAIL = "게임 방 유저 퇴장 실패";
 }

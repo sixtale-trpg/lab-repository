@@ -25,6 +25,10 @@ public class ScenarioNPC {
 
     @Column(nullable = false)
     @ColumnDefault("0")
+    private Integer currentHp;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
     private Integer hp;
 
     @Column(nullable = false)

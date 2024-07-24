@@ -9,10 +9,9 @@ import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.naming.AuthenticationException;
 
 @RestController
 @RequestMapping("/rooms")
@@ -20,11 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoomController {
     private final RoomService roomServiceImpl;
 
+    /**
+     * 게임 방 유저 입장
+     */
     @PostMapping("/{roomID}/players")
     public ResponseEntity addPlayerToRoom(@PathVariable Long roomID) {
         try {
-            // id = 2 유저 가정
-            Long memberID = 2L;
+            // id = 1 유저 가정
+            Long memberID = 1L;
             RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.ENTER_USER, roomResponse), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
@@ -33,5 +35,21 @@ public class RoomController {
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    /**
+     * 게임 방 유저 퇴장
+     */
+    @DeleteMapping("{roomID}/players")
+    public ResponseEntity deletePlayerFromRoom(@PathVariable Long roomID) {
+        try {
+            Long memberID = 1L;
+            roomServiceImpl.deletePlayerFromRoom(roomID, memberID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.EXIT_USER), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.EXIT_USER_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

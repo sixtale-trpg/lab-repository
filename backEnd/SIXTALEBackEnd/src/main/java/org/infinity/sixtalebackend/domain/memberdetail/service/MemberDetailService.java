@@ -4,7 +4,6 @@ import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailRequestDt
 import org.infinity.sixtalebackend.domain.memberdetail.dto.MemberDetailResponseDto;
 import org.springframework.stereotype.Service;
 
-@Service
 public interface MemberDetailService {
     void createMemberDetail(MemberDetailRequestDto memberDetailRequestDto, Long memberID);
 

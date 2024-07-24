@@ -38,7 +38,7 @@ public class Member extends BaseTimeEntity {
     private String providerUserID;
 
     @Column(nullable = false)
-    private Boolean isWithdrawn = false;
+    private Boolean isWithdrawn;
 
     @Column(nullable = false)
     private LocalDateTime lastLoginAt = LocalDateTime.now();

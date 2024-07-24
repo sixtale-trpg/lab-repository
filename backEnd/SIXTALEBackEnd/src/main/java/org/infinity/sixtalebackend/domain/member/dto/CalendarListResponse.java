@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.member.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -30,7 +30,9 @@ public class ResponseMessage {
     public static final String INTERNAL_SERVER_ERROR = "서버 내부 에러";
 
     public static final String ENTER_USER = "게임 방 유저 입장 성공";
+    public static final String EXIT_USER = "게임 방 유저 퇴장 성공";
     public static final String ENTER_USER_FAIL = "게임 방 유저 입장 실패";
+    public static final String EXIT_USER_FAIL = "게임 방 유저 퇴장 실패";
     public static final String UPDATE_ROOM_STATUS = "게임 방 상태 변경 성공";
     public static final String UPDATE_ROOM_STATUS_FAIL = "게임 방 상태 변경 실패";
 

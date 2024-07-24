@@ -5,6 +5,7 @@ import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.domain.Room;
+import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.RoomResponse;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
@@ -50,5 +51,11 @@ public class RoomServiceImpl implements RoomService{
                 .build();
 
         return roomResponse;
+    }
+
+    @Override
+    public void updateRoomStatus(Long roomID, RoomStatus status) {
+        Room room = roomRepository.findById(roomID).get();
+        room.setStatus(status);
     }
 }

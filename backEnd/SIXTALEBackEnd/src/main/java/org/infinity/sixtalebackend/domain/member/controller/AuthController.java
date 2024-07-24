@@ -3,27 +3,23 @@ package org.infinity.sixtalebackend.domain.member.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
-import org.infinity.sixtalebackend.domain.member.dto.AuthResponse;
-import org.infinity.sixtalebackend.domain.member.service.OAuth2UserServiceImpl;
-import org.springframework.http.HttpStatus;
+import org.infinity.sixtalebackend.domain.member.service.AuthServiceImpl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/members")
 public class AuthController {
 
-    OAuth2UserServiceImpl oAuth2UserService;
+    AuthServiceImpl authService;
 
-    public AuthController(OAuth2UserServiceImpl oAuth2UserService, HttpSession httpSession) {
-        this.oAuth2UserService = oAuth2UserService;
+    public AuthController(AuthServiceImpl oAuth2UserService, HttpSession httpSession) {
+        this.authService = oAuth2UserService;
     }
 
     @GetMapping("/auth/login/{registrationID}")
     public ResponseEntity<?> login(@RequestParam String code, @PathVariable String registrationID, HttpServletRequest request) {
-        Member member = oAuth2UserService.socialLogin(code, registrationID);
+        Member member = authService.socialLogin(code, registrationID);
         HttpSession session = request.getSession();
         session.setAttribute("user", member);
         return ResponseEntity.ok(code + " " + registrationID + " " + member.getId() + " " + member.getEmail() + " " + member.getNickname() + " " + member.getIsWithdrawn());
@@ -43,7 +39,7 @@ public class AuthController {
         HttpSession session = request.getSession(false);
         Member member = (Member) session.getAttribute("user");
         if (member != null) {
-            oAuth2UserService.withdraw(member);
+            authService.withdraw(member);
             session.invalidate();
         }
         return ResponseEntity.ok("WITHDRAW OK");

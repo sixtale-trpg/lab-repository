@@ -7,10 +7,10 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-@Table(name = "grid_cell")
+@Table(name = "place_event")
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GridCell {
+public class PlaceEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +27,11 @@ public class GridCell {
     @Column(nullable = false)
     private Integer col;
 
-    @Column(nullable = false, length = 50)
-    private String name;
-
     @Column(length = 100)
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "next_map_id")
+    private Map nextMap;
 
 }

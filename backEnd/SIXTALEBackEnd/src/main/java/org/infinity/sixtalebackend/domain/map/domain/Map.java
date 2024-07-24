@@ -31,8 +31,12 @@ public class Map {
     private String description;
 
     @Column(nullable = false)
-    @ColumnDefault("true")
-    private boolean isMap;
+    @ColumnDefault("false")
+    private boolean isNpc;
+
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean isPlace;
 
     @Column(name="image_url")
     private String imageURL;

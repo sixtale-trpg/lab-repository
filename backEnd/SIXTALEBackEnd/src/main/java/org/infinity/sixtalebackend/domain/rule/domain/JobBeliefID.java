@@ -8,6 +8,7 @@ import java.io.Serializable;
 @Embeddable
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class JobBeliefID implements Serializable {
     private Long jobID;

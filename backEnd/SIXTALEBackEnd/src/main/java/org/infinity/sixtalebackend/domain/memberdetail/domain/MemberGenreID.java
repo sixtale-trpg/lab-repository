@@ -1,9 +1,7 @@
-package org.infinity.sixtalebackend.domain.member.domain;
+package org.infinity.sixtalebackend.domain.memberdetail.domain;
 
 import jakarta.persistence.Embeddable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -11,7 +9,8 @@ import java.io.Serializable;
 
 @Embeddable
 @Getter
-@NoArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode
 public class MemberGenreID implements Serializable {
     private Long memberID;

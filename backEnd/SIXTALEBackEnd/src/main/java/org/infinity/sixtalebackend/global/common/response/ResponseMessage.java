@@ -2,6 +2,12 @@ package org.infinity.sixtalebackend.global.common.response;
 
 public class ResponseMessage {
     public static final String CREATED_USER = "회원 가입 성공";
+    public static final String CREATED_MEMBER_DETAIL = "회원 상세정보 생성 성공";
+    public static final String CREATED_MEMBER_INFO = "회원 정보 생성 성공";
+    public static final String UPDATED_MEMBER_INFO = "회원 정보 수정 성공";
+    public static final String READ_MEMBER_INFO = "회원 정보 조회 성공";
+    public static final String UPDATED_MEMBER_DETAIL = "회원 상세정보 수정 성공";
+    public static final String READ_MEMBER_DETAIL = "회원 상세정보 조회 성공";
     public static final String BAD_REQUEST_TERMS = "회원약관 요청 에러";
     public static final String DUPLICATE_EMAIL = "이메일 중복 에러";
     public static final String VALIDATION_ERROR = "이메일 유효성 에러";
@@ -22,4 +28,9 @@ public class ResponseMessage {
     public static final String UPDATE_USER = "회원 정보 수정 성공";
     public static final String WITHDRAWAL_USER = "회원 탈퇴 성공";
     public static final String INTERNAL_SERVER_ERROR = "서버 내부 에러";
+
+    public static final String ENTER_USER = "게임 방 유저 입장 성공";
+    public static final String ENTER_USER_FAIL = "게임 방 유저 입장 실패";
+    public static final String EXIT_USER = "게임 방 유저 퇴장 성공";
+    public static final String EXIT_USER_FAIL = "게임 방 유저 퇴장 실패";
 }

@@ -8,7 +8,6 @@ import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @Table(name = "character_equipment")
 @AllArgsConstructor

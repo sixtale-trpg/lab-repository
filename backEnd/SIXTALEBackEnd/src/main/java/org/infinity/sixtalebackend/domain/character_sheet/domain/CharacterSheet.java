@@ -3,6 +3,7 @@ package org.infinity.sixtalebackend.domain.character_sheet.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.rule.domain.Belief;
 import org.infinity.sixtalebackend.domain.rule.domain.Job;
@@ -10,7 +11,6 @@ import org.infinity.sixtalebackend.domain.rule.domain.Race;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @Table(name = "character_sheet")
 @AllArgsConstructor
@@ -18,7 +18,11 @@ import org.infinity.sixtalebackend.domain.rule.domain.Race;
 public class CharacterSheet {
 
     @Id
+    @Column(name = "play_member_id")
+    private Long id;
+
     @OneToOne
+    @MapsId
     @JoinColumn(name = "play_member_id")
     private PlayMember playMember;
 

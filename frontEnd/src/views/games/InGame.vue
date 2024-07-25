@@ -27,7 +27,7 @@ const router = useRouter();
 const route = useRoute();
 
 const gm = ref({
-  name: 'Game Master',
+  name: '미카엘',
   profileImage: require('@/assets/images/users/gm.png'),
 });
 
@@ -60,7 +60,7 @@ const startGame = () => {
 }
 
 .header {
-  height: 10%;
+  height: 70%;
   width: 100%;
 }
 
@@ -89,46 +89,18 @@ const startGame = () => {
   box-sizing: border-box;
 }
 
-.map-container {
-  flex: 2; /* 가로의 2/3를 명시적으로 차지하도록 설정 */
-  height: 100%;
-  display: flex;
-}
-
-.map {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .right-section {
-  width: 20%; /* 가로의 1/5을 명시적으로 차지하도록 설정 */
+  width: 20%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .gm-section {
-  flex: 1;
+  height: 8%;
 }
 
 .chatting {
-  flex: 3;
-}
-
-.column-left,
-.column-right {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   flex: 1;
-}
-
-.token,
-.dice,
-.action,
-.inventory {
-  flex: 1;
-  width: 100%;
 }
 </style>

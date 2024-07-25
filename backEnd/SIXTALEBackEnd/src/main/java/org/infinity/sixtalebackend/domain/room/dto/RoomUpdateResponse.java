@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Builder
-public class RoomResponse {
+public class RoomUpdateResponse {
     private Long id;
     private String title;
     private String description;
@@ -26,6 +26,4 @@ public class RoomResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalTime playTime;
-    private Long ruleId;
-    private Long gmId;
 }

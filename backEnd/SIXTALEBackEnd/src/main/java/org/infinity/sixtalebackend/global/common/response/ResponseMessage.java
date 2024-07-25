@@ -35,6 +35,15 @@ public class ResponseMessage {
     public static final String EXIT_USER_FAIL = "게임 방 유저 퇴장 실패";
     public static final String UPDATE_ROOM_STATUS = "게임 방 상태 변경 성공";
     public static final String UPDATE_ROOM_STATUS_FAIL = "게임 방 상태 변경 실패";
+    public static final String CREATE_ROOM = "게임 방 생성 성공";
+    public static final String CREATE_ROOM_FAIL = "게임 방 생성 실패";
+    public static final String READ_ROOM_INFO = "게임 방 정보 조회 성공";
+    public static final String READ_ROOM_INFO_FAIL = "게임 방 정보 조회 실패";
+    public static final String UPDATE_ROOM = "게임 방 정보 수정 성공";
+    public static final String UPDATE_ROOM_FAIL = "게임 방 정보 수정 성공";
+    public static final String READ_ROOM_LIST= "게임 방 목록 조회 성공";
+    public static final String READ_ROOM_LIST_FAIL= "게임 방 목록 조회 실패";
+
 
     public static final String READ_RULE = "룰 상세 조회 성공";
     public static final String READ_RULE_FAIL = "룰 상세 조회 실패";
@@ -42,7 +51,7 @@ public class ResponseMessage {
     public static final String READ_RULE_JOB_FAIL = "룰 직업 목록 조회 실패";
     public static final String READ_JOB_OPTION = "직업에 따른 선택지 목록 조회 성공";
     public static final String READ_JOB_OPTION_FAIL = "직업에 따른 선택지 목록 조회 실패";
-    
+
     public static final String READ_MAP_LIST = "맵 목록 조회 성공";
     public static final String READ_MAP_LIST_FAIL = "맵 목록 조회 실패";
     public static final String READ_MAP = "맵 정보 조회 성공";
@@ -55,4 +64,5 @@ public class ResponseMessage {
     public static final String READ_NPC_EVENT_LIST_FAIL = "NPC 정보 이벤트 목록 조회 실패";
     public static final String READ_NPC_EVENT = "NPC 정보 이벤트 조회 성공";
     public static final String READ_NPC_EVENT_FAIL = "NPC 정보 이벤트 조회 실패";
+
 }

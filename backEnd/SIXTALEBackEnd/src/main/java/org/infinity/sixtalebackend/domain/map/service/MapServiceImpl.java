@@ -3,6 +3,7 @@ package org.infinity.sixtalebackend.domain.map.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.map.domain.Map;
+import org.infinity.sixtalebackend.domain.map.domain.NPCEvent;
 import org.infinity.sixtalebackend.domain.map.domain.PlaceEvent;
 import org.infinity.sixtalebackend.domain.map.dto.*;
 import org.infinity.sixtalebackend.domain.map.repository.MapRepository;
@@ -76,6 +77,12 @@ public class MapServiceImpl implements Mapservice {
 
     @Override
     public NPCEventListResponse getNPCEventList(Long roomID, Long mapID) {
-        return null;
+        Map map = mapRepository.findById(mapID).get();
+        List<NPCEvent> npcEvents = npcEventRepository.findByMap(map);
+
+        NPCEventListResponse response = new NPCEventListResponse();
+        response.setNpcEvents(npcEvents);
+
+        return response;
     }
 }

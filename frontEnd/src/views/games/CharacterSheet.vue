@@ -3,7 +3,7 @@
     <Header class="header" />
     <div class="main-content">
       <div class="left-section">
-        <JobCard class="job-card" />
+        <JobBoard class="job-card" />
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
@@ -22,6 +22,7 @@ import JobCard from '@/views/games/components/charactersheet/JobCard.vue';
 import VideoProfile from '@/views/games/components/charactersheet/VideoProfile.vue';
 import GMSection from '@/views/games/components/charactersheet/GMSection.vue';
 import Chatting from '@/views/games/components/charactersheet/Chatting.vue';
+import JobBoard from './components/charactersheet/JobBoard.vue';
 
 const router = useRouter();
 const route = useRoute();

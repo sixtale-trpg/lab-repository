@@ -55,10 +55,10 @@ public class Scenario extends BaseTimeEntity {
     @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 
-    @Column(length = 255)
+    @Column(name = "image_url")
     private String imageURL;
 
-    @Column(length = 255)
+    @Column(name = "gif_url")
     private String gifURL;
 
 }

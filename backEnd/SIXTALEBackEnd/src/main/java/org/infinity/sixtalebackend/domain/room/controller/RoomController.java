@@ -59,7 +59,7 @@ public class RoomController {
     public ResponseEntity updateRoomStatus(@PathVariable Long roomID, @RequestBody Room room) {
         try {
             roomServiceImpl.updateRoomStatus(roomID, room.getStatus());
-            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.UPDATE_ROOM_STATUS), HttpStatus.CREATED);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_ROOM_STATUS), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_ROOM_STATUS_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

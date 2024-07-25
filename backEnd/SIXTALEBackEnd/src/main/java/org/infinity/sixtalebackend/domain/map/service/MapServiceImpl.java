@@ -85,4 +85,35 @@ public class MapServiceImpl implements Mapservice {
 
         return response;
     }
+
+    @Override
+    public PlaceEventResponse readPlaceEvent(Long roomID, Long mapID, Long placeEventID) {
+        PlaceEvent placeEvent = placeEventRepository.findById(placeEventID).get();
+
+        PlaceEventResponse response = PlaceEventResponse.builder()
+                .id(placeEvent.getId())
+                .map(placeEvent.getMap())
+                .row(placeEvent.getRow())
+                .col(placeEvent.getCol())
+                .description(placeEvent.getDescription())
+                .nextMap(placeEvent.getNextMap())
+                .build();
+
+        return response;
+    }
+
+    @Override
+    public NPCEventResponse readNPCEvent(Long roomID, Long mapID, Long npcEventID) {
+        NPCEvent npcEvent = npcEventRepository.findById(npcEventID).get();
+
+        NPCEventResponse response = NPCEventResponse.builder()
+                .id(npcEvent.getId())
+                .map(npcEvent.getMap())
+                .description(npcEvent.getDescription())
+                .scenarioNPC(npcEvent.getScenarioNPC())
+                .currentHp(npcEvent.getCurrentHp())
+                .build();
+
+        return response;
+    }
 }

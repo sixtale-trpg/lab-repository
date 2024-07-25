@@ -8,4 +8,6 @@ public interface Mapservice {
 
     PlaceEventListResponse getPlaceEventList(Long roomID, Long mapID);
     NPCEventListResponse getNPCEventList(Long roomID, Long mapID);
+    PlaceEventResponse readPlaceEvent(Long roomID, Long mapID, Long placeEventID);
+    NPCEventResponse readNPCEvent(Long roomID, Long mapID, Long npcEventID);
 }

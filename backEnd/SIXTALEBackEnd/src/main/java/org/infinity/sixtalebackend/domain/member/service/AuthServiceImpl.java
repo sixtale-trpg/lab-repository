@@ -17,7 +17,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OAuth2UserServiceImpl implements OAuth2UserService {
+public class AuthServiceImpl implements AuthService {
 
     private final AuthRepository authRepository;
     private final Environment env;
@@ -92,11 +92,12 @@ public class OAuth2UserServiceImpl implements OAuth2UserService {
     }
 
     public JsonNode getUserResource(String accessToken, String registrationID) {
+        String envPath = "spring.security.oauth2.client.";
         String resourceURI = null;
         if (registrationID.equals("google"))
-            resourceURI = env.getProperty("spring.security.oauth2.client."+registrationID+".resource-uri");
+            resourceURI = env.getProperty(envPath + registrationID + ".resource-uri");
         else if (registrationID.equals("naver"))
-            resourceURI = env.getProperty("spring.security.oauth2.client.provider." + registrationID + ".user-info-uri");
+            resourceURI = env.getProperty(envPath + "provider." + registrationID + ".user-info-uri");
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);

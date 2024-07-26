@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Embeddable
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class JobRaceID implements Serializable {
     private Long jobID;

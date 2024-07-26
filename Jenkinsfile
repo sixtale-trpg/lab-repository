@@ -7,6 +7,24 @@ pipeline {
     environment {
         PATH = "${env.PATH}:/usr/local/bin"
     }
+    stage('Set PATH') {
+        steps {
+            script {
+                sh 'export PATH=$PATH:/usr/local/bin'
+                sh 'echo $PATH'
+            }
+        }
+    }
+    stage('Check Node.js and npm') {
+        steps {
+            script {
+                sh 'node -v'
+                sh 'npm -v'
+                
+                sh 'which npm'
+            }
+        }
+    }
     stages {
         stage('Clone') {
             steps {

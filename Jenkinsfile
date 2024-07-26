@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    environment {
-        PATH = "${env.PATH}:/usr/local/bin"
-    }
     tools {
         gradle 'myGradle'		
         nodejs 'myNodeJS'    
@@ -24,8 +21,8 @@ pipeline {
         stage('FE-Build') {
             steps {
                 dir("./frontEnd"){
-                    withEnv(["PATH+NODEJS=${tool name: 'myNodeJS'}/bin"]) {
-                        sh 'npm install'
+                    withEnv(["PATH+NODE=/usr/bin/node", "NODE_ENV=production"]) {
+                        
                         sh 'npm run build'
                     }
                 }   

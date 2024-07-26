@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        // Node.js와 npm이 설치된 경로를 PATH에 추가합니다.
+        PATH = "${env.PATH}:/usr/bin"
+    }
     tools {
         gradle 'myGradle'		
         nodejs 'myNodeJS'    
@@ -21,8 +25,8 @@ pipeline {
         stage('FE-Build') {
             steps {
                 dir("./frontEnd"){
-                    withEnv(["PATH+NODE=/usr/bin/node", "NODE_ENV=production"]) {
-                        
+                    script {
+                        sh 'npm install'
                         sh 'npm run build'
                     }
                 }   

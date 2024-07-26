@@ -18,7 +18,7 @@
 
 <script setup>
 import { reactive } from 'vue';
-import eventBus from './eventBus';
+import eventBus from '@/common/lib/eventBus.js';
 
 const diceList = reactive([
   { id: 4, name: 'D4', image: require('@/assets/images/ingame/Dice4.png'), count: 0 },
@@ -33,12 +33,20 @@ const diceList = reactive([
 const emitRollDice = () => {
   const diceTypesToRoll = [];
   diceList.forEach(dice => {
-    for (let i = 0; i < dice.count; i++) {
-      diceTypesToRoll.push(dice.id);
+    if (dice.id === 100) {
+      for (let i = 0; i < dice.count; i++) {
+        diceTypesToRoll.push(10);
+        diceTypesToRoll.push(10);
+      }
+    } else {
+      for (let i = 0; i < dice.count; i++) {
+        diceTypesToRoll.push(dice.id);
+      }
     }
   });
   console.log('Emitting roll-dice event with:', diceTypesToRoll);
   eventBus.emit('roll-dice', diceTypesToRoll);
+  eventBus.emit('change-camera');
 };
 
 const increaseCount = (id) => {

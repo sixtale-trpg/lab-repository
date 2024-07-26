@@ -26,7 +26,6 @@ pipeline {
             steps {
                 dir("./frontEnd"){
                     script {
-                    sh 'chmod +x npm'
                         sh 'npm install'
                         sh 'npm run build'
                     }

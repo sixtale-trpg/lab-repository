@@ -1,7 +1,8 @@
 pipeline {
     agent any
     tools {
-        gradle 'myGradle'		    
+        gradle 'myGradle'		
+        nodejs 'myNodeJS'    
     }
     stages {
         stage('Clone') {

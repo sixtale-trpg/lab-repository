@@ -8,28 +8,6 @@ pipeline {
         PATH = "${env.PATH}:/usr/bin"
     }
     stages {
-        stage('Set PATH') {
-            steps {
-                script {
-                    sh 'export PATH=$PATH:/usr/bin'
-                    sh 'echo $PATH'
-                }
-            }
-        }
-
-        stage('Check Node.js and npm') {
-            steps {
-                script {
-                    // Node.js와 npm의 버전을 확인합니다.
-                    sh 'node -v'
-                    sh 'npm -v'
-                    
-                    // npm 명령어의 위치를 확인합니다.
-                    sh 'which npm'
-                }
-            }
-        }
-
         stage('Clone') {
             steps {
                 git branch: 'master', credentialsId: 'd108-sixtale', url: 'https://lab.ssafy.com/s11-webmobile1-sub2/S11P12D108'
@@ -43,14 +21,7 @@ pipeline {
                 }
             }
         }
-        stage('FE-Build') {
-            steps {
-                dir("./frontEnd"){
-                    sh 'npm install'
-                    sh 'npm run build'
-                }   
-            }
-        }
+
         stage('Test') {
             steps {
                  echo '테스트 단계와 관련된 몇 가지 단계를 수행합니다.'

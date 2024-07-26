@@ -16,14 +16,16 @@ public class RoomResponse {
     private String title;
     private String description;
     private Byte maxCount;
+    private Byte currentCount;
     private Boolean isLocked;
     private String password;
     private Boolean isShortStory;
     private Boolean isVoice;
-    private Boolean isCamera;
     private RoomStatus status;
     private LocalDateTime nextPlay;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalTime playTime;
+    private Long ruleId;
+    private Long gmId;
 }

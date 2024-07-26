@@ -42,7 +42,7 @@ pipeline {
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no ./Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'
-                        sh 'scp -o StrictHostKeyChecking=no ./build/libs/test.jar ${TARGET_HOST}:${PROJECT_PATH}'
+                        sh 'scp -o StrictHostKeyChecking=no ./backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}'
                     }
                 }
             }

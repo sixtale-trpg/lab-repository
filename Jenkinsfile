@@ -1,11 +1,11 @@
 pipeline {
     agent any
-    environment {
-        PATH = "${env.PATH}:/usr/local/bin"
-    }
     tools {
         gradle 'myGradle'		
         nodejs 'myNodeJS'    
+    }
+    environment {
+        PATH = "${env.PATH}:${tool 'myNodeJS'}/bin"
     }
     stages {
         stage('Clone') {

@@ -11,7 +11,7 @@ pipeline {
         stage('Set PATH') {
             steps {
                 script {
-                    sh 'export PATH=$PATH:/usr/local/bin'
+                    sh 'export PATH=$PATH:/usr/bin'
                     sh 'echo $PATH'
                 }
             }

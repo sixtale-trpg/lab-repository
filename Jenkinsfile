@@ -11,15 +11,19 @@ pipeline {
         }
         stage('Build') {
             steps {
-                dir("./Backend/test"){
+                dir("./backEnd/SIXTALEBackEnd"){
                     sh 'chmod +x gradlew'
                     sh  './gradlew clean build'
                 }
+                dir("./frontEnd"){
+                    sh 'npm install'
+                    sh 'npm run build'
+                }   
             }
         }
         stage('Test') {
             steps {
-                 echo  '테스트 단계와 관련된 몇 가지 단계를 수행합니다.'
+                 echo '테스트 단계와 관련된 몇 가지 단계를 수행합니다.'
             }
         }
         stage('Copy build file'){

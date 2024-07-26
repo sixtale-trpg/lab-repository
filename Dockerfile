@@ -2,7 +2,7 @@ FROM openjdk:17-jdk
 
 WORKDIR /jar
 
-COPY ["test.jar", ".", "./gradlew", "clean", "build"]
+COPY test.jar .
 
 ARG ARG_PROFILE
 ENV PROFILE=${ARG_PROFILE}

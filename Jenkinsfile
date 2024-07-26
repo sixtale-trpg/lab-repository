@@ -27,6 +27,14 @@ pipeline {
                  echo '테스트 단계와 관련된 몇 가지 단계를 수행합니다.'
             }
         }
+        stage('SSH AGENT') {
+            steps {
+                sshagent(['d108-sixtale']) {
+                    sh 'scp yourfile user@server:/path/to/destination'
+                    sh 'ssh user@server "some-command"'
+                }
+            }
+        }
         stage('Copy build file'){
             steps{
                 dir("./backEnd/SIXTALEBackEnd"){

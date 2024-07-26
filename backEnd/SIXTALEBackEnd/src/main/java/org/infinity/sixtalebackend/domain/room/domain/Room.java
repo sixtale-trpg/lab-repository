@@ -10,6 +10,7 @@ import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -41,7 +42,7 @@ public class Room extends BaseTimeEntity {
 
     private String description;
 
-    @ColumnDefault("0")
+    @ColumnDefault("1")
     @Column(nullable = false)
     private Byte currentCount;
 
@@ -73,6 +74,10 @@ public class Room extends BaseTimeEntity {
 
     @Column(nullable = false)
     private LocalTime playTime;
+
+    // getRoomDetails을 위한 매핑
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<PlayMember> playMembers;
 
     // 엔티티가 영속성 컨텍스트에 저장되기 전에 호출
     // 시작시간, 끝시간 default 설정

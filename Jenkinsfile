@@ -1,8 +1,7 @@
 pipeline {
     agent any
     environment {
-        // Node.js와 npm이 설치된 경로를 PATH에 추가합니다.
-        PATH = "${env.PATH}:/usr/bin"
+        PATH = "${env.PATH}:/usr/local/bin"
     }
     tools {
         gradle 'myGradle'		

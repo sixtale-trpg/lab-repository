@@ -29,7 +29,7 @@ pipeline {
         }
         stage('SSH AGENT') {
             steps {
-                sshagent(['d108-sixtale']) {
+                sshagent(['d108-infinity']) {
                     sh 'scp yourfile user@server:/path/to/destination'
                     sh 'ssh user@server "some-command"'
                 }

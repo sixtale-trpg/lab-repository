@@ -8,6 +8,30 @@ pipeline {
         PATH = "${env.PATH}:${tool 'NodeJS'}/bin"
     }
     stages {
+        stage('Set PATH') {
+            steps {
+                script {
+                    // Node.js와 npm의 경로를 PATH에 추가합니다
+                    // 실제 경로로 변경해야 함
+                    sh 'export PATH=$PATH:/usr/local/bin'
+                    sh 'echo $PATH'
+                }
+            }
+        }
+
+        stage('Check Node.js and npm') {
+            steps {
+                script {
+                    // Node.js와 npm의 버전을 확인합니다.
+                    sh 'node -v'
+                    sh 'npm -v'
+                    
+                    // npm 명령어의 위치를 확인합니다.
+                    sh 'which npm'
+                }
+            }
+        }
+
         stage('Clone') {
             steps {
                 git branch: 'master', credentialsId: 'd108-sixtale', url: 'https://lab.ssafy.com/s11-webmobile1-sub2/S11P12D108'

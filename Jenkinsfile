@@ -24,10 +24,8 @@ pipeline {
         stage('FE-Build') {
             steps {
                 dir("./frontEnd"){
-                    script {
-                        sh 'npm install'
-                        sh 'npm run build'
-                    }
+                    sh 'npm install'
+                    sh 'npm run build'
                 }   
             }
         }

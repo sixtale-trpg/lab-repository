@@ -1,12 +1,7 @@
 pipeline {
     agent any
-    environment{
-        TARGET_HOST = "D108-INFINITY@i11d108.p.ssafy.io"
-        IMAGE_NAME = "jenkins/jenkins:2.469"
-        CONTAINER_NAME ="jenkins"
-        LAST_VERSION = "1.0"
-        NEW_VERSION = "1.0"
-        PROJECT_PATH = "/home/ubuntu/jenkins-data"
+    tools {
+         gradle 'myGradle'		    
     }
     stages {
         stage('Clone') {

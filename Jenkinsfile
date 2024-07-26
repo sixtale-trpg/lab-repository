@@ -5,7 +5,7 @@ pipeline {
         nodejs 'myNodeJS'    
     }
     environment {
-        PATH = "${env.PATH}:${tool 'myNodeJS'}/bin"
+        PATH = "${env.PATH}:/usr/local/bin"
     }
     stages {
         stage('Clone') {

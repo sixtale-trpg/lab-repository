@@ -6,15 +6,19 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git branch: 'master', credentialsId: 'd108-sixtale' ,url: 'https://lab.ssafy.com/s11-webmobile1-sub2/S11P12D108'
+                git branch: 'master', credentialsId: 'd108-sixtale', url: 'https://lab.ssafy.com/s11-webmobile1-sub2/S11P12D108'
             }
         }
-        stage('Build') {
+        stage('BE-Build') {
             steps {
                 dir("./backEnd/SIXTALEBackEnd"){
                     sh 'chmod +x gradlew'
-                    sh  './gradlew clean build'
+                    sh './gradlew clean build'
                 }
+            }
+        }
+        stage('FE-Build') {
+            steps {
                 dir("./frontEnd"){
                     sh 'npm install'
                     sh 'npm run build'

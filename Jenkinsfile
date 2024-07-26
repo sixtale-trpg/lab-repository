@@ -31,6 +31,8 @@ pipeline {
             steps{
                 dir("./backEnd/SIXTALEBackEnd"){
                     sshagent (credentials: 'd108-sixtale'){
+                        sh 'echo ${TARGET_HOST}'
+                        sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no ./deploy/Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no ./build/libs/test.jar ${TARGET_HOST}:${PROJECT_PATH}'
                     }

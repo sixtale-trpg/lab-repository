@@ -5,7 +5,7 @@ pipeline {
         nodejs 'NodeJS'    
     }
     environment {
-        PATH = "${tool 'NodeJS'}"
+        PATH = "${env.PATH}:/usr/bin"
     }
     stages {
         stage('Set PATH') {

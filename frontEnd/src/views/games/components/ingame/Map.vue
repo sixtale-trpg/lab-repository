@@ -7,8 +7,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import ThreeJSManager from './ThreeJSManager';
-import eventBus from './eventBus.js'; // Ensure this path is correct
+import ThreeJSManager from '@/common/lib/ThreeJSManager';
+import eventBus from '@/common/lib/eventBus.js'; // Ensure this path is correct
 
 const rendererContainer = ref(null);
 let threeJSManager = null;

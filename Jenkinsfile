@@ -5,14 +5,12 @@ pipeline {
         nodejs 'NodeJS'    
     }
     environment {
-        PATH = "${env.PATH}:${tool 'NodeJS'}/bin"
+        PATH = "${tool 'NodeJS'}/bin:${env.PATH}"
     }
     stages {
         stage('Set PATH') {
             steps {
                 script {
-                    // Node.js와 npm의 경로를 PATH에 추가합니다
-                    // 실제 경로로 변경해야 함
                     sh 'export PATH=$PATH:/usr/local/bin'
                     sh 'echo $PATH'
                 }

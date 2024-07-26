@@ -7,25 +7,25 @@ pipeline {
     environment {
         PATH = "${env.PATH}:/usr/local/bin"
     }
-    stage('Set PATH') {
-        steps {
-            script {
-                sh 'export PATH=$PATH:/usr/local/bin'
-                sh 'echo $PATH'
-            }
-        }
-    }
-    stage('Check Node.js and npm') {
-        steps {
-            script {
-                sh 'node -v'
-                sh 'npm -v'
-                
-                sh 'which npm'
-            }
-        }
-    }
     stages {
+        stage('Set PATH') {
+            steps {
+                script {
+                    sh 'export PATH=$PATH:/usr/local/bin'
+                    sh 'echo $PATH'
+                }
+            }
+        }
+        stage('Check Node.js and npm') {
+            steps {
+                script {
+                    sh 'node -v'
+                    sh 'npm -v'
+                    
+                    sh 'which npm'
+                }
+            }
+        }
         stage('Clone') {
             steps {
                 git branch: 'master', credentialsId: 'd108-sixtale', url: 'https://lab.ssafy.com/s11-webmobile1-sub2/S11P12D108'

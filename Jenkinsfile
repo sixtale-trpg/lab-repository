@@ -21,7 +21,7 @@ pipeline {
         stage('FE-Build') {
             steps {
                 dir("./frontEnd"){
-                    withEnv(['PATH+NODEJS=${tool name: "myNodeJS"}/bin']) {
+                    withEnv(`PATH+NODEJS=${tool name: "myNodeJS"}/bin`) {
                         sh 'npm install'
                         sh 'npm run build'
                     }

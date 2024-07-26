@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         gradle 'myGradle'		
-        nodejs 'myNodeJS'    
+        nodejs 'NodeJS'    
     }
     environment {
         PATH = "${env.PATH}:/usr/local/bin"

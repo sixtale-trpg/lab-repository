@@ -57,7 +57,7 @@ public class ResponseMessage {
     public static final String READ_ROOM_MEMBER_CALENDARS_FAIL = "게임 방 회원 일정 전체 조회 실패";
     public static final String CREATE_ROOM_MEMBER_CALENDARS = "게임 방 회원 일정 전체 생성 성공";
     public static final String CREATE_ROOM_MEMBER_CALENDARS_FAIL = "게임 방 회원 일정 전체 생성 실패";
-    public static final String CREATE_ROOM_MEMBER_CALENDARS_ERROR = "게임 방 회원 일정 입력 오류";
+    public static final String CREATE_ROOM_MEMBER_CALENDARS_ERROR = "게임 방 회원 일정 생성 시 입력 오류";
 
     public static final String READ_RULE = "룰 상세 조회 성공";
     public static final String READ_RULE_FAIL = "룰 상세 조회 실패";

@@ -10,7 +10,6 @@ pipeline {
         NEW_VERSION = '1.0.0'
         CONTAINER_NAME = 'jenkins'
         TARGET_HOST = 'i11D108.p.ssafy.io'
-        PROJECT_PATH = '/path/to/project'
     }
     stages {
         stage('Clone') {

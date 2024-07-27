@@ -50,6 +50,7 @@ pipeline {
             steps{
                 dir("."){
                     sshagent (['ssh-server']){
+                        sh 'sudo chmod u+2 /project-test'
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'

@@ -29,7 +29,7 @@ module.exports = {
     port: 8083,
     open: true,
     proxy: {
-      '/api/': {
+      '/': {
         target: 'http://i11d108.p.ssafy.io/:8888/'
       }
     },

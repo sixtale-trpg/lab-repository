@@ -9,6 +9,7 @@ pipeline {
         IMAGE_NAME = 'sixtale-test'
         NEW_VERSION = '1.0.0'
         CONTAINER_NAME = 'jenkins-test'
+        PROJECT_PATH = '.'
     }
     stages {
         stage('Clone') {

@@ -21,7 +21,16 @@ pipeline {
                 }
             }
         }
-
+        stage('FE-Build') {
+            steps {
+                dir("./frontEnd"){
+                    script {
+                        sh 'npm install'
+                        sh 'npm run build'
+                    }
+                }   
+            }
+        }
         stage('SSH AGENT') {
             steps {
                 sshagent('d108-sixtale') {

@@ -24,9 +24,11 @@ pipeline {
         stage('FE-Build') {
             steps {
                 dir("./frontEnd"){
-                    script {
-                        sh 'npm install'
-                        sh 'npm run build'
+                    withEnv(['NODE_OPTIONS=--openssl-legacy-provider']) {
+                        script {
+                            sh 'npm install'
+                            sh 'npm run build'
+                        }
                     }
                 }   
             }

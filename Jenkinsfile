@@ -53,7 +53,7 @@ pipeline {
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}/Dockerfile'
-                        sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}/gradle-wrapper.jar'
+                        sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}/build/libs/SIXTALEBackEnd-0.0.1-SNAPSHOT.jar'
                     }
                 }
             }

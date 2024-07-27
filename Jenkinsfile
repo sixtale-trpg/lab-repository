@@ -33,7 +33,6 @@ pipeline {
                 }   
             }
         }
-        
         stage('SSH AGENT') {
             steps {
                 sshagent(['ssh-server']) {
@@ -45,7 +44,7 @@ pipeline {
         stage('Copy build file'){
             steps{
                 dir("./backEnd/SIXTALEBackEnd"){
-                    sshagent (credentials: 'd108-sixtale'){
+                    sshagent (['ssh-server']){
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'

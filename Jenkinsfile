@@ -41,14 +41,6 @@ pipeline {
                     sh 'scp backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/usr/bin'
                     sh 'ssh ubuntu@i11D108.p.ssafy.io "Team INFINITY SIXTALE"'
                 }
-
-                sshagent(credentials: ['ssh-credentials-id']) {
-                    sh '''
-                        [ -d ~/.ssh ] || mkdir ~/.ssh && chmod 0700 ~/.ssh
-                        ssh-keyscan -t rsa,dsa example.com >> ~/.ssh/known_hosts
-                        ssh user@example.com ...
-                    '''
-                }
             }
         }
         stage('Copy build file'){

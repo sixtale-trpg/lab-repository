@@ -8,6 +8,7 @@ pipeline {
         PATH = "${env.PATH}:/usr/bin"
         IMAGE_NAME = 'sixtale-test'
         NEW_VERSION = '1.0.0'
+        CONTAINER_NAME = 'jenkins'
     }
     stages {
         stage('Clone') {

@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.room.service;
 
+import jakarta.persistence.LockModeType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
@@ -8,12 +9,14 @@ import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.*;
+import org.infinity.sixtalebackend.domain.room.exception.IncorrectPasswordException;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,14 +39,32 @@ public class RoomServiceImpl implements RoomService{
      */
     @Override
     @Transactional
-    public RoomResponse addPlayerToRoom(Long roomID, Long memberID) {
-        Room room = roomRepository.findById(roomID).orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
-        Member member = memberRepository.findById(memberID).orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    @Lock(LockModeType.PESSIMISTIC_WRITE) // 동시성 문제 해결을 위한 잠금 모드 설정
+    public RoomResponse addPlayerToRoom(Long roomID, Long memberID, String password) {
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+        // 비밀번호가 설정된 방인지 확인하고 비밀번호 검증
+        if (room.getIsLocked()) {
+            if (password == null || password.isEmpty()) {
+                throw new IncorrectPasswordException("잠긴 방에 들어가려면 비밀번호가 필요합니다.");
+            }
+            if (!passwordEncoder.matches(password, room.getPassword())) {
+                throw new IncorrectPasswordException("비밀번호가 올바르지 않습니다.");
+            }
+        }
 
         // 이미 들어온 회원일 때
         if (playMemberRepository.existsByRoomAndMember(room, member)) {
             log.info("playMember already exists with memberID: {} and roomID: {}", memberID, roomID);
             throw new IllegalArgumentException("회원이 이미 게임 방에 있습니다.");
+        }
+
+        // 게임 방 최대 인원을 초과할 때
+        if (room.getCurrentCount() >= room.getMaxCount()) {
+            throw new IllegalArgumentException("게임 방의 최대 인원을 초과했습니다.");
         }
 
         //playMember 추가
@@ -81,11 +102,14 @@ public class RoomServiceImpl implements RoomService{
      */
     @Override
     @Transactional
+    @Lock(LockModeType.PESSIMISTIC_WRITE) // 동시성 문제 해결을 위한 잠금 모드 설정
     public void deletePlayerFromRoom(Long roomID, Long memberID) {
-        Room room = roomRepository.findById(roomID).orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
-        Member member = memberRepository.findById(memberID).orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
-
-        PlayMember playMember = playMemberRepository.findByRoomAndMember(room, member).orElseThrow(() -> new IllegalArgumentException("게임 방에 회원이 존재하지 않습니다."));
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        PlayMember playMember = playMemberRepository.findByRoomAndMember(room, member)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방에 회원이 존재하지 않습니다."));
 
         playMemberRepository.delete(playMember);
 

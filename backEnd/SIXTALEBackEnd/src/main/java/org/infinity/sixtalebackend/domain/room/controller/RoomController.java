@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.*;
+import org.infinity.sixtalebackend.domain.room.exception.IncorrectPasswordException;
 import org.infinity.sixtalebackend.domain.room.service.RoomService;
 import org.infinity.sixtalebackend.domain.room.service.RoomServiceImpl;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
@@ -34,12 +35,14 @@ public class RoomController {
      * 게임 방 유저 입장
      */
     @PostMapping("/{roomID}/players")
-    public ResponseEntity addPlayerToRoom(@PathVariable Long roomID) {
+    public ResponseEntity addPlayerToRoom(@PathVariable Long roomID, @RequestBody AddPlayerRequest addPlayerRequest) {
         try {
             // id = 1 유저 가정
             Long memberID = 1L;
-            RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID);
+            RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID, addPlayerRequest.getPassword());
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.ENTER_USER, roomResponse), HttpStatus.CREATED);
+        } catch (IncorrectPasswordException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.UNAUTHORIZED, ResponseMessage.INCORRECT_PASSWORD), HttpStatus.UNAUTHORIZED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.ENTER_USER_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

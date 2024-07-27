@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface RoomService {
-    public RoomResponse addPlayerToRoom(Long roomID, Long memberID);
+    public RoomResponse addPlayerToRoom(Long roomID, Long memberID, String password);
 
     void deletePlayerFromRoom(Long roomID, Long memberID);
 

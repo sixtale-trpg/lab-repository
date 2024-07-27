@@ -58,5 +58,5 @@ module.exports = {
     },
   },
   lintOnSave: false,
-  outputDir: '../backend/src/main/resources/dist'
+  outputDir: '../backEnd/SIXTALEBackEnd/src/main/resources/dist'
 };

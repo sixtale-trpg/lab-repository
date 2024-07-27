@@ -1,9 +1,11 @@
 package org.infinity.sixtalebackend.domain.room.controller;
 
 import lombok.AllArgsConstructor;
+import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
 import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.*;
+import org.infinity.sixtalebackend.domain.room.exception.IncorrectPasswordException;
 import org.infinity.sixtalebackend.domain.room.service.RoomService;
 import org.infinity.sixtalebackend.domain.room.service.RoomServiceImpl;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/rooms")
@@ -34,12 +37,14 @@ public class RoomController {
      * 게임 방 유저 입장
      */
     @PostMapping("/{roomID}/players")
-    public ResponseEntity addPlayerToRoom(@PathVariable Long roomID) {
+    public ResponseEntity addPlayerToRoom(@PathVariable Long roomID, @RequestBody AddPlayerRequest addPlayerRequest) {
         try {
             // id = 1 유저 가정
             Long memberID = 1L;
-            RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID);
+            RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID, addPlayerRequest.getPassword());
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.ENTER_USER, roomResponse), HttpStatus.CREATED);
+        } catch (IncorrectPasswordException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.UNAUTHORIZED, ResponseMessage.INCORRECT_PASSWORD), HttpStatus.UNAUTHORIZED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.ENTER_USER_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -104,9 +109,9 @@ public class RoomController {
             RoomDetailsResponse roomDetails = roomServiceImpl.getRoomDetails(roomID);
             return ResponseEntity.ok(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_ROOM_INFO, roomDetails));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_ROOM_INFO_FAIL));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_ROOM_INFO_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -118,14 +123,14 @@ public class RoomController {
         try {
             Long gmID = 1L;
             RoomUpdateResponse roomResponse = roomServiceImpl.updateRoom(roomID, gmID, roomUpdateRequest);
-            return ResponseEntity.ok(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_ROOM, roomResponse));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_ROOM, roomResponse), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             if (e.getMessage().equals("인증 권한 에러")) {
-                return ResponseEntity.status(401).body(DefaultResponse.res(StatusCode.UNAUTHORIZED, ResponseMessage.UNAUTHORIZED));
+                return new ResponseEntity(DefaultResponse.res(StatusCode.UNAUTHORIZED, ResponseMessage.UNAUTHORIZED), HttpStatus.UNAUTHORIZED);
             }
-            return ResponseEntity.badRequest().body(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_ROOM_FAIL));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_ROOM_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -145,11 +150,43 @@ public class RoomController {
             PagedModel<EntityModel<RoomResponse>> pagedModel = assembler.toModel(rooms, WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(RoomController.class)
                     .getRoomList(status, title, page, size, assembler)).withSelfRel());
 
-            return ResponseEntity.ok(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_ROOM_LIST, pagedModel));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_ROOM_LIST, pagedModel), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_ROOM_LIST_FAIL));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_ROOM_LIST_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR));
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 게임 방 멤버 일정 전체 조회
+     */
+    @GetMapping("/{roomID}/calendars")
+    public ResponseEntity getRoomMemberCalendars(@PathVariable Long roomID) {
+        try {
+            List<GameMemberCalendarResponse> calendars = roomServiceImpl.getRoomMemberCalendars(roomID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_ROOM_MEMBER_CALENDARS, calendars), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_ROOM_MEMBER_CALENDARS_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 게임 방 멤버 전체 일정 생성
+     */
+    @PostMapping("/{roomID}/calendars")
+    public ResponseEntity addEventToRoomMembers(@PathVariable Long roomID, @RequestBody CalendarRequest calendarRequest) {
+        try {
+            roomServiceImpl.addEventToRoomMembers(roomID, calendarRequest);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_ROOM_MEMBER_CALENDARS), HttpStatus.CREATED);
+        }  catch (InvalidDateException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST,  ResponseMessage.CREATE_ROOM_MEMBER_CALENDARS_ERROR), HttpStatus.BAD_REQUEST);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_ROOM_MEMBER_CALENDARS_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

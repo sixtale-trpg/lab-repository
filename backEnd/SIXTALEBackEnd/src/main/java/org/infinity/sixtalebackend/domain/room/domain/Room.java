@@ -87,7 +87,7 @@ public class Room extends BaseTimeEntity {
             status = RoomStatus.WAITING;
         }
         if (nextPlay == null) {
-            nextPlay = LocalDateTime.now();
+            nextPlay = LocalDateTime.now().plusDays(1); //기본 값 설정
         }
         if (playTime == null) {
             playTime = LocalTime.of(0, 0, 0);

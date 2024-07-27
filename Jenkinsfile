@@ -38,7 +38,7 @@ pipeline {
             steps {
                 
                 sshagent(['ssh-server']) {
-                    sh 'scp backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/usr/bin'
+                    sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/usr/bin'
                     sh 'ssh ubuntu@i11D108.p.ssafy.io "Team INFINITY SIXTALE"'
                 }
             }

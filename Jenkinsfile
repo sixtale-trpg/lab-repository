@@ -44,7 +44,6 @@ pipeline {
                     sh '''
                     ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "
                         mkdir -p ${PROJECT_PATH}/build/libs &&
-                        mkdir -p ${PROJECT_PATH}/static &&
                         sudo chown -R ubuntu:ubuntu ${PROJECT_PATH} &&
                         sudo chmod -R 775 ${PROJECT_PATH}
                     "
@@ -60,7 +59,6 @@ pipeline {
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}/Dockerfile'
                         sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/build/libs/SIXTALEBackEnd-0.0.1-SNAPSHOT.jar ${TARGET_HOST}:${PROJECT_PATH}/build/libs/SIXTALEBackEnd-0.0.1-SNAPSHOT.jar'
-                        sh 'scp -o StrictHostKeyChecking=no -r frontEnd/dist/* ${TARGET_HOST}:${PROJECT_PATH}/static/'
                         sh 'scp -o StrictHostKeyChecking=no nginx.conf ${TARGET_HOST}:/etc/nginx/sites-available/default'
                     }
                 }
@@ -87,8 +85,7 @@ pipeline {
                 sshagent(['ssh-server']) {
                    sh '''
                     ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "cd ${PROJECT_PATH} && docker build --tag ${IMAGE_NAME}:${NEW_VERSION} ."
-                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker run -v server-file-test:/file --name ${CONTAINER_NAME} -p 8080:8080 -d ${IMAGE_NAME}:${NEW_VERSION}"
-                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "sudo systemctl restart nginx"
+                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker run -v server-file-test:/file --name ${CONTAINER_NAME} -p 8888:8888 -d ${IMAGE_NAME}:${NEW_VERSION}"
                    '''
                 }
             }

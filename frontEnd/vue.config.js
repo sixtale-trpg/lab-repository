@@ -37,7 +37,25 @@ module.exports = {
     hot: true
   },
   css: {
-    requireModuleExtension: false
+    requireModuleExtension: false,
+    loaderOptions: {
+      postcss: {
+        plugins: [
+          require('cssnano')({
+            preset: [
+              'default',
+              {
+                discardComments: {
+                  removeAll: true,
+                },
+                normalizeWhitespace: false,
+                mergeRules: false
+              },
+            ],
+          }),
+        ],
+      },
+    },
   },
   lintOnSave: false,
   outputDir: '../backend/src/main/resources/dist'

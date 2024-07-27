@@ -5,11 +5,12 @@ pipeline {
         nodejs 'NodeJS'    
     }
     environment {
+        TARGET_HOST = 'ubuntu@i11D108.p.ssafy.io'
         PATH = "${env.PATH}:/usr/bin"
         IMAGE_NAME = 'sixtale-test'
         NEW_VERSION = '1.0.0'
         CONTAINER_NAME = 'jenkins-test'
-        PROJECT_PATH = '.'
+        PROJECT_PATH = '/project-test'
     }
     stages {
         stage('Clone') {
@@ -52,7 +53,7 @@ pipeline {
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'
-                        sh 'scp -o StrictHostKeyChecking=no gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}'
+                        sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}'
                     }
                 }
             }

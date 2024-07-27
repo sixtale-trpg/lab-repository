@@ -30,7 +30,7 @@ module.exports = {
     open: true,
     proxy: {
       '/api/': {
-        target: 'http://i11d108.p.ssafy.io/:8888/'
+        target: 'http://i11d108.p.ssafy.io:8888/'
       }
     },
     historyApiFallback: true,

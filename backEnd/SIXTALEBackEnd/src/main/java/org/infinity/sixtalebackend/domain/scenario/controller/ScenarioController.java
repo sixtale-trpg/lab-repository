@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.domain.scenario.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
+import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.service.ScenarioService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
@@ -40,7 +41,7 @@ public class ScenarioController {
             Long memberID = 1L;
             // 로그인 중인지 아닌지의 로직
             // Long memberId = (userPrincipal != null) ? userPrincipal.getId() : null;
-            Page<ScenarioResponseDto> scenarioList = scenarioService.getScenarioList(memberID,genreID,title,scenarioPageable);
+            ScenarioListResponseDto scenarioList = scenarioService.getScenarioList(memberID,genreID,title,scenarioPageable);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_SCENARIO_LIST,scenarioList), HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -55,7 +56,7 @@ public class ScenarioController {
     public ResponseEntity<?> getScenarioInfo(@PathVariable Long scenarioID){
         try {
             Long memberID = 1L;
-            ScenarioResponseDto scenarioResponseDto = scenarioService.getScenarioInfo(scenarioID,memberID);
+            ScenarioResponseDto scenarioResponseDto = scenarioService.getScenarioInfo(scenarioID,null);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.CREATED_MEMBER_INFO,scenarioResponseDto), HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

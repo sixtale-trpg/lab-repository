@@ -6,6 +6,7 @@ import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.GenreDto;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioGenre;
+import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioGenreRepository;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioLikeRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,9 +39,9 @@ public class ScenarioServiceImpl implements ScenarioService{
      * @return
      */
     @Override
-    public Page<ScenarioResponseDto> getScenarioList(Long memberID, Long genreID, String title,Pageable scenarioPageable) {
+    public ScenarioListResponseDto getScenarioList(Long memberID, Long genreID, String title,Pageable scenarioPageable) {
         // 회원 처리
-        Member member = findMember(memberID);
+        Member member = (memberID == null) ? null : findMember(memberID);
 
         // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
         Page<Scenario> scenarioPage;
@@ -50,17 +52,37 @@ public class ScenarioServiceImpl implements ScenarioService{
             System.out.println(scenarioPage.stream().toList());
         }
 
+        // Entity - Dto 수동 변환 방법
         // 장르 리스트 및 좋아요 여부를 포함하여 DTO로 변환
-        return scenarioPage.map(scenario -> {
-            List<ScenarioGenre> scenarioGenres = scenarioGenreRepository.findScenarioGenreByScenario(scenario);
-            Boolean isLiked = (memberID == null) ? null : scenarioLikeRepository.existsByScenarioAndMember(scenario, member);
-            return convertToDto(scenario, scenarioGenres, isLiked);
-        });
+        List<ScenarioResponseDto> scenarioResponseDtoList = scenarioPage.getContent().stream()
+                .map(s -> {
+                    List<ScenarioGenre> scenarioGenres = scenarioGenreRepository.findScenarioGenreByScenario(s);
+                    Boolean isLiked = (memberID == null) ? null : scenarioLikeRepository.existsByScenarioAndMember(s, member);
+                    return convertToDto(s, scenarioGenres, isLiked);
+                }).toList();
+
+        return ScenarioListResponseDto.builder()
+                .scenarioList(scenarioResponseDtoList)
+                .totalPages(scenarioPage.getTotalPages())
+                .totalElements(scenarioPage.getTotalElements()).build();
     }
 
+    /**
+     * 시나리오 상세 정보 조회
+     * @param scenarioID
+     * @param memberID
+     * @return
+     */
     @Override
     public ScenarioResponseDto getScenarioInfo(Long scenarioID, Long memberID) {
-        return null;
+        // 회원 처리
+        Member member = (memberID == null) ? null : findMember(memberID);
+
+        // 시나리오 조회
+        Scenario scenario = scenarioRepository.getReferenceById(scenarioID);
+        List<ScenarioGenre> scenarioGenres = scenarioGenreRepository.findScenarioGenreByScenario(scenario);
+        Boolean isLiked = (memberID == null) ? null : scenarioLikeRepository.existsByScenarioAndMember(scenario, member);
+        return convertToDto(scenario, scenarioGenres, isLiked);
     }
 
     private ScenarioResponseDto convertToDto(Scenario scenario,List<ScenarioGenre> scenarioGenres,Boolean isLiked) {
@@ -87,6 +109,7 @@ public class ScenarioServiceImpl implements ScenarioService{
                 .build();
     }
     private Member findMember(Long id) {
-        return memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        return memberRepository.getReferenceById(id);
     }
+
 }

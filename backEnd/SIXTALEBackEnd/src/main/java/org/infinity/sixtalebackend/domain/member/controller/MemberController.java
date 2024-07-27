@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/members")
+@CrossOrigin(origins = "*")
 public class MemberController {
     private final MemberSerivceImpl memberSerivce;
 

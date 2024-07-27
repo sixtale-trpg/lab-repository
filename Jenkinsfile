@@ -72,7 +72,7 @@ pipeline {
                         try {
                             sh '''
                             ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker rm -f ${CONTAINER_NAME}"
-                            ssh -o StrictHostKeyChecking-no ${TARGET_HOST} "docker rmi ${IMAGE_NAME}:${LAST_VERSION}"
+                            ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker rmi ${IMAGE_NAME}:${LAST_VERSION}"
                             '''
                         } catch (e) {
                             echo 'Remove Container Failed : ${CONTAINER_NAME}'

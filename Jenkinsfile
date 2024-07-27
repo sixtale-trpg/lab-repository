@@ -6,10 +6,6 @@ pipeline {
     }
     environment {
         PATH = "${env.PATH}:/usr/bin"
-        IMAGE_NAME = 'my-image'
-        NEW_VERSION = '1.0.0'
-        CONTAINER_NAME = 'jenkins'
-        TARGET_HOST = 'i11D108.p.ssafy.io'
     }
     stages {
         stage('Clone') {

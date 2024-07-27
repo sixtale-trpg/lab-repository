@@ -6,6 +6,11 @@ pipeline {
     }
     environment {
         PATH = "${env.PATH}:/usr/bin"
+        IMAGE_NAME = 'my-image'
+        NEW_VERSION = '1.0.0'
+        CONTAINER_NAME = 'jenkins'
+        TARGET_HOST = 'i11D108.p.ssafy.io'
+        PROJECT_PATH = '/path/to/project'
     }
     stages {
         stage('Clone') {
@@ -73,6 +78,12 @@ pipeline {
         stage('Deploy'){
             steps{
                 sshagent (['ssh-server']){
+                    sh 'echo "TARGET_HOST: ${TARGET_HOST}"'
+                    sh 'echo "PROJECT_PATH: ${PROJECT_PATH}"'
+                    sh 'echo "CONTAINER_NAME: ${CONTAINER_NAME}"'
+                    sh 'echo "IMAGE_NAME: ${IMAGE_NAME}"'
+                    sh 'echo "LAST_VERSION: ${LAST_VERSION}"'
+                    sh 'echo "NEW_VERSION: ${NEW_VERSION}"'
                    sh'''
                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker build --tag ${IMAGE_NAME}:${NEW_VERSION} --build-arg ARG_PROFILE=test ${PROJECT_PATH}"
                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker run -v server-file-test:/file --name ${CONTAINER_NAME} -p 8888:8888 -d ${IMAGE_NAME}:${NEW_VERSION}"

@@ -50,11 +50,13 @@ pipeline {
             steps{
                 dir("."){
                     sshagent (['ssh-server']){
-                        sh 'chmod u+2 /project-test'
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
-                        sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'
-                        sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}'
+                        sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:/home/ubuntu/'
+                        sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:/home/ubuntu/'
+                        sh 'ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "sudo mv /home/ubuntu/Dockerfile ${PROJECT_PATH}/"'
+                sh 'ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "sudo mv /home/ubuntu/gradle-wrapper.jar ${PROJECT_PATH}/"'
+            }
                     }
                 }
             }

@@ -27,6 +27,15 @@ public class ResponseMessage {
 
     public static final String UPDATE_USER = "회원 정보 수정 성공";
     public static final String WITHDRAWAL_USER = "회원 탈퇴 성공";
+    public static final String CREATE_USER_CALENDAR = "회원 일정 생성 성공";
+    public static final String CREATE_USER_CALENDAR_FAIL = "회원 일정 생성 실패";
+    public static final String CREATE_USER_CALENDAR_ERROR = "회원 일정 생성 시 입력 오류";
+
+    public static final String DELETE_USER_CALENDAR = "회원 일정 삭제 성공";
+    public static final String DELETE_USER_CALENDAR_FAIL = "회원 일정 삭제 실패";
+    public static final String READ_USER_CALENDAR = "회원 일정 조회 성공";
+    public static final String READ_USER_CALENDAR_FAIL = "회원 일정 조회 실패";
+
     public static final String INTERNAL_SERVER_ERROR = "서버 내부 에러";
 
     public static final String ENTER_USER = "게임 방 유저 입장 성공";
@@ -44,7 +53,11 @@ public class ResponseMessage {
     public static final String UPDATE_ROOM_FAIL = "게임 방 정보 수정 성공";
     public static final String READ_ROOM_LIST= "게임 방 목록 조회 성공";
     public static final String READ_ROOM_LIST_FAIL= "게임 방 목록 조회 실패";
-
+    public static final String READ_ROOM_MEMBER_CALENDARS = "게임 방 회원 일정 전체 조회 성공";
+    public static final String READ_ROOM_MEMBER_CALENDARS_FAIL = "게임 방 회원 일정 전체 조회 실패";
+    public static final String CREATE_ROOM_MEMBER_CALENDARS = "게임 방 회원 일정 전체 생성 성공";
+    public static final String CREATE_ROOM_MEMBER_CALENDARS_FAIL = "게임 방 회원 일정 전체 생성 실패";
+    public static final String CREATE_ROOM_MEMBER_CALENDARS_ERROR = "게임 방 회원 일정 입력 오류";
 
     public static final String READ_RULE = "룰 상세 조회 성공";
     public static final String READ_RULE_FAIL = "룰 상세 조회 실패";
@@ -65,6 +78,4 @@ public class ResponseMessage {
     public static final String READ_NPC_EVENT_LIST_FAIL = "NPC 정보 이벤트 목록 조회 실패";
     public static final String READ_NPC_EVENT = "NPC 정보 이벤트 조회 성공";
     public static final String READ_NPC_EVENT_FAIL = "NPC 정보 이벤트 조회 실패";
-
-
 }

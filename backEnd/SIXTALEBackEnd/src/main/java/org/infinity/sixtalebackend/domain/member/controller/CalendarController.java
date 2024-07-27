@@ -2,10 +2,12 @@ package org.infinity.sixtalebackend.domain.member.controller;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
 import org.infinity.sixtalebackend.domain.member.service.CalendarServiceImpl;
 import org.infinity.sixtalebackend.domain.member.dto.CalendarListResponse;
 import org.infinity.sixtalebackend.domain.member.dto.CalendarRequest;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
+import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +27,11 @@ public class CalendarController {
         try {
             long id = 1L;
             CalendarListResponse response = calendarService.getAllCalendars(id);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, "회원 일정 조회 성공"), HttpStatus.OK);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_USER_CALENDAR, response), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, "잘못된 요청"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_USER_CALENDAR_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, "서버 에러"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -43,11 +45,13 @@ public class CalendarController {
             // bearer 토큰 추출 대신 id = 1인 유저 가정
             Long id = 1L;
             calendarService.createCalendar(id, calendarRequest);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, "회원 일정 생성 성공"), HttpStatus.CREATED);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_USER_CALENDAR), HttpStatus.CREATED);
+        } catch (InvalidDateException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST,  ResponseMessage.CREATE_USER_CALENDAR_ERROR), HttpStatus.BAD_REQUEST);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, "잘못된 요청"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_USER_CALENDAR_FAIL),HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, "서버 에러"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -61,11 +65,11 @@ public class CalendarController {
             // bearer 토큰 추출 대신 id = 1인 유저 가정
             Long id = 1L;
             calendarService.deleteCalendar(calendarId, id);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, "회원 일정 삭제 성공"), HttpStatus.OK);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_USER_CALENDAR), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, "잘못된 요청"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_USER_CALENDAR_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, "서버 에러"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -5,6 +5,8 @@ import org.infinity.sixtalebackend.domain.room.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface RoomService {
     public RoomResponse addPlayerToRoom(Long roomID, Long memberID, String password);
 
@@ -17,4 +19,6 @@ public interface RoomService {
     RoomDetailsResponse getRoomDetails(Long roomID);
     RoomUpdateResponse updateRoom(Long roomID, Long gmID, RoomUpdateRequest roomUpdateRequest);
     Page<RoomResponse> getRoomList(RoomStatus status, String title, Pageable pageable);
+    List<GameMemberCalendarResponse> getRoomMemberCalendars(Long roomID);
+    void addEventToRoomMembers(Long roomID, CalendarRequest calendarRequest);
 }

@@ -52,6 +52,7 @@ pipeline {
                     sshagent (['ssh-server']){
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'
+                        sh 'chmod u+w /sixtale-test'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ${TARGET_HOST}:${PROJECT_PATH}'
                     }

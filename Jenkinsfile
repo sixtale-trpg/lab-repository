@@ -79,7 +79,6 @@ pipeline {
             steps{
                 sshagent (['ssh-server']){
                    sh'''
-                    chmod -R 775 /home/ubuntu/sixtale-test
                     ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker build --tag ${IMAGE_NAME}:${NEW_VERSION} --build-arg ARG_PROFILE=test ${PROJECT_PATH}"
                     ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker run -v server-file-test:/file --name ${CONTAINER_NAME} -p 8888:8888 -d ${IMAGE_NAME}:${NEW_VERSION}"
                    '''

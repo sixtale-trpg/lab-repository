@@ -35,7 +35,7 @@ pipeline {
         }
         stage('SSH AGENT') {
             steps {
-                sshagent(['d108-sixtale']) {
+                sshagent(credentials: ['d108-sixtale']) {
                     sh 'mkdir ~/.ssh'
                     sh 'chmod 0700 ~/ssh'
                     sh 'scp backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/usr/bin'

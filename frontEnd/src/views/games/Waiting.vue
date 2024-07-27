@@ -46,6 +46,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import RoomHeader from './components/waiting/RoomHeader.vue';
 import UserCard from './components/waiting/UserCard.vue';
 import Chat from './components/waiting/Chat.vue';
@@ -54,6 +55,8 @@ import Calendar from './components/Calendar.vue';
 import RulebookModal from './components/Modal/RulebookModal.vue';
 import ScenarioModal from './components/Modal/ScenarioModal.vue';
 import Userinfo from './components/Modal/UserInfo.vue';
+
+const store = useStore();
 
 const roomDetails = ref({
   title: '더미 방제목',

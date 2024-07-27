@@ -47,7 +47,7 @@ pipeline {
         }
         stage('Copy build file'){
             steps{
-                dir("./backEnd/SIXTALEBackEnd"){
+                dir("."){
                     sshagent (['ssh-server']){
                         sh 'echo ${TARGET_HOST}'
                         sh 'echo ${PROJECT_PATH}'

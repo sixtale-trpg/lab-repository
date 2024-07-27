@@ -1,0 +1,10 @@
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - echo "Building the project..."
+    # 여기에 빌드 스크립트를 추가합니다.
+  only:
+    - master

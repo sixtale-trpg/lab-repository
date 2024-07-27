@@ -1,9 +1,9 @@
 <template>
-  <div class="character-sheet">
+  <div class="character-sheet" :style="backgroundStyle">
     <Header class="header" />
     <div class="main-content">
       <div class="left-section">
-        <JobBoard class="job-card" />
+        <JobBoard class="job-board" />
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Header from '@/views/games/components/charactersheet/Header.vue';
 import JobCard from '@/views/games/components/charactersheet/JobCard.vue';
@@ -51,6 +51,13 @@ const startGame = () => {
     router.push(`/game/${route.params.roomId}/in-game`);
   }
 };
+
+const backgroundImage = require('@/assets/images/character_sheet/MainBackground.png');
+const backgroundStyle = ref({
+  backgroundImage: `url(${backgroundImage})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center'
+});
 </script>
 
 <style scoped>
@@ -58,49 +65,54 @@ const startGame = () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
 
 .header {
-  height: 10%;
+  height: 10vh;
   width: 100%;
 }
 
 .main-content {
-  display: grid;
-  grid-template-columns: 1fr 20%;
-  gap: 10px;
-  height: 90%;
-  padding: 10px;
-  box-sizing: border-box;
+  display: flex;
+  height: 90vh;
+  width: 100%;
 }
 
 .left-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex: 1;
+  width: 80%;
+  height: 100%;
+  padding: 1vh;
+  box-sizing: border-box;
 }
 
 .right-section {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  flex-basis: 20%;
+  width: 20%;
+  height: 100%;
+  padding: 1vh;
+  box-sizing: border-box;
 }
 
-.job-card {
-  flex: 3;
+.job-board {
+  height: 75%;
+  margin-bottom: 1vh;
 }
 
 .video-profile {
-  flex: 1;
+  height: 25%;
 }
 
 .gm-section {
-  flex: 1;
+  height: 25%;
+  margin-bottom: 1vh;
 }
 
 .chatting {
-  flex: 3;
+  height: 75%;
 }
 </style>

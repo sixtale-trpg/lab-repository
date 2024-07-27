@@ -38,8 +38,8 @@ pipeline {
             steps {
                 
                 sshagent(['ssh-server']) {
-                    sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/usr/bin'
-                    sh 'ssh ubuntu@i11D108.p.ssafy.io "Team INFINITY SIXTALE"'
+                    sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/home/ubuntu/'
+                    sh 'ssh ubuntu@i11D108.p.ssafy.io 'sudo mv /home/ubuntu/gradle-wrapper.jar /usr/bin/'
                 }
             }
         }

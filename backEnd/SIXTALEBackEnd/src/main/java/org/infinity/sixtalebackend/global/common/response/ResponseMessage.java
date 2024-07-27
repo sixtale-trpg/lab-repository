@@ -31,6 +31,7 @@ public class ResponseMessage {
 
     public static final String ENTER_USER = "게임 방 유저 입장 성공";
     public static final String EXIT_USER = "게임 방 유저 퇴장 성공";
+    public static final String INCORRECT_PASSWORD = "게임 방 비밀번호 오류";
     public static final String ENTER_USER_FAIL = "게임 방 유저 입장 실패";
     public static final String EXIT_USER_FAIL = "게임 방 유저 퇴장 실패";
     public static final String UPDATE_ROOM_STATUS = "게임 방 상태 변경 성공";
@@ -64,5 +65,6 @@ public class ResponseMessage {
     public static final String READ_NPC_EVENT_LIST_FAIL = "NPC 정보 이벤트 목록 조회 실패";
     public static final String READ_NPC_EVENT = "NPC 정보 이벤트 조회 성공";
     public static final String READ_NPC_EVENT_FAIL = "NPC 정보 이벤트 조회 실패";
+
 
 }

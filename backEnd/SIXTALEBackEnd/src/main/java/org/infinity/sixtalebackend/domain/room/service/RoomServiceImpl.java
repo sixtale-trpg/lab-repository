@@ -1,19 +1,25 @@
 package org.infinity.sixtalebackend.domain.room.service;
 
+import jakarta.persistence.LockModeType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.infinity.sixtalebackend.domain.member.domain.Calender;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
+import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
+import org.infinity.sixtalebackend.domain.member.repository.CalendarRepository;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.*;
+import org.infinity.sixtalebackend.domain.room.exception.IncorrectPasswordException;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +35,7 @@ public class RoomServiceImpl implements RoomService{
     private final MemberRepository memberRepository;
     private final PlayMemberRepository playMemberRepository;
     private final ScenarioRepository scenarioRepository;
+    private final CalendarRepository calendarRepository;
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -36,14 +43,32 @@ public class RoomServiceImpl implements RoomService{
      */
     @Override
     @Transactional
-    public RoomResponse addPlayerToRoom(Long roomID, Long memberID) {
-        Room room = roomRepository.findById(roomID).orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
-        Member member = memberRepository.findById(memberID).orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+    @Lock(LockModeType.PESSIMISTIC_WRITE) // 동시성 문제 해결을 위한 잠금 모드 설정
+    public RoomResponse addPlayerToRoom(Long roomID, Long memberID, String password) {
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+
+        // 비밀번호가 설정된 방인지 확인하고 비밀번호 검증
+        if (room.getIsLocked()) {
+            if (password == null || password.isEmpty()) {
+                throw new IncorrectPasswordException("잠긴 방에 들어가려면 비밀번호가 필요합니다.");
+            }
+            if (!passwordEncoder.matches(password, room.getPassword())) {
+                throw new IncorrectPasswordException("비밀번호가 올바르지 않습니다.");
+            }
+        }
 
         // 이미 들어온 회원일 때
         if (playMemberRepository.existsByRoomAndMember(room, member)) {
             log.info("playMember already exists with memberID: {} and roomID: {}", memberID, roomID);
             throw new IllegalArgumentException("회원이 이미 게임 방에 있습니다.");
+        }
+
+        // 게임 방 최대 인원을 초과할 때
+        if (room.getCurrentCount() >= room.getMaxCount()) {
+            throw new IllegalArgumentException("게임 방의 최대 인원을 초과했습니다.");
         }
 
         //playMember 추가
@@ -81,11 +106,14 @@ public class RoomServiceImpl implements RoomService{
      */
     @Override
     @Transactional
+    @Lock(LockModeType.PESSIMISTIC_WRITE) // 동시성 문제 해결을 위한 잠금 모드 설정
     public void deletePlayerFromRoom(Long roomID, Long memberID) {
-        Room room = roomRepository.findById(roomID).orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
-        Member member = memberRepository.findById(memberID).orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
-
-        PlayMember playMember = playMemberRepository.findByRoomAndMember(room, member).orElseThrow(() -> new IllegalArgumentException("게임 방에 회원이 존재하지 않습니다."));
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다."));
+        PlayMember playMember = playMemberRepository.findByRoomAndMember(room, member)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방에 회원이 존재하지 않습니다."));
 
         playMemberRepository.delete(playMember);
 
@@ -279,4 +307,60 @@ public class RoomServiceImpl implements RoomService{
                 .playTime(room.getPlayTime())
                 .build());
     }
+
+    /**
+     * 게임 방 멤버 전체 일정 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameMemberCalendarResponse> getRoomMemberCalendars(Long roomID) {
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+
+        List<PlayMember> playMembers = playMemberRepository.findByRoom(room);
+
+        List<Long> memberIds = playMembers.stream()
+                .map(playMember -> playMember.getMember().getId())
+                .collect(Collectors.toList());
+
+        List<Calender> calenders = calendarRepository.findByMemberIds(memberIds);
+        return playMembers.stream()
+                .map(playMember -> {
+                    Long memberId = playMember.getMember().getId();
+                    List<CalendarEventResponse> events = calenders.stream()
+                            .filter(calendar -> calendar.getMember().getId().equals(memberId))
+                            .map(calendar -> new CalendarEventResponse(calendar.getStartAt(), calendar.getEndAt(), calendar.getTitle()))
+                            .collect(Collectors.toList());
+                    return new GameMemberCalendarResponse(memberId, events);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 게임 방 멤버 전체 일정 생성
+     */
+    @Override
+    @Transactional
+    public void addEventToRoomMembers(Long roomID, CalendarRequest calendarRequest) {
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+
+        List<PlayMember> playMembers = playMemberRepository.findByRoom(room);
+
+        if (calendarRequest.getStartAt().isAfter(calendarRequest.getEndAt())) {
+            throw new InvalidDateException("시작 시간이 종료 시간보다 나중일 수 없습니다.");
+        }
+
+        for (PlayMember playMember : playMembers) {
+            Member member = playMember.getMember();
+            Calender calender = Calender.builder()
+                    .member(member)
+                    .startAt(calendarRequest.getStartAt())
+                    .endAt(calendarRequest.getEndAt())
+                    .title(calendarRequest.getTitle())
+                    .build();
+            calendarRepository.save(calender);
+        }
+    }
+
 }

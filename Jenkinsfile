@@ -51,7 +51,7 @@ pipeline {
                 }
             }
         }
-        stage('Copy build file') {
+        stage('Copy build files') {
             steps {
                 dir(".") {
                     sshagent(['ssh-server']) {
@@ -59,6 +59,7 @@ pipeline {
                         sh 'echo ${PROJECT_PATH}'
                         sh 'scp -o StrictHostKeyChecking=no Dockerfile ${TARGET_HOST}:${PROJECT_PATH}/Dockerfile'
                         sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/build/libs/SIXTALEBackEnd-0.0.1-SNAPSHOT.jar ${TARGET_HOST}:${PROJECT_PATH}/build/libs/SIXTALEBackEnd-0.0.1-SNAPSHOT.jar'
+                        sh 'scp -o StrictHostKeyChecking=no -r frontEnd/dist/* ${TARGET_HOST}:${PROJECT_PATH}/src/main/resources/static/'
                     }
                 }
             }
@@ -70,7 +71,7 @@ pipeline {
                         try {
                             sh '''
                             ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker rm -f ${CONTAINER_NAME}"
-                            ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker rmi ${IMAGE_NAME}:${LAST_VERSION}"
+                            ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker rmi ${IMAGE_NAME}:${NEW_VERSION}"
                             '''
                         } catch (e) {
                             echo 'Remove Container Failed : ${CONTAINER_NAME}'

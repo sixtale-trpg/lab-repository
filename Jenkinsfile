@@ -33,7 +33,7 @@ pipeline {
                 }   
             }
         }
-        stage('SSH AGENT') {
+        stage('SSH Agent') {
             steps {
                 sshagent(['ssh-server']) {
                     sh 'scp -o StrictHostKeyChecking=no backEnd/SIXTALEBackEnd/gradle/wrapper/gradle-wrapper.jar ubuntu@i11D108.p.ssafy.io:/home/ubuntu/'
@@ -55,7 +55,7 @@ pipeline {
         }
         stage('Stop process'){
             steps{
-                sshagent (credentials: 'd108-sixtale'){
+                sshagent (['ssh-server']){
                     script{
                         try{
                             sh'''
@@ -72,7 +72,7 @@ pipeline {
         }
         stage('Deploy'){
             steps{
-                sshagent (credentials: 'd108-sixtale'){
+                sshagent (['ssh-server']){
                    sh'''
                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker build --tag ${IMAGE_NAME}:${NEW_VERSION} --build-arg ARG_PROFILE=test ${PROJECT_PATH}"
                    ssh -o StrictHostKeyChecking=no ${TARGET_HOST} "docker run -v server-file-test:/file --name ${CONTAINER_NAME} -p 8888:8888 -d ${IMAGE_NAME}:${NEW_VERSION}"

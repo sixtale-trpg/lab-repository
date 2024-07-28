@@ -30,6 +30,9 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false, length = 512)
     private String accessToken;
 
+    @Column(nullable = false, length = 512)
+    private String refreshToken;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Provider provider;

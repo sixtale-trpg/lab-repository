@@ -2,7 +2,6 @@ package org.infinity.sixtalebackend.domain.character_sheet.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.misc.LogManager;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterEquipment;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
@@ -18,7 +17,6 @@ import org.infinity.sixtalebackend.domain.rule.domain.Belief;
 import org.infinity.sixtalebackend.domain.rule.domain.Job;
 import org.infinity.sixtalebackend.domain.rule.domain.Race;
 import org.infinity.sixtalebackend.domain.rule.repository.*;
-import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioEquipment;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioEquipmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class CharacterServiceImpl implements CharacterSheetService{
+public class CharacterSheetServiceImpl implements CharacterSheetService{
     private final PlayMemberRepository playMemberRepository;
     private final CharacterSheetRepository characterSheetRepository;
     private final CharacterStatRepository characterStatRepository;
@@ -99,8 +97,9 @@ public class CharacterServiceImpl implements CharacterSheetService{
                     .playMember(playMember)
                     .jobAction(jobActionRepository.findById(actionRequest.getActionID())
                             .orElseThrow(() -> new IllegalArgumentException("Invalid Action ID")))
-                    .actionOption(actionOptionRepository.findById(actionRequest.getActionOptionId())
-                            .orElse(null))
+                    .actionOption(actionRequest.getActionOptionId() != null ?
+                            actionOptionRepository.findById(actionRequest.getActionOptionId()).orElse(null) :
+                            null)
                     .build();
             characterActionRepository.save(characterAction);
         });

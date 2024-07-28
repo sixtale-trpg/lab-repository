@@ -9,4 +9,5 @@ import java.util.Optional;
 
 public interface JobBeliefRepository extends JpaRepository<JobBelief, JobBeliefID> {
     Optional<JobBelief> findByJobAndBelief(Job job, Belief belief);
+    List<JobBelief> findByJob(Job job);
 }

@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.service;
 
 import lombok.AllArgsConstructor;
+import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
 import org.infinity.sixtalebackend.domain.member.repository.CalendarRepository;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.member.domain.Calender;
@@ -40,8 +41,9 @@ public class CalendarServiceImpl implements CalendarService{
     @Transactional
     public void createCalendar(Long id, CalendarRequest calendarRequest) {
         Member member = findMember(id);
-
-        // builder패턴으로 생성하는 것?
+        if (calendarRequest.getStartAt().isAfter(calendarRequest.getEndAt())) {
+            throw new InvalidDateException("시작 시간이 종료 시간보다 나중일 수 없습니다.");
+        }
         Calender calender = Calender.builder()
                 .member(member)
                 .startAt(calendarRequest.getStartAt())

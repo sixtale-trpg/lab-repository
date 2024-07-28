@@ -18,4 +18,6 @@ public interface PlayMemberRepository extends JpaRepository<PlayMember, Long> {
     List<PlayMember> findByRoom(Room room);
     Optional<PlayMember> findByMemberIdAndRoomId(Long memberId, Long roomId);
     Optional<PlayMember> findByMemberId(Long playMemberId);
+
+    Optional<PlayMember> findByIdAndRoomId(Long playMemberID, Long roomID);
 }

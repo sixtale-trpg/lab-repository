@@ -90,4 +90,21 @@ public class CharacterSheetController {
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 캐릭터 시트 작성 취소(삭제)
+     */
+    @DeleteMapping("/{playMemberID}")
+    public ResponseEntity deleteCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID) {
+        try {
+            characterSheetService.deleteCharacterSheet(roomID, playMemberID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_CHARACTER_SHEET), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_CHARACTER_SHEET_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

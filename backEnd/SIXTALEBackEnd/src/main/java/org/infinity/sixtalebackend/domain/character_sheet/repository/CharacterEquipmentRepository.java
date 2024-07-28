@@ -12,4 +12,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public interface CharacterEquipmentRepository extends JpaRepository<CharacterEquipment, Long> {
     List<CharacterEquipment> findByPlayMember(PlayMember playMember);
+
+    void deleteByPlayMember(PlayMember playMember);
 }

@@ -311,4 +311,28 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 .imageURL(characterSheet.getImageURL())
                 .build();
     }
+
+    /**
+     * 캐릭터 시트 작성 취소
+     */
+    @Override
+    @Transactional
+    public void deleteCharacterSheet(Long roomID, Long playMemberID) {
+        PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
+
+        // CharacterStat 삭제
+        characterStatRepository.deleteByPlayMember(playMember);
+
+        // CharacterAction 삭제
+        characterActionRepository.deleteByPlayMember(playMember);
+
+        // CharacterEquipment 삭제
+        characterEquipmentRepository.deleteByPlayMember(playMember);
+
+        // CharacterSheet 삭제
+        characterSheetRepository.deleteById(playMemberID);
+
+        log.info("캐릭터 시트 및 관련 데이터 삭제 완료");
+    }
 }

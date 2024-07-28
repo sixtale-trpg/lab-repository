@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
                     Provider.valueOf(registrationID.toUpperCase()),
                     authResponse.getId(),
                     false);
-            Member save = authRepository.save(member);
+            authRepository.save(member);
         }
         findMember = authRepository.findByEmail(authResponse.getEmail());
 

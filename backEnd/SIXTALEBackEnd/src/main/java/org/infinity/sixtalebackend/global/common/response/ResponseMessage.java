@@ -84,4 +84,6 @@ public class ResponseMessage {
     public static final String CREATE_CHARACTER_SHEET_FAIL = "캐릭터 시트 작성 실패";
     public static final String UPDATE_CHARACTER_SHEET = "캐릭터 시트 수정 성공";
     public static final String UPDATE_CHARACTER_SHEET_FAIL = "캐릭터 시트 수정 실패";
+    public static final String READ_CHARACTER_SHEET = "작성한 캐릭터 시트 조회 성공";
+    public static final String READ_CHARACTER_SHEET_FAIL = "작성한 캐릭터 시트 조회 실패";
 }

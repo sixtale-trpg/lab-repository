@@ -6,19 +6,14 @@ import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterEquipment;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterStat;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterActionRequest;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterEquipmentRequest;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetRequest;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterStatRequest;
+import org.infinity.sixtalebackend.domain.character_sheet.dto.*;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterActionRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterEquipmentRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterStatRepository;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
-import org.infinity.sixtalebackend.domain.rule.domain.Belief;
-import org.infinity.sixtalebackend.domain.rule.domain.Job;
-import org.infinity.sixtalebackend.domain.rule.domain.Race;
+import org.infinity.sixtalebackend.domain.rule.domain.*;
 import org.infinity.sixtalebackend.domain.rule.repository.*;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioEquipmentRepository;
 import org.springframework.stereotype.Service;
@@ -44,6 +39,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
     private final RaceRepository raceRepository;
     private final StatRepository statRepository;
     private final ScenarioEquipmentRepository scenarioEquipmentRepository;
+    private final JobRaceRepository jobRaceRepository;
+    private final JobBeliefRepository jobBeliefRepository;
 
     /**
      * 캐릭터 시트 작성
@@ -125,6 +122,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         });
         log.info("장비 저장");
     }
+
     /**
      * 캐릭터 시트 수정
      */
@@ -228,6 +226,89 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
             }
         }
         log.info("장비 업데이트 완료");
+    }
 
+    /**
+     * 캐릭터 시트 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public CharacterSheetResponse getCharacterSheet(Long roomID, Long playMemberID) {
+        PlayMember playMember = playMemberRepository.findById(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
+        CharacterSheet characterSheet = characterSheetRepository.findById(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        Job job = characterSheet.getJob();
+        Race race = characterSheet.getRace();
+        Belief belief = characterSheet.getBelief();
+
+        // Get the descriptions from JobRace and JobBelief
+        String raceDescription = jobRaceRepository.findByJobAndRace(job, race)
+                .map(JobRace::getDescription)
+                .orElse("");
+        String beliefDescription = jobBeliefRepository.findByJobAndBelief(job, belief)
+                .map(JobBelief::getDescription)
+                .orElse("");
+
+
+        List<CharacterStat> stats = characterStatRepository.findByPlayMember(playMember);
+        List<CharacterAction> actions = characterActionRepository.findByPlayMember(playMember);
+        List<CharacterEquipment> equipments = characterEquipmentRepository.findByPlayMember(playMember);
+
+        return CharacterSheetResponse.builder()
+                .jobId(job.getId())
+                .jobName(job.getName())
+                .raceId(race.getId())
+                .raceName(race.getName())
+                .raceDescription(raceDescription) // 다시 jobRace필드에서?
+                .beliefId(belief.getId())
+                .beliefName(belief.getName())
+                .beliefDescription(beliefDescription) //
+                .name(characterSheet.getName())
+                .appearance(characterSheet.getAppearance())
+                .background(characterSheet.getBackground())
+                .stat(stats.stream().map(stat -> CharacterStatResponse.builder()
+                        .statID(stat.getStat().getId())
+                        .statValue(stat.getStatValue())
+                        .statWeight(stat.getStatWeight())
+                        .build()).collect(Collectors.toList()))
+                .characterAction(actions.stream().map(action -> CharacterActionResponse.builder()
+                        .id(action.getJobAction().getId())
+                        .name(action.getJobAction().getName())
+                        .isCore(action.getJobAction().getIsCore())
+                        .description(action.getJobAction().getDescription())
+                        .isDice(action.getJobAction().getIsDice())
+                        .diceType(action.getJobAction().getDiceType())
+                        .diceCount(action.getJobAction().getDiceCount())
+                        .level(action.getJobAction().getLevel())
+                        .actionOption(action.getActionOption() != null ?
+                                Collections.singletonList(ActionOptionResponse.builder()
+                                        .id(action.getActionOption().getId())
+                                        .content(action.getActionOption().getContent())
+                                        .build())
+                                : Collections.emptyList())
+                        .build()).collect(Collectors.toList()))
+                .characterEquipment(equipments.stream().map(equipment -> CharacterEquipmentResponse.builder()
+                        .id(equipment.getEquipment().getId())
+                        .name(equipment.getEquipment().getName())
+                        .description(equipment.getEquipment().getDescription())
+                        .typeID(equipment.getEquipment().getEquipmentType().getId()) //
+                        .typeName(equipment.getEquipment().getEquipmentType().getName()) //
+                        .weight(equipment.getWeight())
+                        .currentCount(equipment.getCurrentCount())
+                        .imageURL(equipment.getEquipment().getImageURL())
+                        .build()).collect(Collectors.toList()))
+                .currentWeight(characterSheet.getCurrentWeight())
+                .currentHp(characterSheet.getCurrentHp())
+                .currentMoney(characterSheet.getCurrentMoney())
+                .limitWeight(characterSheet.getLimitWeight())
+                .limitHp(characterSheet.getLimitHp())
+                .glove(characterSheet.getGlove())
+                .inspirationScore(characterSheet.getInspirationScore())
+                .level(characterSheet.getLevel())
+                .exp(characterSheet.getExp())
+                .imageURL(characterSheet.getImageURL())
+                .build();
     }
 }

@@ -3,12 +3,12 @@
     <el-calendar v-model="value">
       <template #header="{ date }">
         <el-button-group>
-          <el-button size="small" @click="changeMonth(-1)">
-            &lsaquo;
+          <el-button size="small" @click="changeMonth(-1)" class="arrow-button">
+            <img :src="arrowImage" alt="Previous Month" />
           </el-button>
           <span>{{ formatDate(date) }}</span>
-          <el-button size="small" @click="changeMonth(1)">
-            &rsaquo;
+          <el-button size="small" @click="changeMonth(1)" class="arrow-button">
+            <img :src="arrowImage" alt="Next Month" style="transform: rotate(180deg);" />
           </el-button>
         </el-button-group>
       </template>
@@ -21,34 +21,47 @@
         </button>
       </template>
     </el-calendar>
-    <!-- <button @click="showModal">일정 생성</button> -->
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
       <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="eventModalLabel">일정 생성</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content custom-modal" :style="modalStyle">
+          <div class="modal-header custom-modal-header">
+            <img :src="titleImage" alt="Background" class="modal-title-image" />
+            <div class="overlay-text">일정 생성</div>
           </div>
           <div class="modal-body">
-            <p>선택된 날짜: {{ selectedDate }}</p>
-            <div>
-              <label for="startTime">시작 시간:</label>
-              <select id="startTime" v-model="startTime">
-                <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
-              </select>
-            </div>
-            <div>
-              <label for="endTime">종료 시간:</label>
-              <select id="endTime" v-model="endTime">
-                <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
-              </select>
+            <p class="modal-date">{{ selectedDate }}</p>
+            <div class="time-selection-row">
+              <div class="time-selection">
+                <label for="startTime">시작 시간</label>
+                <div class="time-select">
+                  <select id="startTime" v-model="startTime" :style="dropdownStyle">
+                    <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
+                  </select>
+                  <img :src="dropdownArrowBox" alt="Dropdown" class="dropdown-arrow" />
+                </div>
+              </div>
+              <div class="time-selection">
+                <label for="endTime">종료 시간</label>
+                <div class="time-select">
+                  <select id="endTime" v-model="endTime" :style="dropdownStyle">
+                    <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
+                  </select>
+                  <img :src="dropdownArrowBox" alt="Dropdown" class="dropdown-arrow" />
+                </div>
+              </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-            <button type="button" class="btn btn-primary" @click="saveEvent">저장</button>
+          <div class="modal-footer custom-modal-footer">
+            <button type="button" class="btn footer-button" data-bs-dismiss="modal">
+              <img :src="cancelImage" alt="닫기" />
+              <span class="button-text">닫기</span>
+            </button>
+            <button type="button" class="btn footer-button" @click="saveEvent">
+              <img :src="okImage" alt="저장" />
+              <span class="button-text">저장</span>
+            </button>
           </div>
         </div>
       </div>
@@ -61,10 +74,21 @@ import { ref, computed } from 'vue';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 
+// 이미지 경로를 정확하게 설정합니다.
+import scheduleModal from '@/assets/images/room/calendar_modal/background.png';
+import titleImage from '@/assets/images/room/calendar_modal/title.png';
+import arrowImage from '@/assets/images/room/calendar_modal/arrow.png';
+import cancelImage from '@/assets/images/room/calendar_modal/cancel.png';
+import dropdownArrowBox from '@/assets/images/room/calendar_modal/dropdown_arrow_box.png';
+import dropdownBox from '@/assets/images/room/calendar_modal/dropdown_box.png';
+import okImage from '@/assets/images/room/calendar_modal/ok.png';
+import timeImage from '@/assets/images/room/calendar_modal/time.png';
+import timeBackground from '@/assets/images/room/calendar_modal/time_background.png';
+
 const value = ref(new Date());
 const selectedDate = ref('');
-const startTime = ref('');
-const endTime = ref('');
+const startTime = ref('00:00');
+const endTime = ref('00:00');
 const selectedDates = ref([]);
 
 const timeOptions = computed(() => {
@@ -125,6 +149,21 @@ const isToday = (date) => {
 const isSelected = (date) => {
   return formatDate(date) === selectedDate.value;
 };
+
+// 모달 스타일에 배경 이미지를 설정합니다.
+const modalStyle = computed(() => ({
+  backgroundImage: `url(${scheduleModal})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+}));
+
+const dropdownStyle = computed(() => ({
+  backgroundImage: `url(${dropdownBox})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+}));
 </script>
 
 <style scoped>
@@ -151,9 +190,9 @@ const isSelected = (date) => {
 }
 
 .custom-arrow-button {
-  background-color: #444444; /* 원하는 배경색으로 변경 */
-  border-color: #444444; /* 원하는 배경색으로 변경 */
-  color: #ffffff; /* 버튼 글자 색상 */
+  background-color: #444444;
+  border-color: #444444;
+  color: #ffffff;
 }
 
 :deep(.el-calendar-table thead th) {
@@ -274,30 +313,129 @@ const isSelected = (date) => {
   color: black;
 }
 
+.custom-modal {
+  background-color: #1e1e1e;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0; /* Padding 조정 */
+}
+
 .modal-content {
-  background-color: #444444; /* 모달 창 배경색 변경 */
-  color: #ffffff; /* 모달 창 글자 색상 변경 */
+  background-color: #291707;
+  color: #ffffff;
+}
+
+.custom-modal-header {
+  position: relative;
+  padding-top: 10px; /* Add padding to move content down */
+}
+
+.modal-title-image {
+  width: 100%;
+  height: auto;
+  margin-top: -7px; /* Adjust margin to move image up */
+}
+
+.overlay-text {
+  position: absolute;
+  top: 8px; /* Adjust as needed */
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffffff;
+  font-size: 20px; /* Adjust as needed */
+  font-weight: bolder;
 }
 
 .modal-header, .modal-footer {
-  border-color: #666666; /* 모달 헤더 및 푸터 경계선 색상 */
+  border: none; /* 경계선 제거 */
 }
 
 .modal-title {
-  color: #ffffff; /* 모달 타이틀 색상 */
+  color: #ffffff;
+}
+
+.custom-modal-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-button {
+  position: relative;
+  margin: 0 10px; /* Adjust spacing as needed */
+}
+
+.footer-button img {
+  display: block;
+}
+
+.button-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  /* font-weight: bold; */
+  pointer-events: none;
+  font-size: 13px;
 }
 
 .btn-close {
-  filter: invert(1); /* 닫기 버튼 색상 변경 (흰색) */
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #fff;
 }
 
 .btn-secondary, .btn-primary {
-  background-color: #555555; /* 버튼 배경색 */
-  border-color: #555555; /* 버튼 경계선 색상 */
+  background-color: #5f5f5f;
+  border-color: #5f5f5f;
 }
 
 .btn-primary {
-  background-color: #007bff; /* 기본 primary 버튼 색상 */
-  border-color: #007bff; /* 기본 primary 버튼 경계선 색상 */
+  background-color: #c3a084;
+  border-color: #c3a084;
+}
+
+.time-selection-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.time-selection {
+  display: flex;
+  align-items: center;
+  margin: 10px 20px;
+}
+
+label {
+  margin-right: 10px;
+}
+
+select {
+  background-color: #444444;
+  color: #ffffff;
+  border: none;
+  padding: 5px;
+  border-radius: 5px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.dropdown-arrow {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+}
+
+.modal-date {
+  text-align: center;
+  font-size: 1.5em;
+  margin-bottom: 20px;
 }
 </style>

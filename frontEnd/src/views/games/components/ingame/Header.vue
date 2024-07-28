@@ -4,7 +4,7 @@
       <img src="@/assets/images/ingame/Rulebook.png" @click="showRulebookModal" class="icon" alt="Rulebook" />
       <img v-if="isGM" src="@/assets/images/ingame/Scenario.png" @click="showScenarioModal" class="icon" alt="Scenario" />
       <img v-if="isGM" src="@/assets/images/ingame/Map.png" @click="showMapModal" class="icon" alt="Map" />
-      <img v-if="isGM" src="@/assets/images/ingame/Grid.png" class="icon" alt="Grid" />
+      <img v-if="isGM" src="@/assets/images/ingame/Grid.png" @click="toggleGrid" class="icon" alt="Grid" />
       <img v-if="isGM" src="@/assets/images/ingame/MuteAll.png" class="icon" alt="Mute" />
       <img v-if="isGM" src="@/assets/images/ingame/Drawing.png" class="icon" alt="Paint" />
     </div>
@@ -27,6 +27,7 @@
   <MapModal v-if="showMap" @close="showMap = false" />
   <GameEndModal v-if="showGameEndModal" @close="showGameEndModal = false" />
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue';
@@ -58,6 +59,15 @@ const showMapModal = () => {
 
 const openGameEndModal = () => {
   showGameEndModal.value = true;
+};
+
+// 그리드 토글 상태 관리
+const showGrid = ref(false);
+const toggleGrid = () => {
+  showGrid.value = !showGrid.value;
+  // 그리드 상태를 부모 컴포넌트로 전달
+  const event = new CustomEvent('toggle-grid', { detail: showGrid.value });
+  window.dispatchEvent(event);
 };
 
 onMounted(() => {

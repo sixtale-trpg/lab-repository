@@ -4,22 +4,16 @@
       class="token-slot" 
       v-for="token in tokens" 
       :key="token.id" 
-      @dragstart="dragStart(token)" 
-      draggable="true" 
-      @mouseover="showTooltip(token, $event)" 
-      @mouseleave="hideTooltip"
-      @click="showModal(token)"
+      draggable="true"
+      @dragstart="dragStart(token, $event)"
     >
       <img :src="tokenImage" :alt="token.name" class="token" />
-      <div v-if="hoveredToken === token.id" class="tooltip" :style="tooltipStyle">
-        {{ token.name }} - {{ token.info }}
-      </div>
     </div>
     <div class="token-slot add-token" @click="showInput">
-      <img :src="require('@/assets/images/ingame/Plus.png')" alt="Add Token" class="add-icon" />
+      <img :src="plusIcon" alt="Add Token" class="add-icon" />
     </div>
     <div class="token-slot delete-token">
-      <img :src="require('@/assets/images/ingame/Trash.png')" alt="Delete Token" class="delete-icon" @dragover.prevent @drop="deleteToken" />
+      <img :src="trashIcon" alt="Delete Token" class="delete-icon" @dragover.prevent @drop="deleteToken" />
     </div>
     <div v-if="inputVisible" class="input-container" @click.self="closeInput">
       <input v-model="newTokenName" @keyup.enter="addToken" placeholder="Enter token name" />
@@ -41,12 +35,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 
 const tokens = ref([]);
 const tokenImage = require('@/assets/images/ingame/Token.png');
+const plusIcon = require('@/assets/images/ingame/Plus.png');
+const trashIcon = require('@/assets/images/ingame/Trash.png');
+const tokenAreaBackground = require('@/assets/images/ingame/Border.png');
+
 const backgroundStyle = {
-  backgroundImage: `url(${require('@/assets/images/ingame/Border.png')})`,
+  backgroundImage: `url(${tokenAreaBackground})`,
   backgroundSize: '100% 100%',
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'center',
@@ -89,8 +86,8 @@ const closeInput = () => {
   inputVisible.value = false;
 };
 
-const dragStart = (token) => {
-  token.dragging = true;
+const dragStart = (token, event) => {
+  event.dataTransfer.setData('text/plain', JSON.stringify(token));
 };
 
 const deleteToken = (event) => {
@@ -145,19 +142,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.token-area {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 20px;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
 .token-slot {
   display: flex;
   justify-content: center;

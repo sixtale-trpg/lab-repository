@@ -8,6 +8,7 @@ import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioEquipment;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @Table(name = "character_equipment")
 @AllArgsConstructor

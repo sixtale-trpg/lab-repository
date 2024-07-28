@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetRequest;
+import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetResponse;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.UpdateCharacterSheetResponse;
 import org.infinity.sixtalebackend.domain.character_sheet.service.CharacterSheetService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
@@ -67,6 +68,23 @@ public class CharacterSheetController {
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_CHARACTER_SHEET_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 캐릭터 시트 조회
+     */
+    @GetMapping("/{playMemberID}")
+    public ResponseEntity getCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID) {
+        try {
+            CharacterSheetResponse response = characterSheetService.getCharacterSheet(roomID, playMemberID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_CHARACTER_SHEET, response), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_CHARACTER_SHEET_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

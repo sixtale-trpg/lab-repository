@@ -1,17 +1,29 @@
 <template>
   <div class="video-profile">
-    <div class="profile-card" v-for="n in 8" :key="n">
-      <div class="profile-picture">
-        <!-- 프로필 사진 (여기에 비디오 또는 이미지 추가) -->
-        <img :src="'https://via.placeholder.com/150?text=User+' + n" alt="User profile picture">
-        <video :id="'video-' + n" autoplay playsinline></video>
+    <div class="sidebar">
+      <button class="icon-button" @click="showAIImages = true">
+        <img src="@/assets/images/ingame/Person.png" alt="AI Images">
+      </button>
+      <button class="icon-button" @click="showStats = true">
+        <img src="@/assets/images/ingame/Status.png" alt="Character Stats">
+      </button>
+    </div>
+    <div class="profile-cards">
+      <div class="profile-card" v-for="n in 8" :key="n">
+        <div class="profile-image">
+          <!-- 실제 이미지 URL을 불러오는 코드 -->
+          <!-- <img :src="getCharacterImageUrl(n)" :alt="'User ' + n + ' profile picture'"> -->
+          <!-- 임시 이미지 사용 -->
+          <img :src="getUserImage(n)" :alt="'User ' + n + ' profile picture'">
+          <video :id="'video-' + n" autoplay playsinline></video>
+        </div>
+        <div class="profile-info">
+          <h3>User {{ n }}</h3>
+          <button class="voice-chat-button" @click="toggleVoiceChat(n)">
+            <img :src="getVoiceIcon(n)" alt="Voice chat">
+          </button>
+        </div>
       </div>
-      <div class="profile-details">
-        <!-- 사용자 닉네임 추가 -->
-        <h3>User {{ n }}</h3>
-        <!-- <p>Status: Online</p> -->
-      </div>
-      <button class="voice-chat-button" @click="toggleVoiceChat(n)">{{ isVoiceOn(n) ? 'off' : 'on' }}</button>
     </div>
   </div>
 </template>
@@ -127,7 +139,13 @@ export default {
       this.session = null;
       this.OV = null;
     },
-  },
+    getUserImage(n) {
+      return require(`@/assets/images/ingame/user${n}.png`);
+    },
+    getVoiceIcon(userId) {
+      return this.isVoiceOn(userId) ? require('@/assets/images/ingame/voice.png') : require('@/assets/images/ingame/voicex.png');
+    }
+  }
 };
 </script>
 
@@ -135,68 +153,94 @@ export default {
 .video-profile {
   background-color: #555;
   color: white;
-  padding: 20px;
+  padding: 10px;
   border-radius: 10px;
   display: flex;
-  flex-direction: row;
+  height: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
+  padding: 10px 0;
+  width: 40px;
+  height: calc(100% - 20px);
+  margin-left: 10px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: center;
   align-items: center;
+  margin-bottom: 10px; /* 각 아이콘 사이의 간격 */
+}
+
+.icon-button img {
+  width: 30px;
+  height: 30px;
+}
+
+.profile-cards {
+  display: flex;
+  justify-content: space-between;
+  width: calc(100% - 100px); /* 아이콘 영역과 간격을 고려한 너비 */
+  margin-left: 10px;
 }
 
 .profile-card {
-  background-color: #666;
-  border-radius: 5px;
-  padding: 10px;
-  height: 180px;
-  width: 100px; /* 넓이를 170px로 수정 */
-  text-align: center;
-  flex: 1;
-  margin: 0 5px;
-  position: relative; /* 버튼을 절대적으로 배치하기 위해 상대적으로 설정 */
-}
-
-.profile-picture img {
-  border-radius: 50%;
-  width: 130px; /* 이미지 크기 수정 */
-  height: 130px; /* 이미지 크기 수정 */
-}
-
-.profile-picture video {
-  border-radius: 50%;
-  width: 100px; /* 비디오 크기 수정 */
-  height: 10px; /* 비디오 크기 수정 */
-}
-
-.profile-details {
+  width: calc(12.5% - 10px);
   display: flex;
   flex-direction: column;
+}
+
+.profile-image {
+  width: 100%;
+  padding-top: 90%;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-image img,
+.profile-image video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-info {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-.profile-details h3 {
-  margin: -13px 0;
-  font-size: 14px;
-}
-
-.profile-details p {
+.profile-info h3 {
   margin: 0;
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .voice-chat-button {
-  background-color: #28a745;
-  color: white;
+  background: none;
   border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
   cursor: pointer;
-  font-size: 12px;
-  position: absolute; /* 버튼을 절대 위치로 설정 */
-  bottom: 10px; /* 프로필 카드의 아래쪽 여백 */
-  right: 10px; /* 프로필 카드의 오른쪽 여백 */
+  padding: 0;
 }
 
-.voice-chat-button:hover {
-  background-color: #218838;
+.voice-chat-button img {
+  width: 15px;
+  height: 15px;
 }
 </style>

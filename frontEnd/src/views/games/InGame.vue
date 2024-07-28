@@ -27,29 +27,11 @@ const router = useRouter();
 const route = useRoute();
 
 const gm = ref({
-  name: '미카엘',
-  profileImage: require('@/assets/images/users/gm.png'),
+  name: '미카엘'
 });
 
 const isGM = ref(true);
-const canStartGame = ref(false);
 
-const players = ref([
-  { id: 1, jobSelected: true },
-  { id: 2, jobSelected: true },
-  { id: 3, jobSelected: true },
-  { id: 4, jobSelected: true },
-]);
-
-watch(players, (newPlayers) => {
-  canStartGame.value = newPlayers.every(player => player.jobSelected);
-});
-
-const startGame = () => {
-  if (isGM.value) {
-    router.push(`/game/${route.params.roomId}/in-game`);
-  }
-};
 </script>
 
 <style scoped>

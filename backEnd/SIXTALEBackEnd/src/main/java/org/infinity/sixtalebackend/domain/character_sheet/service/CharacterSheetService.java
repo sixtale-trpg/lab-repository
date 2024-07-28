@@ -4,4 +4,6 @@ import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetRequ
 
 public interface CharacterSheetService {
     void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID);
+    void updateCharacterSheet(Long roomID, Long playMemberID, CharacterSheetRequest characterSheetRequest);
+
 }

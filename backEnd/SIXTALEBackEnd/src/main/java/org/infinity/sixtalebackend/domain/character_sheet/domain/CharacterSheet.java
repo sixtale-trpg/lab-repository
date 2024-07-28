@@ -12,6 +12,7 @@ import org.infinity.sixtalebackend.domain.rule.domain.Race;
 @Entity
 @Getter
 @Builder
+@Setter
 @Table(name = "character_sheet")
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

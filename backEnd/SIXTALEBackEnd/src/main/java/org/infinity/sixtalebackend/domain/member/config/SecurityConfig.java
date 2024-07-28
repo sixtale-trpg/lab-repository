@@ -1,12 +1,14 @@
 package org.infinity.sixtalebackend.domain.member.config;
 
 import lombok.AllArgsConstructor;
+import org.infinity.sixtalebackend.domain.member.filter.JWTTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,6 +23,7 @@ public class SecurityConfig {
                                 .requestMatchers("/", "/members/auth/login", "/members/success", "/members/fail").permitAll()
                                 .anyRequest().permitAll()
                 )
+                .addFilterBefore(new JWTTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2Login ->
                         oauth2Login
                                 .loginPage("/members/auth/login").permitAll()

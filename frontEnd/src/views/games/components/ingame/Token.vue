@@ -4,22 +4,16 @@
       class="token-slot" 
       v-for="token in tokens" 
       :key="token.id" 
-      @dragstart="dragStart(token)" 
-      draggable="true" 
-      @mouseover="showTooltip(token, $event)" 
-      @mouseleave="hideTooltip"
-      @click="showModal(token)"
+      draggable="true"
+      @dragstart="dragStart(token, $event)"
     >
       <img :src="tokenImage" :alt="token.name" class="token" />
-      <div v-if="hoveredToken === token.id" class="tooltip" :style="tooltipStyle">
-        {{ token.name }} - {{ token.info }}
-      </div>
     </div>
     <div class="token-slot add-token" @click="showInput">
-      <img :src="require('@/assets/images/ingame/Plus.png')" alt="Add Token" class="add-icon" />
+      <img :src="plusIcon" alt="Add Token" class="add-icon" />
     </div>
-    <div class="token-slot delete-token">
-      <img :src="require('@/assets/images/ingame/Trash.png')" alt="Delete Token" class="delete-icon" @dragover.prevent @drop="deleteToken" />
+    <div class="token-slot delete-token" @dragover.prevent @drop="deleteToken">
+      <img :src="trashIcon" alt="Delete Token" class="delete-icon" />
     </div>
     <div v-if="inputVisible" class="input-container" @click.self="closeInput">
       <input v-model="newTokenName" @keyup.enter="addToken" placeholder="Enter token name" />
@@ -41,12 +35,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 
 const tokens = ref([]);
 const tokenImage = require('@/assets/images/ingame/Token.png');
+const plusIcon = require('@/assets/images/ingame/Plus.png');
+const trashIcon = require('@/assets/images/ingame/Trash.png');
+const tokenAreaBackground = require('@/assets/images/ingame/Border.png');
+
 const backgroundStyle = {
-  backgroundImage: `url(${require('@/assets/images/ingame/Border.png')})`,
+  backgroundImage: `url(${tokenAreaBackground})`,
   backgroundSize: '100% 100%',
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'center',
@@ -67,6 +64,7 @@ const hoveredToken = ref(null);
 const tooltipStyle = ref({ top: '0px', left: '0px' });
 const modalVisible = ref(false);
 const selectedToken = ref({});
+let nextTokenId = ref(5); // 고유 ID를 추적하기 위해 사용
 
 const showInput = () => {
   inputVisible.value = true;
@@ -75,7 +73,7 @@ const showInput = () => {
 const addToken = () => {
   if (newTokenName.value) {
     tokens.value.push({ 
-      id: tokens.value.length + 1, 
+      id: nextTokenId.value++, 
       name: newTokenName.value,
       info: newTokenInfo.value || `This is the token for ${newTokenName.value}`
     });
@@ -83,20 +81,27 @@ const addToken = () => {
     newTokenInfo.value = '';
     inputVisible.value = false;
   }
+  console.log(tokens.value);
 };
 
 const closeInput = () => {
   inputVisible.value = false;
 };
 
-const dragStart = (token) => {
-  token.dragging = true;
+const dragStart = (token, event) => {
+  event.dataTransfer.setData('text/plain', JSON.stringify(token));
+  console.log(tokens.value);
 };
 
 const deleteToken = (event) => {
-  const token = tokens.value.find(t => t.dragging);
-  if (token) {
-    tokens.value = tokens.value.filter(t => t.id !== token.id);
+  const tokenData = event.dataTransfer.getData('text/plain');
+  try {
+    const parsedToken = JSON.parse(tokenData);
+    tokens.value = tokens.value.filter(t => t.id !== parsedToken.id);
+    console.log(parsedToken.id)
+    console.log(parsedToken)
+  } catch (error) {
+    console.error("Invalid JSON data:", tokenData);
   }
 };
 
@@ -134,30 +139,14 @@ const addDummyData = () => {
 onMounted(async () => {
   addDummyData();
 
-  // 실제 백엔드 API 호출 주석 처리
-  // const playerCount = await getPlayerCount();
-  // tokens.value = Array.from({ length: playerCount }, (_, i) => ({
-  //   id: i + 1,
-  //   name: `Player ${i + 1}`,
-  //   info: `This is the token for Player ${i + 1}`
-  // }));
+  window.addEventListener('remove-token-from-list', (event) => {
+    const token = event.detail;
+    tokens.value = tokens.value.filter(t => t.id !== token.id);
+  });
 });
 </script>
 
 <style scoped>
-.token-area {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 20px;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
 .token-slot {
   display: flex;
   justify-content: center;

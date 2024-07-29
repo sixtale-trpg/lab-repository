@@ -5,14 +5,19 @@
         <img src="@/assets/images/ingame/Rulebook.png" alt="Rulebook" @click="openRulebookModal" />
         <img src="@/assets/images/ingame/Scenario.png" alt="Scenario" @click="openScenarioModal" />
         <img src="@/assets/images/ingame/Map.png" alt="Map" @click="openMapModal" />
-        <img src="@/assets/images/ingame/MuteAll.png" alt="Mute All" @click="muteAll" :class="{ disabled: !isGM }" />
+        <img 
+          src="@/assets/images/ingame/MuteAll.png" 
+          alt="Mute All" 
+          @click="toggleMuteAll" 
+          :class="{ active: isMuteAllActive }" 
+        />
       </template>
       <template v-else>
         <h1>{{ scenarioTitle }}</h1>
       </template>
     </div>
     <div class="header-right" v-if="isGM">
-      <img src="@/assets/images/ingame/Close.png" alt="Close" @click="openCloseModal" :class="{ disabled: !isGM }" />
+      <img src="@/assets/images/ingame/Close.png" alt="Close" @click="openCloseModal" />
     </div>
 
     <RuleBookModal :isOpen="showRulebookModal" @close="showRulebookModal = false" />
@@ -21,6 +26,8 @@
     <CloseRoomModal v-if="showCloseModal" @confirm="closeRoom" @close="showCloseModal = false" />
   </header>
 </template>
+
+
 
 <script setup>
 import { ref, onMounted } from 'vue';
@@ -46,6 +53,8 @@ const showScenarioModal = ref(false);
 const showCloseModal = ref(false);
 const showMapModal = ref(false);
 
+const isMuteAllActive = ref(false);
+
 const router = useRouter();
 
 const openRulebookModal = () => {
@@ -61,9 +70,25 @@ const openMapModal = () => {
   showMapModal.value = true;
 };
 
-const muteAll = () => {
+const toggleMuteAll = () => {
   if (!props.isGM) return;
-  console.log('Mute All Users');
+  isMuteAllActive.value = !isMuteAllActive.value;
+  if (isMuteAllActive.value) {
+    muteAll();
+  } else {
+    unmuteAll();
+  }
+  // console.log(isMuteAllActive.value ? 'Mute All Users' : 'Unmute All Users');
+};
+
+const muteAll = () => {
+  console.log('Muting all users');
+  // 여기에 모든 사용자의 음소거 로직 추가
+};
+
+const unmuteAll = () => {
+  console.log('Unmuting all users');
+  // 여기에 모든 사용자의 음소거 해제 로직 추가
 };
 
 const openCloseModal = () => {
@@ -87,6 +112,7 @@ onMounted(() => {
   //   });
 });
 </script>
+
 
 <style scoped>
 .header {
@@ -122,6 +148,10 @@ onMounted(() => {
   height: 32px; 
   margin: 0 10px;
   cursor: pointer;
+}
+
+.active {
+  filter: brightness(1.5);
 }
 
 .disabled {

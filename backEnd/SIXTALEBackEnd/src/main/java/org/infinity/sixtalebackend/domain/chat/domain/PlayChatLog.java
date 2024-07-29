@@ -20,7 +20,4 @@ public class PlayChatLog {
     private String content;   // 메시지 내용
     private LocalDateTime createdAt;
 
-    public PlayChatLog() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

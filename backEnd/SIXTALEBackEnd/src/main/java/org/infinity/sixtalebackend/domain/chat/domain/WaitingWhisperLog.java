@@ -1,10 +1,9 @@
 package org.infinity.sixtalebackend.domain.chat.domain;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +20,4 @@ public class WaitingWhisperLog {
     private String content;   // 메시지 내용
     private LocalDateTime createdAt;
 
-    public WaitingWhisperLog() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

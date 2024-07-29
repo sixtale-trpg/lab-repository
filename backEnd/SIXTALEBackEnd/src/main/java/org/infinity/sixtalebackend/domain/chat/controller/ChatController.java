@@ -10,6 +10,7 @@ import org.infinity.sixtalebackend.domain.chat.service.WaitingLogServiceImpl;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,8 +33,17 @@ public class ChatController {
 //        chatMessageService.sendMessage(chatMessageRequest, member);
 //    }
 
-    @MessageMapping("/chat/waiting/message")
-    public void messageLobby(ChatMessageRequest chatMessageRequest) {
+    @MessageMapping("/waiting/chat/message")
+    @SendTo("/sub/waiting/chat")
+    public void handleWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
+        // 대기방 채팅 처리
+        waitingLogService.sendWaitingChatMessage(chatMessageRequest);
+    }
+
+    @MessageMapping("/waiting/whisper/message")
+    @SendTo("/sub/waiting/whisper")
+    public void handleWaitingWhisperMessage(ChatMessageRequest chatMessageRequest) {
+        // 대기방 귓속말 처리
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
     }
 

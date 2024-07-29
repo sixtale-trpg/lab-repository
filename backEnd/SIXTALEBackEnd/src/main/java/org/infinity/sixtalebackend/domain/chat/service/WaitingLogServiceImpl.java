@@ -26,11 +26,12 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     private final MemberRepository memberRepository;
     private final WaitingChatLogRepository waitingChatLogRepository;
     private final WaitingWhisperLogRepository waitingWhisperLogRepository;
-    private final ChannelTopic channelTopic;
+    private final ChannelTopic waitingChatTopic;
+    private final ChannelTopic waitingWhisperTopic;
     private final RedisTemplate<String,String> redisTemplate;
 
     /**
-     *
+     * 대기방 채팅, 귓속말 채팅 기능
      * @param chatMessageRequest
      */
     @Transactional
@@ -38,6 +39,9 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     public void sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
 
         Member member = findMember(chatMessageRequest.getMemberID());
+        // 닉네임 저장
+        chatMessageRequest.setNickName(member.getNickname());
+
         Room room = findRoom(chatMessageRequest.getRoomID());
 
         // 채팅 메시지 생성 및 저장
@@ -53,10 +57,15 @@ public class WaitingLogServiceImpl implements WaitingLogService{
             // 대기방 전체 채팅 로그 저장
             waitingChatLogRepository.save(waitingChatLog);
 
+            // 대기방 채팅 토픽으로 메시지 발행
+            redisTemplate.convertAndSend(waitingChatTopic.getTopic(), chatMessageRequest);
+
         // 대기방 귓속말 채팅인 경우(1:1 채팅)
         } else if (chatMessageRequest.getType() == MessageType.WHISPER) {
             // 귓속말 상대
             Member recipient = findMember(chatMessageRequest.getRecipientID());
+            // 귓속말 상대 닉네임 저장
+            chatMessageRequest.setRecipientNickName(recipient.getNickname());
 
             WaitingWhisperLog waitingWhisperLog = WaitingWhisperLog.builder()
                     .roomID(room.getId())
@@ -65,20 +74,16 @@ public class WaitingLogServiceImpl implements WaitingLogService{
                     .content(chatMessageRequest.getContent())
                     .createdAt(LocalDateTime.now())
                     .build();
+
             // 대기방 귓속말 로그 저장
             waitingWhisperLogRepository.save(waitingWhisperLog);
+
+            // 대기방 귓속말 토픽으로 메시지 발행
+            redisTemplate.convertAndSend(waitingWhisperTopic.getTopic(), chatMessageRequest);
         }
 
-        // 토픽 받아오기
-        String topic = channelTopic.getTopic();
-
-        // ChatMessageRequest에 유저정보, 현재시간 저장
-        chatMessageRequest.setNickName(member.getNickname());
-        chatMessageRequest.setMemberID(member.getId());
-
-        redisTemplate.convertAndSend(topic, chatMessageRequest);
-
     }
+
 
     private Member findMember(Long memberID){
         return memberRepository.findById(memberID)

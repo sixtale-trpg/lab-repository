@@ -45,13 +45,9 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    // 여기서부터 다시 토픽 하기
     @Bean
-    public ChannelTopic waitingChatTopic() {
-        return new ChannelTopic("waiting_chat_topic");
-    }
-
-    @Bean
-    public ChannelTopic waitingWhisperTopic() {
-        return new ChannelTopic("waiting_whisper_topic");
+    public ChannelTopic channelTopic() { // (4)
+        return new ChannelTopic("chatroom");
     }
 }

@@ -21,7 +21,4 @@ public class PlayWhisperLog {
     private String content;   // 메시지 내용
     private LocalDateTime createdAt;
 
-    public PlayWhisperLog() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

@@ -18,7 +18,4 @@ public class WaitingChatLog {
     private String content;   // 메시지 내용
     private LocalDateTime createdAt;
 
-    public WaitingChatLog() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

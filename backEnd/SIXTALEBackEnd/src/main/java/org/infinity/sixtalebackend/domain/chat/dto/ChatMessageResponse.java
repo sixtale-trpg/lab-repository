@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChatMessageResponse {
     private Long roomID;    // 채팅방 ID
-    private String sender;   // 발신자 ID
-    // private String recipientID; // 귓속말 수신자 ID
+    private String sender;   // 발신자
+    private String recipient; // 귓속말 수신자
     private String content;  // 메시지 내용
     private MessageType type; // 메시지 유형
 

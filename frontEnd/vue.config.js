@@ -38,6 +38,24 @@ module.exports = {
   },
   css: {
     requireModuleExtension: false,
+    loaderOptions: {
+      postcss: {
+        plugins: [
+          require('cssnano')({
+            preset: [
+              'default',
+              {
+                discardComments: {
+                  removeAll: true,
+                },
+                normalizeWhitespace: false,
+                mergeRules: false
+              },
+            ],
+          }),
+        ],
+      },
+    },
   },
   lintOnSave: false,
   outputDir: '../backEnd/SIXTALEBackEnd/src/main/resources/dist'

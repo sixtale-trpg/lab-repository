@@ -7,7 +7,6 @@ import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.*;
 import org.infinity.sixtalebackend.domain.room.exception.IncorrectPasswordException;
 import org.infinity.sixtalebackend.domain.room.service.RoomService;
-import org.infinity.sixtalebackend.domain.room.service.RoomServiceImpl;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;

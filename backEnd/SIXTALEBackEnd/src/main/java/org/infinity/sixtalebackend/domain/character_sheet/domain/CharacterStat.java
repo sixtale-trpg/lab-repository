@@ -30,6 +30,6 @@ public class CharacterStat {
     private Integer statValue;
 
     @Column(nullable = false)
-    private boolean statWeight;
+    private Integer statWeight;
 
 }

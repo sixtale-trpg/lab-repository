@@ -15,10 +15,10 @@ services:
     ports:
       - "8888:8888"
     environment:
-      SPRING_DATASOURCE_URL:jdbc:mysql://stg-yswa-kr-practice-db-master.mariadb.database.azure.com:3306/S11P12D108?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
-      SPRING_DATASOURCE_USERNAME:S11P12D108@stg-yswa-kr-practice-db-master.mariadb.database.azure.com
-      SPRING_DATASOURCE_PASSWORD:6tfIrEqQzA
-      SPRING_DATA_MONGODB_URI:mongodb+srv://S11P12D108:nlGDSLzi3v@ssafy.ngivl.mongodb.net/S11P12D108?authSource=admin
+      SPRING_DATASOURCE_URL:"jdbc:mysql://stg-yswa-kr-practice-db-master.mariadb.database.azure.com:3306/S11P12D108?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true"
+      SPRING_DATASOURCE_USERNAME:"S11P12D108@stg-yswa-kr-practice-db-master.mariadb.database.azure.com"
+      SPRING_DATASOURCE_PASSWORD:"6tfIrEqQzA"
+      SPRING_DATA_MONGODB_URI:"mongodb+srv://S11P12D108:nlGDSLzi3v@ssafy.ngivl.mongodb.net/S11P12D108?authSource=admin"
 
   nginx:
     build:
@@ -35,8 +35,8 @@ services:
   mariadb:
     image: mariadb:latest
     environment:
-      MYSQL_ROOT_PASSWORD:6tfIrEqQzA
-      MYSQL_DATABASE:S11P12D108
+      MYSQL_ROOT_PASSWORD:"6tfIrEqQzA"
+      MYSQL_DATABASE:"S11P12D108"
     ports:
       - "3306:3306"
 
@@ -53,7 +53,7 @@ services:
   openvidu:
     image: openvidu/openvidu-server-kms:latest
     environment:
-      OPENVIDU_SECRET:MY_SECRET
-      OPENVIDU_CDR:false
+      OPENVIDU_SECRET:"MY_SECRET"
+      OPENVIDU_CDR:"false"
     ports:
       - "4443:4443"

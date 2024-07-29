@@ -58,5 +58,5 @@ module.exports = {
     },
   },
   lintOnSave: false,
-  outputDir: "./app/dist",
+  outputDir: "dist",
 };

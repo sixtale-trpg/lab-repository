@@ -16,15 +16,19 @@ public class JWTUtil {
 
     public static String generateToken(String userEmail) {
         log.info("userEmail" + userEmail);
-
-        JwtBuilder builder = Jwts.builder().setSubject(userEmail);
-        log.info("builder complete");
-        JwtBuilder builder2 = builder.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME));
-        log.info("builder2 complete");
-        JwtBuilder builder3 = builder2.signWith(SignatureAlgorithm.HS512, SECRET_KEY);
-        log.info("builder3 complete");
-        String str = builder3.compact();
-        log.info("compact complete");
+        try {
+            JwtBuilder builder = Jwts.builder().setSubject(userEmail);
+            log.info("builder complete");
+            JwtBuilder builder2 = builder.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME));
+            log.info("builder2 complete");
+            JwtBuilder builder3 = builder2.signWith(SignatureAlgorithm.HS512, SECRET_KEY);
+            log.info("builder3 complete");
+            String str = builder3.compact();
+            log.info("compact complete");
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            e.printStackTrace();
+        }
 
         return Jwts.builder()
                 .setSubject(userEmail)

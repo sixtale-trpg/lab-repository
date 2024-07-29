@@ -63,6 +63,8 @@ public class AuthController {
             log.info("test3");
             session.setAttribute("accessToken", accessToken);
             log.info("test4");
+
+            log.info("accessToken" + String.valueOf(session.getAttribute("accessToken")));
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGIN_SUCCESS), HttpStatus.OK);
         } catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

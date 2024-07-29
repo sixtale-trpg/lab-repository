@@ -23,7 +23,7 @@ const closeModal = () => {
 
 const googleLogin = () => {
   const clientId = '288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com';
-  const redirectUri = 'http://i11d108.p.ssafy.io/members/auth/login/google';
+  const redirectUri = 'https://i11d108.p.ssafy.io/members/auth/login/google';
   const responseType = 'code';
   const scope = 'email profile';
 

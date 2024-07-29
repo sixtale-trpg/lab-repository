@@ -13,10 +13,6 @@
           </div>
           <div class="profile-info">
             <div class="info-item">
-              <div class="info-label">아이디</div>
-              <div class="info-value">{{ user.id }}</div>
-            </div>
-            <div class="info-item">
               <div class="info-label">닉네임</div>
               <div class="info-value">{{ user.nickname }}</div>
             </div>

@@ -1,12 +1,15 @@
 <template>
   <div :style="userCardStyle" class="user-card">
     <div class="user-profile">
-      <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" />
-      <div class="user-actions">
-        <img src="@/assets/images/room/info.png" alt="보기" @click="showUserModal = true" />
-        <img src="@/assets/images/room/add-friend.png" alt="친구 추가" @click="showAddFriendModal = true" />
-        <img v-if="isGM" src="@/assets/images/room/kick.png" alt="강퇴" @click="showKickModal = true" />
+      <div class="profile-image-container">
+        <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" />
+        <img src="@/assets/images/room/avatar_frame.png" alt="테두리" class="avatar-frame" />
       </div>
+    </div>
+    <div class="user-actions">
+      <img src="@/assets/images/room/info.png" alt="보기" @click="showUserModal = true" />
+      <img src="@/assets/images/room/add-friend.png" alt="친구 추가" @click="showAddFriendModal = true" />
+      <img v-if="isGM" src="@/assets/images/room/kick.png" alt="강퇴" @click="showKickModal = true" />
     </div>
     <div :style="userNameStyle" class="user-name" :title="user.name">{{ truncatedName }}</div>
 
@@ -40,11 +43,10 @@ const kickUser = (user) => {
   console.log(`Kicking user ${user.name}`);
 };
 
-// 이미지 경로를 script에서 정의
 const profileBoxImage = require('@/assets/images/room/profile_box.png');
 const nameBoxImage = require('@/assets/images/room/name_box.png');
+const avatarFrameImage = require('@/assets/images/room/avatar_frame.png');
 
-// computed 속성을 사용하여 인라인 스타일을 정의
 const userCardStyle = computed(() => ({
   backgroundImage: `url(${profileBoxImage})`,
   backgroundSize: 'cover',
@@ -55,16 +57,16 @@ const userNameStyle = computed(() => ({
   backgroundImage: `url(${nameBoxImage})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  padding: '10px 20px', // 패딩 조정
+  padding: '5% 10%',
   borderRadius: '5px',
   color: '#ffffff',
   border: '1px solid #5a4d41',
-  marginTop: '10px',
-  width: '160px', // 고정 너비 설정
+  marginTop: '10%',
+  width: '80%',
   textAlign: 'center',
   display: 'inline-block',
-  height: '50px', // 고정 높이 설정
-  lineHeight: '30px', // 텍스트 가운데 정렬
+  height: 'auto',
+  lineHeight: '1.5',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -75,6 +77,7 @@ const truncatedName = computed(() => {
 });
 </script>
 
+
 <style scoped>
 .user-card {
   display: flex;
@@ -82,40 +85,71 @@ const truncatedName = computed(() => {
   align-items: center;
   justify-content: space-between;
   background-color: #291707;
-  border: 1px solid #ccc;
+  /* border: 1px solid #E1D3A8; */
   border-radius: 10px;
   position: relative;
-  margin: 10px;
-  padding: 15px 0;
-  width: calc(100% - 20px);
+  margin: 2%;
+  padding: 5%;
+  width: 90%;
+  overflow: hidden; /* 내용이 넘치지 않도록 설정 */
 }
 
 .user-profile {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  position: relative;
   flex: 1;
+}
+
+.profile-image-container {
+  position: relative;
+  width: 130px; /* 고정된 크기 */
+  height: 130px; /* 고정된 크기 */
+  overflow: hidden; /* 이미지가 넘치지 않도록 설정 */
+  border-radius: 50%; /* 컨테이너를 원형으로 설정 */
+  background-color: #291707; /* 배경색을 카드 배경색과 일치시키기 */
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 
 .profile-image {
-  width: 120px; /* 이미지 크기를 고정 */
-  height: 120px; /* 이미지 크기를 고정 */
+  width: 90%;
+  height: 90%;
+  object-fit: cover; /* 이미지가 컨테이너를 왜곡 없이 덮도록 설정 */
+  border-radius: 50%;
+}
+
+.avatar-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
   border-radius: 50%;
 }
 
 .user-actions {
   display: flex;
-  gap: 5px;
+  gap: 5%;
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 2%;
+  right: -2%;
+  z-index: 1;
 }
 
 .user-actions img {
-  width: 20px;
-  height: 20px;
+  width: 25%;
+  height: auto;
   cursor: pointer;
+}
+
+.user-name {
+  text-align: center;
+  margin-top: 5%;
 }
 
 .user-name:hover::after {
@@ -127,24 +161,20 @@ const truncatedName = computed(() => {
   border-radius: 5px;
   white-space: nowrap;
   z-index: 10;
-  top: -25px;
+  top: -25%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 @media (max-width: 768px) {
   .user-card {
-    padding: 10px 0;
+    padding: 5%;
   }
 
   .user-actions img {
-    width: 15px;
-    height: 15px;
-  }
-
-  .profile-image {
-    width: 50px;
-    height: 50px;
+    width: 20%;
+    height: auto;
   }
 }
 </style>
+

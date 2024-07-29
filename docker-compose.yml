@@ -6,8 +6,8 @@ services:
       context: ./frontEnd
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
-    ports:
-      - "8083:80"
+    expose:
+      - "80"
     depends_on:
       - backend
 

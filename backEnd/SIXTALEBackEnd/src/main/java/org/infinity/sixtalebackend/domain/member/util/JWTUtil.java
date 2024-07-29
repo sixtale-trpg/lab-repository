@@ -11,9 +11,9 @@ public class JWTUtil {
     private static final String SECRET_KEY = "mySecretKey";
     private static final long EXPIRATION_TIME = 86400000; // 1일
 
-    public static String generateToken(String userID) {
+    public static String generateToken(String userEmail) {
         return Jwts.builder()
-                .setSubject(userID)
+                .setSubject(userEmail)
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();

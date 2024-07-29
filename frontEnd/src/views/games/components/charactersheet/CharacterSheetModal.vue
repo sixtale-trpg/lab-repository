@@ -19,11 +19,11 @@
         >{{ tabLabels[tab] }}</button>
       </div>
       <div class="modal-body" :style="modalBodyStyle">
-        <component :is="activeComponent" :form-data="formData"></component>
+        <component :is="activeComponent"></component>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
         <button class="footer-button" @click="$emit('close')">닫기</button>
-        <button class="footer-button save-button" @click="saveForm">저장</button>
+        <button class="footer-button save-button">저장</button>
       </div>
     </div>
   </div>
@@ -65,26 +65,6 @@ const modalFooterStyle = computed(() => ({
   backgroundSize: 'cover',
 }));
 
-const formData = ref({
-  name: '',
-  selectedRace: '',
-  history: '',
-  selectedCloseRangeWeapon: null,
-  selectedLongRangeWeapon: null,
-  selectedMiscellaneous: null,
-  selectedValue: null,
-  attributes: {
-    strength: '',
-    intelligence: '',
-    constitution: '',
-    wisdom: '',
-    dexterity: '',
-    charisma: ''
-  },
-  selectedAction: null,
-  appearanceDescription: ''
-});
-
 const activeComponent = computed(() => {
   switch (activeTab.value) {
     case 'appearance': return Appearance;
@@ -106,11 +86,6 @@ function getTabButtonStyle(tab) {
     background: `url(${imagePath}) no-repeat center center`,
     backgroundSize: 'cover',
   };
-}
-
-function saveForm() {
-  // 폼 데이터를 저장하는 로직, 서버로 전송하거나 로컬에 저장할 수 있습니다.
-  console.log('폼 데이터 저장됨:', formData.value);
 }
 </script>
 

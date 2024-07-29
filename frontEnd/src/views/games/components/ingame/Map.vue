@@ -20,28 +20,42 @@
   </div>
 </template>
 
-
-
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const tokenImage = require('@/assets/images/ingame/Token.png');
 const mapImage = require('@/assets/images/maps/map1.png');
 const placedTokens = ref([]);
-const showGrid = ref(true); // 기본적으로 그리드가 보이도록 설정
-const gridSize = 50; // 그리드 한 칸의 크기
+const showGrid = ref(true);
+const gridSize = 50;
 
 const gridRows = computed(() => Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i));
 
 const onDrop = (event) => {
-  const tokenData = JSON.parse(event.dataTransfer.getData('text/plain'));
-  const mapRect = event.currentTarget.getBoundingClientRect();
-  placedTokens.value.push({
-    ...tokenData,
-    x: event.clientX - mapRect.left,
-    y: event.clientY - mapRect.top
-  });
+  event.preventDefault();
+  
+  const tokenData = event.dataTransfer.getData('text/plain');
+  try {
+    const parsedToken = JSON.parse(tokenData);
+    if (!placedTokens.value.find(t => t.id === parsedToken.id)) {
+      const mapRect = event.currentTarget.getBoundingClientRect();
+      placedTokens.value.push({
+        ...parsedToken,
+        x: event.clientX - mapRect.left,
+        y: event.clientY - mapRect.top
+      });
+
+      const removeEvent = new CustomEvent('remove-token-from-list', { detail: parsedToken });
+      window.dispatchEvent(removeEvent);
+    }
+  } catch (error) {
+    console.error("Invalid JSON data:", tokenData);
+  }
+};
+
+const deleteTokenFromMap = (token) => {
+  placedTokens.value = placedTokens.value.filter(t => t.id !== token.id);
 };
 
 let draggingToken = null;
@@ -60,8 +74,12 @@ const startDrag = (token, event) => {
 const onDrag = (event) => {
   if (draggingToken) {
     const mapRect = document.querySelector('.map-section-container').getBoundingClientRect();
-    draggingToken.x = event.clientX - mapRect.left - offsetX;
-    draggingToken.y = event.clientY - mapRect.top - offsetY;
+    const newX = event.clientX - mapRect.left - offsetX;
+    const newY = event.clientY - mapRect.top - offsetY;
+    
+    // 토큰이 맵 밖으로 드래그되었을 때 위치 업데이트
+    draggingToken.x = newX;
+    draggingToken.y = newY;
   }
 };
 
@@ -72,21 +90,20 @@ const stopDrag = () => {
 };
 
 onMounted(() => {
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
-
-  // 'toggle-grid' 이벤트 리스너 추가
   window.addEventListener('toggle-grid', (event) => {
     showGrid.value = event.detail;
+  });
+
+  window.addEventListener('delete-token', (event) => {
+    deleteTokenFromMap(event.detail);
   });
 });
 
 onUnmounted(() => {
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
+  window.removeEventListener('toggle-grid', () => {});
+  window.removeEventListener('delete-token', () => {});
 });
 </script>
-
 
 <style scoped>
 .map-section-container {
@@ -121,7 +138,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   display: grid;
-  pointer-events: none; /* 그리드가 인터랙션을 차단하지 않도록 */
+  pointer-events: none;
 }
 
 .grid-row {
@@ -131,7 +148,7 @@ onUnmounted(() => {
 .grid-cell {
   width: 50px;
   height: 50px;
-  border: 1px solid rgba(0, 0, 0, 0.5); /* 진한 색상 */
+  border: 1px solid rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;

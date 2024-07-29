@@ -12,6 +12,8 @@ services:
   backend:
     build:
       context: ./backEnd
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
     ports:
       - "8888:8888"
     environment:

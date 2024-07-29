@@ -51,9 +51,11 @@ dependencies {
     // Web Socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-    // RabbitMQ
-    implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    implementation 'org.springframework.data:spring-data-mongodb'
+
 }
 
 tasks.named('test') {

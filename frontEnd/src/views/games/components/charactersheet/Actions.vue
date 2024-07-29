@@ -6,7 +6,7 @@
         :key="index" 
         class="action-button"
         :style="getActionStyle(action)"
-        :class="{ active: selectedIndex === index }"
+        :class="{ active: formData.selectedAction === index }"
         @click="handleClick(index)"
       >
         <span class="action-title">{{ action.title }}</span>
@@ -19,8 +19,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, toRefs } from 'vue';
 import actionBox from '@/assets/images/character_sheet/action_box.png';
+
+const props = defineProps(['formData']);
+const { formData } = toRefs(props);
 
 // 액션 정보 등록
 const actions = reactive([
@@ -57,7 +60,9 @@ const actions = reactive([
   }
 ]);
 
-const selectedIndex = ref(null);
+const handleClick = (index) => {
+  formData.value.selectedAction = index;
+};
 
 const getActionStyle = (action) => {
   const baseHeight = 150; // 기본 높이
@@ -78,10 +83,6 @@ const getActionStyle = (action) => {
     overflow: 'hidden', // 텍스트가 박스를 벗어나지 않도록 숨기기
     boxSizing: 'border-box'
   };
-};
-
-const handleClick = (index) => {
-  selectedIndex.value = index;
 };
 </script>
 

@@ -22,14 +22,17 @@ const closeModal = () => {
 };
 
 const googleLogin = () => {
-  const clientId = 'YOUR_GOOGLE_CLIENT_ID';
-  const redirectUri = 'YOUR_REDIRECT_URI';
+  const clientId = '288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com';
+  const redirectUri = 'http://i11d108.p.ssafy.io/members/auth/login/google';
   const responseType = 'code';
-  const scope = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+  const scope = 'email profile';
 
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+  // const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
+
+  const url = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com&redirect_uri=http://i11d108.p.ssafy.io/api/v1/members/auth/login/google&response_type=code&scope=email profile';
 
   window.location.href = url;
+  console.log("url = "+ url);
 };
 </script>
 

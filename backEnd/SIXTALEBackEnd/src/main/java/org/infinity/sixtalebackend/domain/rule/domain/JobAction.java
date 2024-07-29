@@ -24,14 +24,13 @@ public class JobAction {
     @ColumnDefault("true")
     private Boolean isCore;
 
-    @Lob
+    @Lob @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
     @ColumnDefault("false")
     private Boolean isDice;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private DiceType diceType;
 

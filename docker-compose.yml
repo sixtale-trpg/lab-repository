@@ -4,6 +4,8 @@ services:
   frontend:
     build:
       context: ./frontEnd
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
     ports:
       - "8083:80"
     depends_on:
@@ -12,8 +14,6 @@ services:
   backend:
     build:
       context: ./backEnd
-    environment:
-      - NODE_OPTIONS=--openssl-legacy-provider
     ports:
       - "8888:8888"
     environment:

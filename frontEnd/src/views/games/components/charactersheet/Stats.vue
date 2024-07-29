@@ -19,13 +19,13 @@
               <span class="attribute-name">{{ attribute.name }}</span>
               <div class="attribute-value-container">
                 <img src="@/assets/images/character_sheet/stats_select.png" alt="값 배경" class="attribute-value-background">
-                <select class="attribute-select" v-model="formData.attributes[attribute.key]" @change="updateOptions">
+                <select class="attribute-select" v-model="attribute.value" @change="updateOptions">
                   <option value="" selected>전체</option>
                   <option v-for="option in availableOptions(attribute)" :value="option" :key="option">{{ option }}</option>
                 </select>
                 <div class="attribute-circle">
                   <img src="@/assets/images/character_sheet/stats_circle.png" alt="보정치 배경" class="circle-background">
-                  <span class="modifier-value">{{ getModifier(formData.attributes[attribute.key]) }}</span>
+                  <span class="modifier-value">{{ getModifier(attribute.value) }}</span>
                 </div>
               </div>
             </div>
@@ -37,37 +37,40 @@
 </template>
 
 <script setup>
-import { reactive, computed, toRefs } from 'vue';
-
-const props = defineProps(['formData']);
-const { formData } = toRefs(props);
+import { reactive, computed } from 'vue';
 
 const initialOptions = ['16', '15', '13', '12', '9', '8'];
 
 const attributes = reactive([
   {
     name: '근력',
-    key: 'strength',
+    value: '',
+    options: initialOptions
   },
   {
     name: '지능',
-    key: 'intelligence',
+    value: '',
+    options: initialOptions
   },
   {
     name: '체력',
-    key: 'constitution',
+    value: '',
+    options: initialOptions
   },
   {
     name: '지혜',
-    key: 'wisdom',
+    value: '',
+    options: initialOptions
   },
   {
     name: '민첩성',
-    key: 'dexterity',
+    value: '',
+    options: initialOptions
   },
   {
     name: '매력',
-    key: 'charisma',
+    value: '',
+    options: initialOptions
   }
 ]);
 
@@ -77,16 +80,16 @@ const attributeRows = reactive([
   [attributes[4], attributes[5]]
 ]);
 
-const selectedValues = computed(() => Object.values(formData.value.attributes).filter(val => val));
+const selectedValues = computed(() => attributes.map(attr => attr.value).filter(val => val));
 
 const availableOptions = (attribute) => {
-  return initialOptions.filter(option => !selectedValues.value.includes(option) || formData.value.attributes[attribute.key] === option);
+  return initialOptions.filter(option => !selectedValues.value.includes(option) || attribute.value === option);
 };
 
 const updateOptions = () => {
   // 강제로 갱신을 유도하여 select 옵션 업데이트
   attributes.forEach(attribute => {
-    formData.value.attributes[attribute.key].options = availableOptions(attribute);
+    attribute.options = availableOptions(attribute);
   });
 };
 

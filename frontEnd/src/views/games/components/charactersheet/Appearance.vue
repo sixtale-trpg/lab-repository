@@ -7,7 +7,7 @@
     <div class="content">
       <div class="input-container">
         <img :src="promptImage" alt="설명 입력 배경" class="input-image">
-        <textarea v-model="formData.appearanceDescription" class="input-textarea" placeholder="예시: 검은색 두건, 푸른 눈, 오뚝한 코, 구릿빛 피부, 야비한 생김새"></textarea>
+        <textarea class="input-textarea" placeholder="예시: 검은색 두건, 푸른 눈, 오뚝한 코, 구릿빛 피부, 야비한 생김새"></textarea>
         <div class="hover-description">
           <img :src="imgDescriptionImage" alt="이미지 설명" class="description-image">
           <div class="description-text-container">
@@ -26,10 +26,7 @@
 </template>
 
 <script setup>
-import { ref, toRefs } from 'vue';
-
-const props = defineProps(['formData']);
-const { formData } = toRefs(props);
+import { ref } from 'vue';
 
 const nicknameLightImage = ref(require('@/assets/images/character_sheet/nickname_light.png'));
 const promptImage = ref(require('@/assets/images/character_sheet/prompt.png'));

@@ -31,8 +31,8 @@ const googleLogin = () => {
 
   const url = 'https://accounts.google.com/o/oauth2/v2/auth?client_id=288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com&redirect_uri=http://i11d108.p.ssafy.io/api/v1/members/auth/login/google&response_type=code&scope=email profile';
 
-  console.log("url = "+ url);
   window.location.href = url;
+  console.log("url = "+ url);
 };
 </script>
 

@@ -56,9 +56,13 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestParam String code, @PathVariable String registrationID, HttpServletRequest request) {
         try {
             Member member = authService.socialLogin(code, registrationID);
+            log.info("test1");
             String accessToken = jwtUtil.generateToken(member.getEmail());
+            log.info("test2");
             HttpSession session = request.getSession();
+            log.info("test3");
             session.setAttribute("accessToken", accessToken);
+            log.info("test4");
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGIN_SUCCESS), HttpStatus.OK);
         } catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

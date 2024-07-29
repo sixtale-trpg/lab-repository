@@ -109,6 +109,7 @@ onUnmounted(() => {
 .map-section-container {
   width: 100%;
   height: 100%;
+  margin: 5px;
   position: relative;
   overflow: hidden;
 }

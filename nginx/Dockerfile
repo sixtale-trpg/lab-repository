@@ -5,7 +5,7 @@ FROM nginx:stable-alpine
 RUN apk add --no-cache certbot certbot-nginx
 
 # Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/sites-available/default
+COPY /fronteEnd/nginx.conf /etc/nginx/sites-available/default
 
 # Add a script to renew certificates
 COPY renew_certificates.sh /etc/periodic/weekly/renew_certificates

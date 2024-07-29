@@ -7,7 +7,7 @@
       </div>
       <div class="name-input-container">
         <img src="@/assets/images/character_sheet/name_box.png" alt="이름 입력 배경" class="name-input-image">
-        <input type="text" id="name" class="name-input" />
+        <input type="text" v-model="formData.name" id="name" class="name-input" />
       </div>
     </div>
     <div class="input-group">
@@ -19,7 +19,7 @@
         <button 
           v-for="race in races" 
           :key="race" 
-          :class="['race-button', { active: selectedRace === race }]"
+          :class="['race-button', { active: formData.selectedRace === race }]"
           @click="selectRace(race)">
           <img src="@/assets/images/character_sheet/tribebutton.png" :alt="race" class="race-button-image">
           <span class="race-button-text">{{ race }}</span>
@@ -34,19 +34,21 @@
     </div>
     <div class="history-input-container">
       <img src="@/assets/images/character_sheet/history_box.png" alt="히스토리 입력 배경" class="history-input-image">
-      <input type="text" id="history" class="history-input" />
+      <input type="text" v-model="formData.history" id="history" class="history-input" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, toRefs } from 'vue';
+
+const props = defineProps(['formData']);
+const { formData } = toRefs(props);
 
 const races = ref(['하플링', '인간', '엘프', '드워프']); // 예시 종족 목록
-const selectedRace = ref(''); // 선택된 종족을 저장할 변수
 
 function selectRace(race) {
-  selectedRace.value = race;
+  formData.value.selectedRace = race;
 }
 </script>
 

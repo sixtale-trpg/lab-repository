@@ -6,12 +6,7 @@
           <span class="room-title">{{ roomTitle }}</span>
         </div>
       </div>
-      <div class="right-section">
-        <div class="next-schedule-box">
-          <span class="next-schedule">일정: {{ nextSchedule }}</span>
-        </div>
-        <button class="create-button" @click="createSchedule">변경</button>
-      </div>
+
     </div>
   </template>
   

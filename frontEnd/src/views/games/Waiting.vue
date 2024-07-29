@@ -66,8 +66,8 @@ const roomDetails = ref({
 });
 
 const users = ref([
-  { id: 1, name: 'User1', profileImage: require('@/assets/images/users/user1.png') },
-  { id: 2, name: 'User2', profileImage: require('@/assets/images/users/user2.png') },
+  { id: 1, name: '오소리 탈춤꾼입니다', profileImage: require('@/assets/images/users/user1.png') },
+  { id: 2, name: 'HybridObjectClass', profileImage: require('@/assets/images/users/user2.png') },
   { id: 3, name: 'User3', profileImage: require('@/assets/images/users/user3.png') },
   { id: 4, name: 'User4', profileImage: require('@/assets/images/users/user4.png') },
   { id: 5, name: 'User5', profileImage: require('@/assets/images/users/user5.png') },

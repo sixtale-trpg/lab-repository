@@ -40,28 +40,24 @@ public class Member extends BaseTimeEntity {
     @Column(nullable = false)
     private Boolean isWithdrawn;
 
-    @Column(nullable = false)
-    private LocalDateTime lastLoginAt;
-
     @Column(name = "image_url")
     private String imageURL;
 
+    @Column(nullable = false)
+    private LocalDateTime lastLoginAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (lastLoginAt == null) {
+            lastLoginAt = LocalDateTime.now();
+        }
+    }
     public void setNickName(String nickName) {
         this.nickname = nickName;
     }
 
     public void setImageURL(String imageURL) {
         this.imageURL = imageURL;
-    }
-
-
-    public Member(String email, String nickname, String accessToken, Provider provider, String providerUserID, boolean isWithdrawn) {
-        this.email = email;
-        this.nickname = nickname;
-        this.accessToken = accessToken;
-        this.provider = provider;
-        this.providerUserID = providerUserID;
-        this.isWithdrawn = isWithdrawn;
     }
 
 }

@@ -52,16 +52,17 @@ public class AuthServiceImpl implements AuthService {
 
         Member findMember = authRepository.findByEmail(authResponse.getEmail());
         if (findMember == null) {
-            Member member = new Member(
-                    authResponse.getEmail(),
-                    authResponse.getNickname(),
-                    accessToken,
-                    Provider.valueOf(registrationID.toUpperCase()),
-                    authResponse.getId(),
-                    false);
-            authRepository.save(member);
+            findMember = Member.builder()
+                    .email(authResponse.getEmail())
+                    .nickname(authResponse.getNickname())
+                    .accessToken(accessToken)
+                    .provider(Provider.valueOf(registrationID.toUpperCase()))
+                    .providerUserID(String.valueOf(userResourceNode.get("id")))
+                    .isWithdrawn(false)
+                    .build();
+
+            authRepository.save(findMember);
         }
-        findMember = authRepository.findByEmail(authResponse.getEmail());
 
         return findMember;
     }

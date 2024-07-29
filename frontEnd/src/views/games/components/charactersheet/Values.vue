@@ -6,8 +6,8 @@
         :key="index" 
         class="value-button" 
         @click="handleClick(index)"
-        :class="{ active: selectedIndex === index }"
-        :style="getButtonStyle(selectedIndex === index)"
+        :class="{ active: formData.selectedValue === index }"
+        :style="getButtonStyle(formData.selectedValue === index)"
       >
         <div class="button-content">
           <span class="button-title">{{ button.title }}</span>
@@ -20,7 +20,10 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, toRefs } from 'vue';
+
+const props = defineProps(['formData']);
+const { formData } = toRefs(props);
 
 // 버튼 정보 및 스타일 등록
 const buttons = reactive([
@@ -38,10 +41,8 @@ const buttons = reactive([
   }
 ]);
 
-const selectedIndex = ref(null);
-
 const handleClick = (index) => {
-  selectedIndex.value = index;
+  formData.value.selectedValue = index;
 };
 
 // 배경 이미지 경로 설정

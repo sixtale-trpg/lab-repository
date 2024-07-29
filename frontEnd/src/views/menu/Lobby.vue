@@ -5,40 +5,58 @@
       <button class="view-all-rooms-button" @click="showAllRooms">전체 방 보기</button>
       <button class="view-joined-rooms-button" @click="filterJoinedRooms">참가중인 방 보기</button>
     </div>
-    <div class="rooms-container">
-      <div v-for="room in filteredRooms" :key="room.id" class="room-card">
-        <div class="room-image">
-          <img :src="defaultImage" alt="Room Image" />
-        </div>
-        <div class="room-details">
-          <div class="room-header">
-            <div class="room-title">
-              <span>방번호: {{ room.id }}</span>
-              <span class="title">{{ room.title }}</span>
-              <img v-if="room.is_locked" src="@/assets/images/room/lock.png" alt="Lock Icon" class="lock-icon" />
+    <div class="rectangle-box">
+      <div class="rooms-container">
+        <div v-for="room in paginatedRooms" :key="room.id" class="room-card">
+          <div class="room-image">
+            <img :src="defaultImage" alt="Room Image" />
+          </div>
+          <div class="room-details">
+            <div class="room-header">
+              <div class="room-title-container">
+                <div class="room-number-box">
+                  <span class="room-number">{{ room.id }}</span>
+                </div>
+                <div class="room-title-box">
+                  <span class="room-title">{{ room.title }}</span>
+                </div>
+              </div>
+              <div class="room-info">
+                <span>{{ room.is_short_story ? '단편' : '장편' }}</span>
+              </div>
             </div>
-            <div class="room-info">
-              <span>{{ room.is_short_story ? '단편' : '장편' }}</span>
+            <div class="room-footer">
+              <div :class="['status-box', getStatusClass(room.status)]">
+                <span>{{ getStatus(room.status) }}</span>
+              </div>
+              <div class="players-box">
+                <span>{{ room.current_count }} / {{ room.max_count }}</span>
+              </div>
+              <button v-if="room.status === 'WAITING'" @click="enterRoom(room.id)" class="enter-button">입장</button>
             </div>
           </div>
-          <div class="room-footer">
-            <div :class="['status-box', getStatusClass(room.status)]">
-              <span>{{ getStatus(room.status) }}</span>
-            </div>
-            <div class="players-box">
-              <span>{{ room.current_count }} / {{ room.max_count }}</span>
-            </div>
-            <button v-if="room.status === 'WAITING'" @click="enterRoom(room.id)" class="enter-button">입장</button>
-          </div>
         </div>
+      </div>
+      <div class="pagination">
+        <button class="pagination-button" @click="prevPage" :disabled="currentPage === 1">
+          <img src="@/assets/images/lobby/Arrow_Left.png" alt="Previous" class="pagination-arrow" />
+        </button>
+        <button class="pagination-button" @click="nextPage" :disabled="currentPage === totalPages">
+          <img src="@/assets/images/lobby/Arrow_Right.png" alt="Next" class="pagination-arrow" />
+        </button>
       </div>
     </div>
     <CreateRoomModal v-if="isCreateRoomModalOpen" @close="closeCreateRoomModal" />
   </div>
 </template>
 
+
+
+
+
+
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
@@ -68,6 +86,27 @@ const isCreateRoomModalOpen = ref(false);
 
 const defaultImage = require('@/assets/images/scenario.png');
 
+const currentPage = ref(1);
+const roomsPerPage = 6;
+const totalPages = computed(() => Math.ceil(filteredRooms.value.length / roomsPerPage));
+
+const paginatedRooms = computed(() => {
+  const start = (currentPage.value - 1) * roomsPerPage;
+  return filteredRooms.value.slice(start, start + roomsPerPage);
+});
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value += 1;
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value -= 1;
+  }
+};
+
 const openCreateRoomModal = () => {
   isCreateRoomModalOpen.value = true;
 };
@@ -88,18 +127,13 @@ const filterJoinedRooms = () => {
 };
 
 const getStatus = (status) => {
-  // 상태도 백엔드에서 가져와야한다.
   switch (status) {
     case 'WAITING':
-      return '대기중';
+      return 'WAITING';
     case 'PLAYING':
-      return '게임중';
-    case 'UPCOMING':
-      return '예정';
-    case 'COMPLETE':
-      return '완료';
+      return 'PLAYING';
     default:
-      return '알 수 없음';
+      return status;
   }
 };
 
@@ -109,8 +143,6 @@ const getStatusClass = (status) => {
       return 'status-waiting';
     case 'PLAYING':
       return 'status-playing';
-    case 'UPCOMING':
-      return 'status-upcoming';
     default:
       return '';
   }
@@ -139,12 +171,13 @@ const enterRoom = (roomId) => {
 <style scoped>
 .lobby-container {
   padding: 20px;
-  background: #1e1e1e;
+  background: url('/path/to/your/background.png'); /* 배경 이미지 추가 */
   color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .button-container {
@@ -164,6 +197,20 @@ const enterRoom = (roomId) => {
   cursor: pointer;
 }
 
+.rectangle-box {
+  position: relative;
+  width: 1471px;
+  height: 835px;
+  background: rgba(91, 78, 71, 0.15);
+  mix-blend-mode: exclusion;
+  box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 39px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .rooms-container {
   display: flex;
   flex-wrap: wrap;
@@ -171,18 +218,20 @@ const enterRoom = (roomId) => {
   width: 100%;
   justify-content: center;
   margin-top: 10px; /* 상단 여백 */
+  overflow: hidden; /* 프레임을 넘어가는 내용 숨김 */
 }
 
 .room-card {
   display: flex;
   flex-direction: row; /* 가로 배치 */
   width: calc(50% - 40px); /* 카드 사이의 여백을 고려한 너비 */
-  background-color: #3c2c23;
-  border-radius: 10px;
+  background-color: rgba(91, 78, 71, 0.15);
+  border-radius: 39px;
   padding: 20px;
   margin-bottom: 20px;
   position: relative;
   transition: transform 0.3s;
+  box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
 .room-card:hover {
@@ -217,15 +266,53 @@ const enterRoom = (roomId) => {
   align-items: center;
 }
 
-.room-title {
+.room-title-container {
   display: flex;
   align-items: center;
   gap: 10px;
+  background: rgba(40, 34, 30, 0.31);
+  box-shadow: inset 4px 4px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 5px 10px;
+  width: 100%;
+  height: 46px;
 }
 
-.title {
-  font-size: 1.2rem;
-  font-weight: bold;
+.room-number-box {
+  background: #554B45;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  width: 91px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.room-number {
+  font-family: 'Abhaya Libre ExtraBold';
+  font-style: normal;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 100%;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.room-title-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.room-title {
+  font-family: 'Abhaya Libre Medium';
+  font-style: normal;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.67);
 }
 
 .room-info {
@@ -233,23 +320,34 @@ const enterRoom = (roomId) => {
   color: #ccc;
 }
 
-.status-box, .players-box {
-  background-color: #555;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: white;
+.status-box {
+  position: absolute;
+  width: 177px;
+  height: 45px;
+  font-family: 'Abhaya Libre ExtraBold';
+  font-style: normal;
+  font-weight: 800;
+  font-size: 43px;
+  line-height: 100%;
+  text-align: center;
 }
 
 .status-box.status-waiting {
-  background-color: #555; /* 기존 색상 */
+  color: #D4DED5;
+  border: 3px solid rgba(36, 46, 37, 0.4);
 }
 
 .status-box.status-playing {
-  background-color: red;
+  color: #DEDAD4;
+  border: 3px solid rgba(28, 37, 62, 0.86);
 }
 
-.status-box.status-upcoming {
-  background-color: blue;
+.players-box {
+  background: #554B45;
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 5px 10px;
+  color: white;
 }
 
 .enter-button {
@@ -268,5 +366,36 @@ const enterRoom = (roomId) => {
 .lock-icon {
   width: 20px;
   height: 20px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between; /* 좌우 버튼이 양 끝으로 가도록 */
+  align-items: center;
+  margin-top: 20px;
+  width: 100%; /* 버튼들이 양 끝으로 가도록 충분한 너비 설정 */
+}
+
+.pagination-button {
+  width: 126px;
+  height: 50px;
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: none;
+}
+
+.pagination-button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}
+
+.pagination-arrow {
+  width: 30px;
+  height: 19px;
 }
 </style>

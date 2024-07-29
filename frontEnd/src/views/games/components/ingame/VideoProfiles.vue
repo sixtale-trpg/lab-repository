@@ -1,44 +1,60 @@
 <template>
   <div class="video-profile">
     <div class="sidebar">
-      <button class="icon-button" @click="showAIImages = true">
+      <button class="icon-button" @click="toggleAIImages">
         <img src="@/assets/images/ingame/Person.png" alt="AI Images">
       </button>
-      <button class="icon-button" @click="showStats = true">
+      <button class="icon-button" @click="toggleStats">
         <img src="@/assets/images/ingame/Status.png" alt="Character Stats">
       </button>
     </div>
     <div class="profile-cards">
       <div class="profile-card" v-for="n in 8" :key="n">
         <div class="profile-image">
-          <!-- 실제 이미지 URL을 불러오는 코드 -->
-          <!-- <img :src="getCharacterImageUrl(n)" :alt="'User ' + n + ' profile picture'"> -->
-          <!-- 임시 이미지 사용 -->
-          <img :src="getUserImage(n)" :alt="'User ' + n + ' profile picture'">
-          <video :id="'video-' + n" autoplay playsinline></video>
+          <!-- AI Images 상태와 Character Stats 상태를 구분하여 렌더링 -->
+          <img v-if="showAIImages" :src="getAIImage(n)" :alt="'User ' + n + ' AI profile picture'">
+          <CharacterStats v-else-if="showStats" :playMemberID="n" />
+          <video v-else :id="'video-' + n" autoplay playsinline></video>
         </div>
         <div class="profile-info">
-          <h3>User {{ n }}</h3>
+          <div class="user-info">
+            <h3>User {{ n }}</h3>
+            <span v-if="isGM">정보</span>
+            <img v-if="isGM" src="@/assets/images/ingame/Info.png" alt="Info" class="info-icon" @click="showUserInfo(n)" />
+          </div>
           <button class="voice-chat-button" @click="toggleVoiceChat(n)">
             <img :src="getVoiceIcon(n)" alt="Voice chat">
           </button>
         </div>
       </div>
     </div>
+
+    <CharacterInfo v-if="showCharacterInfo" @close="closeCharacterInfo" />
   </div>
 </template>
 
 <script>
+import { ref } from 'vue';
 import { OpenVidu } from 'openvidu-browser';
+import CharacterStats from './CharacterStats.vue';
+import CharacterInfo from '@/views/games/components/Modal/CharacterInfoModal.vue';
 
 export default {
+  components: {
+    CharacterStats,
+    CharacterInfo
+  },
   data() {
     return {
       OV: null,
       session: null,
       publisher: null,
       subscribers: [],
-      voiceStates: Array(8).fill(false), // 각 사용자에 대한 음성 상태를 저장하는 배열
+      voiceStates: Array(8).fill(false),
+      showStats: false,
+      showAIImages: true, // 초기값으로 AI 이미지가 보이도록 설정
+      showCharacterInfo: false,
+      isGM: true
     };
   },
   methods: {
@@ -56,14 +72,14 @@ export default {
         await this.session.connect(token, { clientData: `User ${userId}` });
 
         const publisher = await this.OV.initPublisherAsync(`video-${userId}`, {
-          audioSource: undefined, // The source of audio. If undefined default microphone
-          videoSource: false, // No video source
-          publishAudio: true, // Whether you want to start publishing with your audio unmuted or not
-          publishVideo: false, // Whether you want to start publishing with your video enabled or not
-          resolution: '640x480', // The resolution of your video
-          frameRate: 30, // The frame rate of your video
-          insertMode: 'APPEND', // How the video is inserted in the target element
-          mirror: false, // Whether to mirror your local video or not
+          audioSource: undefined,
+          videoSource: false,
+          publishAudio: true,
+          publishVideo: false,
+          resolution: '640x480',
+          frameRate: 30,
+          insertMode: 'APPEND',
+          mirror: false,
         });
 
         this.session.publish(publisher);
@@ -139,11 +155,26 @@ export default {
       this.session = null;
       this.OV = null;
     },
-    getUserImage(n) {
+    getAIImage(n) {
+      // AI 이미지 경로 반환
       return require(`@/assets/images/ingame/user${n}.png`);
     },
     getVoiceIcon(userId) {
       return this.isVoiceOn(userId) ? require('@/assets/images/ingame/voice.png') : require('@/assets/images/ingame/voicex.png');
+    },
+    toggleStats() {
+      this.showStats = true;
+      this.showAIImages = false;
+    },
+    toggleAIImages() {
+      this.showAIImages = true;
+      this.showStats = false;
+    },
+    showUserInfo(userId) {
+      this.showCharacterInfo = true;
+    },
+    closeCharacterInfo() {
+      this.showCharacterInfo = false;
     }
   }
 };
@@ -153,8 +184,7 @@ export default {
 .video-profile {
   background-color: #555;
   color: white;
-  padding: 10px;
-  border-radius: 10px;
+  padding: 0;
   display: flex;
   height: 100%;
 }
@@ -162,11 +192,9 @@ export default {
 .sidebar {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: space-around;
   padding: 10px 0;
   width: 40px;
-  height: calc(100% - 20px);
-  margin-left: 10px;
 }
 
 .icon-button {
@@ -178,7 +206,6 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px; /* 각 아이콘 사이의 간격 */
 }
 
 .icon-button img {
@@ -189,30 +216,45 @@ export default {
 .profile-cards {
   display: flex;
   justify-content: space-between;
-  width: calc(100% - 100px); /* 아이콘 영역과 간격을 고려한 너비 */
-  margin-left: 10px;
+  width: calc(100% - 40px);
+  margin-left: 0;
 }
 
 .profile-card {
   width: calc(12.5% - 10px);
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .profile-image {
   width: 100%;
-  padding-top: 90%;
+  height: 100%;
   position: relative;
-  overflow: hidden;
 }
 
 .profile-image img,
-.profile-image video {
+.profile-image video,
+.character-stats {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.character-stats .stats-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   object-fit: cover;
 }
 
@@ -220,8 +262,20 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px;
+  padding: 0 5px;
   background-color: rgba(0, 0, 0, 0.5);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.info-icon {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 }
 
 .profile-info h3 {

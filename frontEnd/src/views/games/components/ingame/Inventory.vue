@@ -1,16 +1,21 @@
 <template>
   <div class="inventory-area" :style="backgroundStyle">
     <div class="inventory-grid">
-      <div v-for="(item, index) in items" :key="index" class="inventory-slot">
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        class="inventory-slot"
+        @mouseover="showTooltip(item, $event)"
+        @mouseleave="hideTooltip"
+      >
         <template v-if="item">
           <img :src="item.image" :alt="item.name" class="inventory-item" />
           <button @click="removeItem(index)" class="remove-item-button">
             <img :src="require('@/assets/images/ingame/Trash.png')" alt="Delete" class="delete" />
           </button>
-          <div class="tooltip" v-if="tooltip.visible" :style="tooltipStyle">{{ tooltip.text }}</div>
         </template>
       </div>
-      <div v-if="items.length < maxSlots">
+      <div v-if="items.length < 18">
         <button @click="showItemSelection" class="add-item-button">
           <img :src="require('@/assets/images/ingame/Plus.png')" alt="Add" class="add" />
         </button>
@@ -30,28 +35,29 @@
         <button @click="closeItemSelection">닫기</button>
       </div>
     </div>
+    <div v-if="tooltip.visible" class="tooltip" :style="tooltipStyle">{{ tooltip.text }}</div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+// import axios from 'axios';  // 실제 API 호출 시 사용
 
-const characterId = 1;
 const items = reactive([]);
-const maxSlots = 12;
-
+const maxSlots = 18;  // 3x6 그리드에 맞춘 슬롯 수
 const currentWeight = ref(5);
 const limitWeight = ref(11);
 const currentGold = ref(7);
-
 const backgroundStyle = {
   backgroundImage: `url(${require('@/assets/images/ingame/Border4.png')})`,
-  backgroundSize: 'cover',
+  backgroundSize: '100% 100%',
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'center',
   display: 'flex',
   justifyContent: 'space-between',
+  gap: '5px',
   padding: '10px',
+  margin: '5px',
   boxSizing: 'border-box',
   width: '100%',
   height: '100%',
@@ -60,8 +66,12 @@ const backgroundStyle = {
 const tooltip = ref({ visible: false, text: '' });
 const tooltipStyle = ref({ top: '0px', left: '0px' });
 
-const showTooltip = (item) => {
-  tooltip.value = { visible: true, text: item.name + (item.count > 1 ? ` (${item.count})` : '') };
+const showTooltip = (item, event) => {
+  tooltip.value = { visible: true, text: item.description };
+  tooltipStyle.value = {
+    top: `${event.clientY}px`,
+    left: `${event.clientX}px`
+  };
 };
 
 const hideTooltip = () => {
@@ -93,13 +103,31 @@ const removeItem = (index) => {
   items.splice(index, 1);
 };
 
-onMounted(() => {
-  items.push(
-    { id: 1, name: 'Shield', image: require('@/assets/images/ingame/Shield.png'), count: 1 },
-    { id: 2, name: 'Armor', image: require('@/assets/images/ingame/Armor.png'), count: 15 },
-    { id: 3, name: 'Sword', image: require('@/assets/images/ingame/Sword.png'), count: 1 },
-    { id: 4, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png'), count: 1 }
-  );
+
+// 인벤토리 설명 호버 미구현 => 방법 잘 모르겠음
+// 캐릭터 시트의 호버는 미리 설명을 입력해두고 display:none 으로 해서 보여주고 안보여주고 했는데
+// 이상한거 같아서 함수를 정의하고 했는데 미구현됨
+
+onMounted(async () => {
+  try {
+    // 주석 처리된 백엔드 API 호출 부분
+    // const response = await axios.get(`/rooms/${roomID}/sheets/${playMemberID}`);
+    // const characterData = response.data;
+    // items.push(...characterData.equipment);
+    // currentWeight.value = characterData.current_weight;
+    // limitWeight.value = characterData.limit_weight;
+    // currentGold.value = characterData.current_money;
+    
+    // 더미 데이터
+    items.push(
+      { id: 1, name: 'Shield', image: require('@/assets/images/ingame/Shield.png'), count: 1, description: 'A sturdy shield for protection.' },
+      { id: 2, name: 'Armor', image: require('@/assets/images/ingame/Armor.png'), count: 15, description: 'Protective armor made of metal.' },
+      { id: 3, name: 'Sword', image: require('@/assets/images/ingame/Sword.png'), count: 1, description: 'A sharp sword for combat.' },
+      { id: 4, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png'), count: 1, description: 'A helmet to protect your head.' }
+    );
+  } catch (error) {
+    console.error('Error loading character data:', error);
+  }
 });
 </script>
 
@@ -118,8 +146,13 @@ onMounted(() => {
 .inventory-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr); /* 3x6 그리드 */
   gap: 5px;
   width: 80%;
+  max-height: 100%; /* 부모 영역을 넘지 않도록 설정 */
+  overflow-y: auto; /* 스크롤바가 필요 시 나타나도록 설정 */
+  scrollbar-width: thin; /* Firefox용 */
+  scrollbar-color: #110519 #a56722; /* Firefox용 */
 }
 
 .inventory-info {
@@ -142,9 +175,11 @@ onMounted(() => {
 
 .inventory-slot {
   position: relative;
-  padding-top: 100%;
+  width: 100%;
+  padding-top: 100%; /* 1:1 비율을 유지 */
   border: 1px solid #564307;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .inventory-item {
@@ -185,14 +220,13 @@ onMounted(() => {
 
 .tooltip {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
   background-color: black;
   color: white;
   padding: 5px;
   border-radius: 3px;
   white-space: nowrap;
+  z-index: 1000;
+  transform: translate(-50%, -100%);
 }
 
 .item-selection-modal {
@@ -227,5 +261,21 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   margin-right: 10px;
+}
+
+/* Chrome, Edge, Safari 스크롤바 커스터마이징 */
+.inventory-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.inventory-grid::-webkit-scrollbar-track {
+  background: #a56722;
+  border-radius: 5px;
+}
+
+.inventory-grid::-webkit-scrollbar-thumb {
+  background-color: #274e13;
+  border-radius: 5px;
+  border: 1px solid #a56722;
 }
 </style>

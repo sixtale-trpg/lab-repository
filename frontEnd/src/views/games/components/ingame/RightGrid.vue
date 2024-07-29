@@ -18,7 +18,7 @@ import Inventory from '@/views/games/components/ingame/Inventory.vue';
 .right-grid-container {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  grid-template-rows: 2fr 1fr 1fr;
+  grid-template-rows: 7fr 4fr 2fr;
   gap: 10px;
   height: 100%;
 }
@@ -40,6 +40,7 @@ import Inventory from '@/views/games/components/ingame/Inventory.vue';
   grid-column: 1 / 3;
   grid-row: 3 / 4;
   height: 100%;
+  margin: 5px;
   overflow-y: auto;
 }
 </style>

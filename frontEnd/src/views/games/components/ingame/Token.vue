@@ -40,7 +40,7 @@ const tokens = ref([]);
 const tokenImage = require('@/assets/images/ingame/Token.png');
 const plusIcon = require('@/assets/images/ingame/Plus.png');
 const trashIcon = require('@/assets/images/ingame/Trash.png');
-const tokenAreaBackground = require('@/assets/images/ingame/Border.png');
+const tokenAreaBackground = require('@/assets/images/ingame/Border3.png');
 
 const backgroundStyle = {
   backgroundImage: `url(${tokenAreaBackground})`,
@@ -49,8 +49,9 @@ const backgroundStyle = {
   backgroundPosition: 'center',
   display: 'grid',
   gridTemplateColumns: 'repeat(2, 1fr)',
-  gap: '10px',
-  padding: '20px',
+  gap: '5px',
+  padding: '10px',
+  margin: '5px',
   boxSizing: 'border-box',
   width: '100%',
   height: '100%',
@@ -147,6 +148,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.token-area {
+  height: 100%;  /* 부모의 100% 높이를 사용 */
+}
+
 .token-slot {
   display: flex;
   justify-content: center;
@@ -154,6 +159,7 @@ onMounted(async () => {
   position: relative;
   height: 100%;
 }
+
 
 .token {
   width: 60%;

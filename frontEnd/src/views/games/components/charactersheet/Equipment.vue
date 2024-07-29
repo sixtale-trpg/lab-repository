@@ -19,8 +19,8 @@
           :key="index" 
           class="equipment-button" 
           @click="selectCloseRangeWeapon(index)"
-          :style="getButtonStyle(selectedCloseRangeWeapon === index)"
-          :class="{ active: selectedCloseRangeWeapon === index }"
+          :style="getButtonStyle(formData.selectedCloseRangeWeapon === index)"
+          :class="{ active: formData.selectedCloseRangeWeapon === index }"
         >
           <span>{{ button.title }}</span>
         </div>
@@ -35,8 +35,8 @@
           :key="index" 
           class="equipment-button" 
           @click="selectLongRangeWeapon(index)"
-          :style="getButtonStyle(selectedLongRangeWeapon === index)"
-          :class="{ active: selectedLongRangeWeapon === index }"
+          :style="getButtonStyle(formData.selectedLongRangeWeapon === index)"
+          :class="{ active: formData.selectedLongRangeWeapon === index }"
         >
           <span>{{ button.title }}</span>
         </div>
@@ -51,8 +51,8 @@
           :key="index" 
           class="equipment-button" 
           @click="selectMiscellaneous(index)"
-          :style="getButtonStyle(selectedMiscellaneous === index)"
-          :class="{ active: selectedMiscellaneous === index }"
+          :style="getButtonStyle(formData.selectedMiscellaneous === index)"
+          :class="{ active: formData.selectedMiscellaneous === index }"
         >
           <span>{{ button.title }}</span>
         </div>
@@ -62,9 +62,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, toRefs } from 'vue';
 
-// 버튼 정보 및 스타일 등록
+const props = defineProps(['formData']);
+const { formData } = toRefs(props);
+
 const closeRangeWeapons = reactive([
   { title: '단도 (반검용, 무게 1)' },
   { title: '레이피어 (한검용, 장검, 무게 1)' },
@@ -79,23 +81,18 @@ const miscellaneous = reactive([
   { title: '모험 장비 (무게 1)' },
 ]);
 
-const selectedCloseRangeWeapon = ref(null);
-const selectedLongRangeWeapon = ref(null);
-const selectedMiscellaneous = ref(null);
-
 const selectCloseRangeWeapon = (index) => {
-  selectedCloseRangeWeapon.value = index;
+  formData.value.selectedCloseRangeWeapon = index;
 };
 
 const selectLongRangeWeapon = (index) => {
-  selectedLongRangeWeapon.value = index;
+  formData.value.selectedLongRangeWeapon = index;
 };
 
 const selectMiscellaneous = (index) => {
-  selectedMiscellaneous.value = index;
+  formData.value.selectedMiscellaneous = index;
 };
 
-// 배경 이미지 경로 설정
 const defaultBackgroundImage = require('@/assets/images/character_sheet/equip1.png');
 const activeBackgroundImage = require('@/assets/images/character_sheet/equip2.png');
 

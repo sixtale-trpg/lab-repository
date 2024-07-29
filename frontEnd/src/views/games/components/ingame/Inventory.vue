@@ -103,6 +103,11 @@ const removeItem = (index) => {
   items.splice(index, 1);
 };
 
+
+// 인벤토리 설명 호버 미구현 => 방법 잘 모르겠음
+// 캐릭터 시트의 호버는 미리 설명을 입력해두고 display:none 으로 해서 보여주고 안보여주고 했는데
+// 이상한거 같아서 함수를 정의하고 했는데 미구현됨
+
 onMounted(async () => {
   try {
     // 주석 처리된 백엔드 API 호출 부분

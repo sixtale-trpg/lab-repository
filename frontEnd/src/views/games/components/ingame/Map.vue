@@ -140,6 +140,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   z-index: 2;
+  stroke: black;
 }
 
 .map-image {

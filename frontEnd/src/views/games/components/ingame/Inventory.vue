@@ -239,6 +239,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 3;
 }
 
 .item-selection-content {

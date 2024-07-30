@@ -35,12 +35,12 @@ const emitRollDice = () => {
   diceList.forEach(dice => {
     if (dice.diceId === 100) {
       for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push(10);
-        diceTypesToRoll.push(10);
+        diceTypesToRoll.push({ type: 10, id: dice.diceId });
+        diceTypesToRoll.push({ type: 10, id: dice.diceId });
       }
     } else {
       for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push(dice.diceId);
+        diceTypesToRoll.push({ type: dice.diceId, id: dice.diceId });
       }
     }
   });

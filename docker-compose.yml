@@ -1,13 +1,14 @@
 version: '3.8'
 
 services:
-  frontend:
+  nginx:
     build:
       context: ./frontEnd
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
-    expose:
-      - "80"
+    ports:
+      - "80:80"
+      - "443:443"
     depends_on:
       - backend
 
@@ -21,18 +22,6 @@ services:
       SPRING_DATASOURCE_USERNAME: "S11P12D108@stg-yswa-kr-practice-db-master.mariadb.database.azure.com"
       SPRING_DATASOURCE_PASSWORD: "6tfIrEqQzA"
       SPRING_DATA_MONGODB_URI: "mongodb+srv://S11P12D108:nlGDSLzi3v@ssafy.ngivl.mongodb.net/S11P12D108?authSource=admin"
-
-  nginx:
-    build:
-      context: ./nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-    depends_on:
-      - frontend
-      - backend
 
   mariadb:
     image: mariadb:latest

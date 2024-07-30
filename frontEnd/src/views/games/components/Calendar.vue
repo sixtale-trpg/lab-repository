@@ -24,7 +24,7 @@
 
     <!-- Bootstrap Modal -->
     <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content custom-modal" :style="modalStyle">
           <div class="modal-header custom-modal-header">
             <img :src="titleImage" alt="Background" class="modal-title-image" />
@@ -375,7 +375,6 @@ const dropdownStyle = computed(() => ({
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
-  /* font-weight: bold; */
   pointer-events: none;
   font-size: 13px;
 }

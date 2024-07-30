@@ -1,4 +1,4 @@
-package org.infinity.sixtalebackend.friend.domain;
+package org.infinity.sixtalebackend.domain.friend.domain;
 
 import lombok.Getter;
 

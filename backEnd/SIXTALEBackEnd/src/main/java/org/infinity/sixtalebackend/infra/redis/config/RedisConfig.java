@@ -18,6 +18,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 @RequiredArgsConstructor
 public class RedisConfig {
+
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer( // (1)
                                                                         RedisConnectionFactory connectionFactory,
@@ -36,15 +37,17 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate
-            (RedisConnectionFactory connectionFactory) { // (3)
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
+
+        // JSON 직렬화 설정
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
+        redisTemplate.setValueSerializer(serializer);
+
         return redisTemplate;
     }
-
     // 여기서부터 다시 토픽 하기
     @Bean
     public ChannelTopic channelTopic() { // (4)

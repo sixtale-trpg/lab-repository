@@ -18,6 +18,7 @@ public class ChatMessageResponse {
     public ChatMessageResponse(ChatMessageRequest request) {
         this.roomID = request.getRoomID();
         this.sender = request.getNickName();
+        this.recipient = request.getRecipientNickName();
         this.content = request.getContent();
         this.type = request.getType();
     }

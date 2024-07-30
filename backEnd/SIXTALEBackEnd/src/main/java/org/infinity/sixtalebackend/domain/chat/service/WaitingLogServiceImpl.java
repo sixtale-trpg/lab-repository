@@ -1,5 +1,7 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingWhisperLog;
@@ -26,9 +28,8 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     private final MemberRepository memberRepository;
     private final WaitingChatLogRepository waitingChatLogRepository;
     private final WaitingWhisperLogRepository waitingWhisperLogRepository;
-    private final ChannelTopic waitingChatTopic;
-    private final ChannelTopic waitingWhisperTopic;
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisTemplate redisTemplate;
+    private final ChannelTopic channelTopic;
 
     /**
      * 대기방 채팅, 귓속말 채팅 기능
@@ -37,7 +38,6 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     @Transactional
     @Override
     public void sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
-
         Member member = findMember(chatMessageRequest.getMemberID());
         // 닉네임 저장
         chatMessageRequest.setNickName(member.getNickname());
@@ -47,43 +47,46 @@ public class WaitingLogServiceImpl implements WaitingLogService{
         // 채팅 메시지 생성 및 저장
         // 대기방 채팅인 경우(전체 전송)
         if (chatMessageRequest.getType() == MessageType.TALK) {
-            WaitingChatLog waitingChatLog = WaitingChatLog.builder()
-                    .roomID(room.getId())
-                    .memberID(member.getId())
-                    .content(chatMessageRequest.getContent())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            // 대기방 전체 채팅 로그 저장
-            waitingChatLogRepository.save(waitingChatLog);
-
-            // 대기방 채팅 토픽으로 메시지 발행
-            redisTemplate.convertAndSend(waitingChatTopic.getTopic(), chatMessageRequest);
-
-        // 대기방 귓속말 채팅인 경우(1:1 채팅)
+            handleChatMessage(room, member, chatMessageRequest);
         } else if (chatMessageRequest.getType() == MessageType.WHISPER) {
-            // 귓속말 상대
-            Member recipient = findMember(chatMessageRequest.getRecipientID());
-            // 귓속말 상대 닉네임 저장
-            chatMessageRequest.setRecipientNickName(recipient.getNickname());
-
-            WaitingWhisperLog waitingWhisperLog = WaitingWhisperLog.builder()
-                    .roomID(room.getId())
-                    .memberID(member.getId())
-                    .recipientID(recipient.getId())
-                    .content(chatMessageRequest.getContent())
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            // 대기방 귓속말 로그 저장
-            waitingWhisperLogRepository.save(waitingWhisperLog);
-
-            // 대기방 귓속말 토픽으로 메시지 발행
-            redisTemplate.convertAndSend(waitingWhisperTopic.getTopic(), chatMessageRequest);
+            handleWhisperMessage(room, member, chatMessageRequest);
         }
-
     }
 
+    private void handleChatMessage(Room room, Member member, ChatMessageRequest chatMessageRequest) {
+        WaitingChatLog waitingChatLog = WaitingChatLog.builder()
+                .roomID(room.getId())
+                .memberID(member.getId())
+                .content(chatMessageRequest.getContent())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        waitingChatLogRepository.save(waitingChatLog);
+
+         String topic = channelTopic.getTopic();
+         redisTemplate.convertAndSend(topic, chatMessageRequest);
+    }
+
+    private void handleWhisperMessage(Room room, Member member, ChatMessageRequest chatMessageRequest) {
+        Member recipient = findMember(chatMessageRequest.getRecipientID());
+        chatMessageRequest.setRecipientNickName(recipient.getNickname());
+
+        System.out.println(recipient.getNickname());
+
+        WaitingWhisperLog waitingWhisperLog = WaitingWhisperLog.builder()
+                .roomID(room.getId())
+                .memberID(member.getId())
+                .recipientID(recipient.getId())
+                .content(chatMessageRequest.getContent())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        waitingWhisperLogRepository.save(waitingWhisperLog);
+
+        String topic = channelTopic.getTopic();
+        redisTemplate.convertAndSend(topic, chatMessageRequest);
+
+    }
 
     private Member findMember(Long memberID){
         return memberRepository.findById(memberID)

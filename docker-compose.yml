@@ -24,7 +24,7 @@ services:
 
   nginx:
     build:
-      context: ./frontEnd
+      context: ./nginx
     ports:
       - "80:80"
       - "443:443"

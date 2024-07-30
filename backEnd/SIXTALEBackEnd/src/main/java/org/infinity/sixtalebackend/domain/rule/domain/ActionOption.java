@@ -6,7 +6,6 @@ import lombok.*;
 @Entity
 @Getter
 @Builder
-@Table(name = "action_option")
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ActionOption {

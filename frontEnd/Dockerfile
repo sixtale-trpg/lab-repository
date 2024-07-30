@@ -25,7 +25,7 @@ COPY --from=0 /app/dist /usr/share/nginx/html
 # Copy the Nginx configuration file
 COPY nginx.conf /etc/nginx/sites-available/default.conf
 
-# Expose port 80
+# Expose port 8083
 EXPOSE 8083
 
 # Start Nginx

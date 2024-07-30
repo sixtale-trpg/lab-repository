@@ -1,5 +1,5 @@
 <template>
-  <div class="waiting-container">
+  <div :style="waitingContainerStyle" class="waiting-container">
     <RoomHeader :roomTitle="roomDetails.title" :nextSchedule="nextSchedule" />
     <div class="content">
       <div class="left-section">
@@ -9,30 +9,43 @@
         <Chat class="chat-section" />
       </div>
       <div class="right-section">
-        <div class="top-section">
+        <div :style="topSectionStyle" class="top-section">
           <Map />
-          <div class="gm-section">
-            <div class="gm-info" @click="showGMModal = true">
-              <img :src="gm.profileImage" alt="GM Profile" class="profile-image" />
-              <div class="gm-name">{{ gm.name }}</div>
+          <div :style="gmCardStyle" class="gm-section">
+            <div class="gm-info">
+              <div :style="profileImageContainerStyle" class="profile-image-container">
+                <img :src="gm.profileImage" alt="GM 프로필" class="profile-image" />
+                <img :src="avatarFrameImagePath" alt="테두리" class="avatar-frame" />
+              </div>
+              <div :style="gmNameStyle" class="gm-name">{{ gm.name }}</div>
+              <img :src="infoIconPath" alt="Info" @click="showGMModal = true" class="info-icon" />
             </div>
-            <button v-if="isGM" class="start-game-button" @click="startGame">게임 시작</button>
+            <button :disabled="!isGM" :style="[startGameButtonStyle, !isGM ? disabledButtonStyle : {}]" class="start-game-button" @click="startGame">게임 시작</button>
           </div>
         </div>
         <div class="details">
-          <div class="game-info">
-            <div class="title">
-              <span>게임 룰</span>
-              <img src="@/assets/images/room/detail.png" alt="Info" @click="openRulebookModal" class="info-icon" />
+          <div class="rule-scenario">
+            <div :style="gameInfoStyle" class="game-info">
+              <div :style="titleStyle" class="title">
+                <div :style="vectorImage">게임 룰</div>
+              </div>
+              <div class="content cursor" @click="openRulebookModal">
+                <div :style="gameRuleContainerStyle" class="game-rule-container">
+                  <div class="game-rule-text">{{ gameRule }}</div>
+                </div>
+              </div>
             </div>
-            <div class="content">{{ gameRule }}</div>
-            <div class="title">
-              <span>시나리오</span>
-              <img src="@/assets/images/room/detail.png" alt="Info" @click="fetchScenarioDetails" class="info-icon" />
+            <div :style="scenarioInfoStyle" class="game-info">
+              <div class="title">
+                <div :style="vectorImage">시나리오</div>
+              </div>
+              <div :class="[isGM ? 'content scenario-content cursor' : 'content scenario-content disabled']" @click="isGM ? fetchScenarioDetails() : null">
+                <img :src="scenarioImagePath" alt="시나리오 이미지" class="scenario-image" />
+                <div class="scenario-text">{{ scenario }}</div>
+              </div>
             </div>
-            <div class="content">{{ scenario }}</div>
           </div>
-          <Calendar @select="selectDate" />
+          <Calendar @select="selectDate" :style="calendarContainerStyle" />
         </div>
       </div>
     </div>
@@ -44,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import RoomHeader from './components/waiting/RoomHeader.vue';
@@ -66,8 +79,8 @@ const roomDetails = ref({
 });
 
 const users = ref([
-  { id: 1, name: 'User1', profileImage: require('@/assets/images/users/user1.png') },
-  { id: 2, name: 'User2', profileImage: require('@/assets/images/users/user2.png') },
+  { id: 1, name: '오소리 탈춤꾼입니다', profileImage: require('@/assets/images/users/user1.png') },
+  { id: 2, name: 'HybridObjectClass', profileImage: require('@/assets/images/users/user2.png') },
   { id: 3, name: 'User3', profileImage: require('@/assets/images/users/user3.png') },
   { id: 4, name: 'User4', profileImage: require('@/assets/images/users/user4.png') },
   { id: 5, name: 'User5', profileImage: require('@/assets/images/users/user5.png') },
@@ -81,11 +94,12 @@ const gm = ref({
   profileImage: require('@/assets/images/users/gm.png'),
 });
 
-const isGM = ref(true);
+const isGM = ref(true); // 현재 접속한 사용자가 GM인지 여부 설정
 const nextSchedule = ref('2024. 07. 21');
 const gameRule = ref('던전 월드');
 const scenario = ref('왕자와 죽음의 개');
 const scenarioDetails = ref({});
+const showScenarioDetails = ref(false);
 
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
@@ -132,6 +146,152 @@ const fetchScenarioDetails = async () => {
   openScenarioModal();
 };
 
+const toggleScenarioDetails = () => {
+  if (isGM.value) {
+    showScenarioDetails.value = !showScenarioDetails.value;
+  }
+};
+
+// 배경 이미지 경로 설정
+const backgroundImagePath = require('@/assets/images/room/main_background.png');
+const profileBoxImagePath = require('@/assets/images/room/profile_box.png');
+const nameBoxImagePath = require('@/assets/images/room/name_box.png');
+const avatarFrameImagePath = require('@/assets/images/room/avatar_frame.png');
+const startButtonImagePath = require('@/assets/images/room/start_button.png');
+const infoIconPath = require('@/assets/images/room/info.png');
+const ruleBoxImagePath = require('@/assets/images/room/rule_box.png');
+const ruleBox1ImagePath = require('@/assets/images/room/rule_box1.png');
+const scenario_boxPath = require('@/assets/images/room/scenario_box.png');
+const vectorImagePath = require('@/assets/images/room/Vector.png');
+const scenarioImagePath = require('@/assets/images/room/scenario_main.png');
+const calendarBoxImagePath = require('@/assets/images/room/calendar_box.png');
+
+// 배경 이미지 스타일 설정
+const waitingContainerStyle = computed(() => ({
+  backgroundImage: `url(${backgroundImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  height: '100vh',
+  width: '100vw',
+}));
+
+// GM Card 스타일 설정
+const gmCardStyle = computed(() => ({
+  backgroundImage: `url(${profileBoxImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  borderRadius: '10px',
+  height: '80%',
+  padding: '5%',
+  width: '90%',
+  overflow: 'hidden',
+}));
+
+const gmNameStyle = computed(() => ({
+  backgroundImage: `url(${nameBoxImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  padding: '0% 0%',
+  borderRadius: '5px',
+  color: '#ffffff',
+  border: '1px solid #5a4d41',
+  marginTop: '8%',
+  width: '110%',
+  textAlign: 'center',
+  display: 'inline-block',
+  height: '15%',
+  lineHeight: '1.5',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+}));
+
+const profileImageContainerStyle = {
+  position: 'relative',
+  width: '110%', /* 고정된 크기 */
+  height: '80%', /* 고정된 크기 */
+  overflow: 'hidden', /* 이미지가 넘치지 않도록 설정 */
+  borderRadius: '50%', /* 컨테이너를 원형으로 설정 */
+  backgroundColor: '#291707', /* 배경색을 카드 배경색과 일치시키기 */
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const topSectionStyle = {
+  display: 'flex',
+  height: '55%',
+};
+
+const startGameButtonStyle = {
+  backgroundImage: `url(${startButtonImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  width: '100%',
+  padding: '4%',
+  color: 'white',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  marginTop: '8%',
+  border: 'none',
+  textAlign: 'center',
+  marginLeft: '6%',  // 버튼을 오른쪽으로 이동시키기 위해 추가
+};
+
+const disabledButtonStyle = {
+  cursor: 'not-allowed',
+  opacity: '0.5',
+};
+
+const vectorImage = computed(() => ({
+  backgroundImage: `url(${vectorImagePath})`,
+  width: '40%',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+}));
+
+const gameInfoStyle = computed(() => ({
+  backgroundImage: `url(${ruleBox1ImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  height: '100%',
+}));
+
+const scenarioInfoStyle = computed(() => ({
+  backgroundImage: `url(${scenario_boxPath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  height: '100%',
+}));
+
+const gameRuleContainerStyle = {
+  backgroundImage: `url(${ruleBoxImagePath})`,
+  backgroundSize: 'contain',
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '100%',
+};
+
+const calendarContainerStyle = {
+  backgroundImage: `url(${calendarBoxImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '23px',
+  borderRadius: '10px',
+  width: '48%',
+  height: '100%',
+};
 </script>
 
 <style scoped>
@@ -148,10 +308,9 @@ const fetchScenarioDetails = async () => {
 }
 
 .left-section {
-  width: 50%;
+  width: 49%;
   display: flex;
   flex-direction: column;
-  background-color: #081017;
   padding: 10px;
   box-sizing: border-box;
 }
@@ -162,21 +321,22 @@ const fetchScenarioDetails = async () => {
   grid-template-rows: repeat(2, 1fr);
   gap: 5px;
   height: 55%;
+  padding-left: 6px;
 }
 
 .chat-section {
   flex: 1;
-  margin-top: 10px;
+  margin-top: 20px;
   overflow-y: auto;
 }
 
 .right-section {
   width: 50%;
   display: flex;
-  background-color: #081017;
   flex-direction: column;
-  padding-left: 10px;
+  padding-top: 15px;
   box-sizing: border-box;
+  overflow: hidden; /* overflow hidden 추가 */
 }
 
 .top-section {
@@ -186,10 +346,7 @@ const fetchScenarioDetails = async () => {
 
 .map-section {
   flex: 6;
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
   border-radius: 10px;
-  padding: 10px;
   height: 100%;
   position: relative;
 }
@@ -200,67 +357,96 @@ const fetchScenarioDetails = async () => {
   flex-direction: column;
   align-items: center;
   margin-left: 10px;
-}
-
-.gm-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   background-color: #291707;
-  border: 1px solid #ccc;
   border-radius: 10px;
   height: 70%;
-  padding: 10px;
   width: 100%;
   justify-content: center;
   cursor: pointer;
 }
 
+.gm-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex: 1;
+}
+
 .profile-image {
-  width: 60%;
-  height: auto;
+  width: 90%;
+  height: 90%;
+  object-fit: cover; /* 이미지가 컨테이너를 왜곡 없이 덮도록 설정 */
   border-radius: 50%;
 }
 
-.gm-name {
-  background-color: #564307;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: #ffffff;
-  border: 1px solid #5a4d41;
-  margin-top: 30px;
-  text-align: center;
-  width: 80%;
+.avatar-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 50%;
 }
 
-.start-game-button {
-  width: 80%;
-  padding: 10px;
-  background-color: #073467;
-  color: white;
-  border: 1px solid white;
-  border-radius: 5px;
+.info-icon {
+  width: 1.04vw; /* 20px을 뷰포트 너비의 1.04%로 설정 */
+  height: 1.04vw; /* 동일한 비율로 설정하여 정사각형 유지 */
   cursor: pointer;
-  margin-top: 20px;
+  position: absolute;
+  top: 12%;
+  right: 1%;
+  transform: translate(-50%, -50%);
+}
+
+.start-game-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .details {
   display: flex;
   justify-content: space-between;
-  margin-top: 10px;
+  margin-top: -7%;
   padding-bottom: 20px;
   flex-grow: 1;
+}
+
+.rule-scenario {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  height: 100%;
 }
 
 .game-info {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 10px; /* 크기를 줄이기 위해 패딩을 줄였습니다 */
-  background-color: #291707;
-  border: 1px solid #fff;
+  padding: 10px;
+  background-color: #130b02;
   border-radius: 10px;
-  width: 48%;
+  margin-bottom: 5px;
+  height: 50%;
+  background-size: cover; /* 이미지가 컨테이너를 덮도록 설정 */
+  background-position: center; /* 이미지가 컨테이너 중심에 위치하도록 설정 */
+}
+
+.scenario-content {
+  display: flex;
+  align-items: center;
+}
+
+.scenario-image {
+  width: 30%;
+  margin-right: -30px;
+}
+
+.scenario-text {
+  flex: 1;
+  color: #ffffff;
 }
 
 .game-info .title {
@@ -269,10 +455,11 @@ const fetchScenarioDetails = async () => {
   align-items: center;
   margin-bottom: 10px;
   color: #ffffff;
-  font-size: 1.8em; /* 제목의 글자 크기를 키웠습니다 */
+  font-size: 1.2em;
+  /* cursor: pointer; 제목을 클릭할 수 있게 변경 */
 }
 
-.info-icon {
+.info-icon-large {
   width: 16px;
   height: 16px;
   cursor: pointer;
@@ -280,24 +467,26 @@ const fetchScenarioDetails = async () => {
 }
 
 .game-info .content {
-  background-color: #564307;
-  padding: 20px; /* 내용을 크게 보이게 하기 위해 패딩을 키웠습니다 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
   border-radius: 5px;
   color: #ffffff;
   border: 1px solid #5a4d41;
-  text-align: center; /* 내용을 가운데 정렬했습니다 */
-  font-size: 1.4em; /* 내용의 글자 크기를 키웠습니다 */
+  text-align: center;
+  font-size: 1.0em;
 }
 
 .calendar {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 23px;
   background-color: #291707;
-  border: 1px solid #fff;
   border-radius: 10px;
   width: 48%;
+  height: 78%;
 }
 
 .map-section .map-controls {
@@ -314,6 +503,14 @@ const fetchScenarioDetails = async () => {
   width: 20px;
   height: 20px;
   cursor: pointer;
+}
+
+.cursor {
+  cursor: pointer; /* 제목을 클릭할 수 있게 변경 */
+}
+
+.disabled {
+  cursor: not-allowed; /* 비활성화된 상태일 때의 커서 스타일 */
 }
 
 @media (max-width: 768px) {
@@ -345,7 +542,7 @@ const fetchScenarioDetails = async () => {
     flex-direction: column;
   }
 
-  .game-info,
+  .rule-scenario,
   .calendar {
     width: 100%;
     margin-bottom: 10px;

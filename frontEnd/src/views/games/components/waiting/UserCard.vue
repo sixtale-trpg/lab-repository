@@ -3,7 +3,7 @@
     <div class="user-profile">
       <div class="profile-image-container">
         <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" />
-        <img src="@/assets/images/room/avatar_frame.png" alt="테두리" class="avatar-frame" />
+        <img :src="avatarFrameImage" alt="테두리" class="avatar-frame" />
       </div>
     </div>
     <div class="user-actions">
@@ -13,7 +13,7 @@
     </div>
     <div :style="userNameStyle" class="user-name" :title="user.name">{{ truncatedName }}</div>
 
-    <Userinfo v-if="showUserModal" :user="user" @close="showUserModal = false" />
+    <Userinfo v-if="showUserModal" :user="fetchedUserData" @close="showUserModal = false" />
     <AddFriendModal v-if="showAddFriendModal" :user="user" @close="showAddFriendModal = false" />
     <KickModal v-if="showKickModal" :user="user" @close="showKickModal = false" @kick="kickUser" />
   </div>
@@ -22,6 +22,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { defineProps } from 'vue';
+import axios from 'axios';
 import Userinfo from '@/views/games/components/Modal/UserInfo.vue';
 import AddFriendModal from '@/views/games/components/Modal/AddFriendModal.vue';
 import KickModal from '@/views/games/components/Modal/KickModal.vue';
@@ -34,6 +35,7 @@ const props = defineProps({
 const showUserModal = ref(false);
 const showAddFriendModal = ref(false);
 const showKickModal = ref(false);
+const fetchedUserData = ref(null);
 
 const addFriend = (user) => {
   console.log(`Adding friend ${user.name}`);
@@ -75,8 +77,17 @@ const userNameStyle = computed(() => ({
 const truncatedName = computed(() => {
   return props.user.name.length > 10 ? props.user.name.slice(0, 10) + '...' : props.user.name;
 });
-</script>
 
+const fetchUserProfile = async (userId) => {
+  try {
+    const response = await axios.get(`/api/users/${userId}`);
+    fetchedUserData.value = response.data;
+    showUserModal.value = true;
+  } catch (error) {
+    console.error('Failed to fetch user profile:', error);
+  }
+};
+</script>
 
 <style scoped>
 .user-card {
@@ -85,14 +96,13 @@ const truncatedName = computed(() => {
   align-items: center;
   justify-content: space-between;
   background-color: #291707;
-  /* border: 1px solid #E1D3A8; */
   border-radius: 10px;
   position: relative;
   margin: 2%;
   padding: 5%;
   width: 90%;
   height: 100%;
-  overflow: hidden; /* 내용이 넘치지 않도록 설정 */
+  overflow: hidden;
 }
 
 .user-profile {
@@ -106,11 +116,11 @@ const truncatedName = computed(() => {
 
 .profile-image-container {
   position: relative;
-  width: 100%; /* 고정된 크기 */
-  height: 95%; /* 고정된 크기 */
-  overflow: hidden; /* 이미지가 넘치지 않도록 설정 */
-  border-radius: 50%; /* 컨테이너를 원형으로 설정 */
-  background-color: #291707; /* 배경색을 카드 배경색과 일치시키기 */
+  width: 100%;
+  height: 95%;
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: #291707;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,7 +129,7 @@ const truncatedName = computed(() => {
 .profile-image {
   width: 90%;
   height: 90%;
-  object-fit: cover; /* 이미지가 컨테이너를 왜곡 없이 덮도록 설정 */
+  object-fit: cover;
   border-radius: 50%;
 }
 
@@ -150,7 +160,6 @@ const truncatedName = computed(() => {
 
 .user-name {
   text-align: center;
-  /* margin-top: 5%; */
   font-size: 90%;
 }
 
@@ -179,4 +188,3 @@ const truncatedName = computed(() => {
   }
 }
 </style>
-

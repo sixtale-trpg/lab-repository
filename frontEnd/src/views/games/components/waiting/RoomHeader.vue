@@ -39,7 +39,7 @@
     color: white;
     padding: 0 20px;
     box-sizing: border-box;
-    height: 10%;
+    height: 8%;
   }
   
   .left-section {

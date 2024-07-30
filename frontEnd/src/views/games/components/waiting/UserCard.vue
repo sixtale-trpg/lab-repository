@@ -57,16 +57,16 @@ const userNameStyle = computed(() => ({
   backgroundImage: `url(${nameBoxImage})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  padding: '5% 10%',
+  padding: '4% 10%',
   borderRadius: '5px',
   color: '#ffffff',
   border: '1px solid #5a4d41',
-  marginTop: '10%',
-  width: '80%',
+  marginTop: '0%',
+  width: '90%',
   textAlign: 'center',
   display: 'inline-block',
-  height: 'auto',
-  lineHeight: '1.5',
+  height: '15%',
+  lineHeight: '1.0',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -91,6 +91,7 @@ const truncatedName = computed(() => {
   margin: 2%;
   padding: 5%;
   width: 90%;
+  height: 100%;
   overflow: hidden; /* 내용이 넘치지 않도록 설정 */
 }
 
@@ -105,8 +106,8 @@ const truncatedName = computed(() => {
 
 .profile-image-container {
   position: relative;
-  width: 130px; /* 고정된 크기 */
-  height: 130px; /* 고정된 크기 */
+  width: 100%; /* 고정된 크기 */
+  height: 95%; /* 고정된 크기 */
   overflow: hidden; /* 이미지가 넘치지 않도록 설정 */
   border-radius: 50%; /* 컨테이너를 원형으로 설정 */
   background-color: #291707; /* 배경색을 카드 배경색과 일치시키기 */
@@ -137,19 +138,20 @@ const truncatedName = computed(() => {
   gap: 5%;
   position: absolute;
   top: 2%;
-  right: -2%;
+  right: -8%;
   z-index: 1;
 }
 
 .user-actions img {
-  width: 25%;
+  width: 20%;
   height: auto;
   cursor: pointer;
 }
 
 .user-name {
   text-align: center;
-  margin-top: 5%;
+  /* margin-top: 5%; */
+  font-size: 90%;
 }
 
 .user-name:hover::after {

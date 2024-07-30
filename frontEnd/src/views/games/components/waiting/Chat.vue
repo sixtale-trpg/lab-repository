@@ -28,13 +28,13 @@
 import { ref, computed } from 'vue';
 
 // 이미지를 동적으로 가져옵니다.
-const background1 = require('@/assets/images/room/chat_background1.png');
-const background2 = require('@/assets/images/room/chat_background2.png');
-const tabAllImage = require('@/assets/images/room/chat_all.png');
-const tabChatImage = require('@/assets/images/room/chat_common.png');
-const tabWhisperImage = require('@/assets/images/room/chat_whisper.png');
-const inputBackground = require('@/assets/images/room/chat_input.png');
-const sendButtonImage = require('@/assets/images/room/Send_Button.png');
+const background1 = require('@/assets/images/room/chat/chat_background1.png');
+const background2 = require('@/assets/images/room/chat/chat_background2.png');
+const tabAllImage = require('@/assets/images/room/chat/chat_all.png');
+const tabChatImage = require('@/assets/images/room/chat/chat_common.png');
+const tabWhisperImage = require('@/assets/images/room/chat/chat_whisper.png');
+const inputBackground = require('@/assets/images/room/chat/chat_input.png');
+const sendButtonImage = require('@/assets/images/room/chat/Send_Button.png');
 
 const selectedTab = ref('all');
 const newMessage = ref('');
@@ -96,8 +96,8 @@ const chatWindowStyle = {
 
 const tabStyle = {
   cursor: 'pointer',
-  width: '150px', // 필요에 따라 너비 조정
-  height: '60px', // 필요에 따라 높이 조정
+  width: '20%', // 필요에 따라 너비 조정
+  height: 'auto', // 필요에 따라 높이 조정
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   borderRadius: '5px',

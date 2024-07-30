@@ -25,22 +25,27 @@
         </div>
         <div class="details">
           <div class="rule-scenario">
-            <div class="game-info">
-              <div class="title">
-                <span>게임 룰</span>
-                <img src="@/assets/images/room/detail.png" alt="Info" @click="openRulebookModal" class="info-icon-large" />
+            <div :style="gameInfoStyle" class="game-info">
+              <div :style="titleStyle" class="title">
+                <div :style="vectorImage">게임 룰</div>
               </div>
-              <div class="content">{{ gameRule }}</div>
+              <div class="content cursor" @click="openRulebookModal">
+                <div :style="gameRuleContainerStyle" class="game-rule-container">
+                  <div class="game-rule-text">{{ gameRule }}</div>
+                </div>
+              </div>
             </div>
-            <div class="game-info">
+            <div :style="scenarioInfoStyle" class="game-info">
               <div class="title">
-                <span>시나리오</span>
-                <img src="@/assets/images/room/detail.png" alt="Info" @click="fetchScenarioDetails" class="info-icon-large" />
+                <div :style="vectorImage">시나리오</div>
               </div>
-              <div class="content">{{ scenario }}</div>
+              <div :class="[isGM ? 'content scenario-content cursor' : 'content scenario-content disabled']" @click="isGM ? fetchScenarioDetails() : null">
+                <img :src="scenarioImagePath" alt="시나리오 이미지" class="scenario-image" />
+                <div class="scenario-text">{{ scenario }}</div>
+              </div>
             </div>
           </div>
-          <Calendar @select="selectDate" />
+          <Calendar @select="selectDate" :style="calendarContainerStyle" />
         </div>
       </div>
     </div>
@@ -94,6 +99,7 @@ const nextSchedule = ref('2024. 07. 21');
 const gameRule = ref('던전 월드');
 const scenario = ref('왕자와 죽음의 개');
 const scenarioDetails = ref({});
+const showScenarioDetails = ref(false);
 
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
@@ -140,6 +146,12 @@ const fetchScenarioDetails = async () => {
   openScenarioModal();
 };
 
+const toggleScenarioDetails = () => {
+  if (isGM.value) {
+    showScenarioDetails.value = !showScenarioDetails.value;
+  }
+};
+
 // 배경 이미지 경로 설정
 const backgroundImagePath = require('@/assets/images/room/main_background.png');
 const profileBoxImagePath = require('@/assets/images/room/profile_box.png');
@@ -147,6 +159,12 @@ const nameBoxImagePath = require('@/assets/images/room/name_box.png');
 const avatarFrameImagePath = require('@/assets/images/room/avatar_frame.png');
 const startButtonImagePath = require('@/assets/images/room/start_button.png');
 const infoIconPath = require('@/assets/images/room/info.png');
+const ruleBoxImagePath = require('@/assets/images/room/rule_box.png');
+const ruleBox1ImagePath = require('@/assets/images/room/rule_box1.png');
+const scenario_boxPath = require('@/assets/images/room/scenario_box.png');
+const vectorImagePath = require('@/assets/images/room/Vector.png');
+const scenarioImagePath = require('@/assets/images/room/scenario_main.png');
+const calendarBoxImagePath = require('@/assets/images/room/calendar_box.png');
 
 // 배경 이미지 스타일 설정
 const waitingContainerStyle = computed(() => ({
@@ -178,15 +196,15 @@ const gmNameStyle = computed(() => ({
   backgroundImage: `url(${nameBoxImagePath})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  padding: '10% 10%',
+  padding: '0% 0%',
   borderRadius: '5px',
   color: '#ffffff',
   border: '1px solid #5a4d41',
-  marginTop: '10%',
+  marginTop: '8%',
   width: '110%',
   textAlign: 'center',
   display: 'inline-block',
-  height: '22%',
+  height: '15%',
   lineHeight: '1.5',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -195,8 +213,8 @@ const gmNameStyle = computed(() => ({
 
 const profileImageContainerStyle = {
   position: 'relative',
-  width: '200px', /* 고정된 크기 */
-  height: '200px', /* 고정된 크기 */
+  width: '110%', /* 고정된 크기 */
+  height: '80%', /* 고정된 크기 */
   overflow: 'hidden', /* 이미지가 넘치지 않도록 설정 */
   borderRadius: '50%', /* 컨테이너를 원형으로 설정 */
   backgroundColor: '#291707', /* 배경색을 카드 배경색과 일치시키기 */
@@ -207,26 +225,72 @@ const profileImageContainerStyle = {
 
 const topSectionStyle = {
   display: 'flex',
-  height: '60%',
+  height: '55%',
 };
 
 const startGameButtonStyle = {
   backgroundImage: `url(${startButtonImagePath})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  width: '80%',
-  padding: '10px',
+  width: '100%',
+  padding: '4%',
   color: 'white',
   borderRadius: '5px',
   cursor: 'pointer',
-  marginTop: '5px',
+  marginTop: '8%',
   border: 'none',
   textAlign: 'center',
+  marginLeft: '6%',  // 버튼을 오른쪽으로 이동시키기 위해 추가
 };
 
 const disabledButtonStyle = {
   cursor: 'not-allowed',
   opacity: '0.5',
+};
+
+const vectorImage = computed(() => ({
+  backgroundImage: `url(${vectorImagePath})`,
+  width: '40%',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+}));
+
+const gameInfoStyle = computed(() => ({
+  backgroundImage: `url(${ruleBox1ImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  height: '100%',
+}));
+
+const scenarioInfoStyle = computed(() => ({
+  backgroundImage: `url(${scenario_boxPath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  height: '100%',
+}));
+
+const gameRuleContainerStyle = {
+  backgroundImage: `url(${ruleBoxImagePath})`,
+  backgroundSize: 'contain',
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  height: '100%',
+};
+
+const calendarContainerStyle = {
+  backgroundImage: `url(${calendarBoxImagePath})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: '23px',
+  borderRadius: '10px',
+  width: '48%',
+  height: '100%',
 };
 </script>
 
@@ -262,7 +326,7 @@ const disabledButtonStyle = {
 
 .chat-section {
   flex: 1;
-  margin-top: 10px;
+  margin-top: 20px;
   overflow-y: auto;
 }
 
@@ -272,6 +336,7 @@ const disabledButtonStyle = {
   flex-direction: column;
   padding-top: 15px;
   box-sizing: border-box;
+  overflow: hidden; /* overflow hidden 추가 */
 }
 
 .top-section {
@@ -327,24 +392,13 @@ const disabledButtonStyle = {
 }
 
 .info-icon {
-  width: 20px;
-  height: 20px;
+  width: 1.04vw; /* 20px을 뷰포트 너비의 1.04%로 설정 */
+  height: 1.04vw; /* 동일한 비율로 설정하여 정사각형 유지 */
   cursor: pointer;
   position: absolute;
-  top: 14%;
+  top: 12%;
   right: 1%;
   transform: translate(-50%, -50%);
-}
-
-.start-game-button {
-  width: 80%;
-  padding: 10px;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 5px;
-  border: none;
-  text-align: center;
 }
 
 .start-game-button.disabled {
@@ -355,7 +409,7 @@ const disabledButtonStyle = {
 .details {
   display: flex;
   justify-content: space-between;
-  margin-top: -40px;
+  margin-top: -7%;
   padding-bottom: 20px;
   flex-grow: 1;
 }
@@ -363,8 +417,8 @@ const disabledButtonStyle = {
 .rule-scenario {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  width: 48%;
+  width: 50%;
+  height: 100%;
 }
 
 .game-info {
@@ -372,9 +426,27 @@ const disabledButtonStyle = {
   flex-direction: column;
   justify-content: center;
   padding: 10px;
-  background-color: #291707;
+  background-color: #130b02;
   border-radius: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
+  height: 50%;
+  background-size: cover; /* 이미지가 컨테이너를 덮도록 설정 */
+  background-position: center; /* 이미지가 컨테이너 중심에 위치하도록 설정 */
+}
+
+.scenario-content {
+  display: flex;
+  align-items: center;
+}
+
+.scenario-image {
+  width: 30%;
+  margin-right: -30px;
+}
+
+.scenario-text {
+  flex: 1;
+  color: #ffffff;
 }
 
 .game-info .title {
@@ -383,7 +455,8 @@ const disabledButtonStyle = {
   align-items: center;
   margin-bottom: 10px;
   color: #ffffff;
-  font-size: 1.8em;
+  font-size: 1.2em;
+  /* cursor: pointer; 제목을 클릭할 수 있게 변경 */
 }
 
 .info-icon-large {
@@ -394,13 +467,15 @@ const disabledButtonStyle = {
 }
 
 .game-info .content {
-  background-color: #564307;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 20px;
   border-radius: 5px;
   color: #ffffff;
   border: 1px solid #5a4d41;
   text-align: center;
-  font-size: 1.4em;
+  font-size: 1.0em;
 }
 
 .calendar {
@@ -411,6 +486,7 @@ const disabledButtonStyle = {
   background-color: #291707;
   border-radius: 10px;
   width: 48%;
+  height: 78%;
 }
 
 .map-section .map-controls {
@@ -427,6 +503,14 @@ const disabledButtonStyle = {
   width: 20px;
   height: 20px;
   cursor: pointer;
+}
+
+.cursor {
+  cursor: pointer; /* 제목을 클릭할 수 있게 변경 */
+}
+
+.disabled {
+  cursor: not-allowed; /* 비활성화된 상태일 때의 커서 스타일 */
 }
 
 @media (max-width: 768px) {

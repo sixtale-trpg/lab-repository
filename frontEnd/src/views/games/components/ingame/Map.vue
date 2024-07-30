@@ -1,6 +1,7 @@
 <template>
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
     <img :src="mapImage" alt="Map" class="map-image" />
+    <div ref="rendererContainer" class="renderer-container"></div>
     <div 
       v-for="token in placedTokens" 
       :key="token.id" 
@@ -22,6 +23,20 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import ThreeJSManager from '@/common/lib/ThreeJSManager';
+import eventBus from '@/common/lib/eventBus.js';
+
+const rendererContainer = ref(null);
+let threeJSManager = null;
+
+const handleRollDice = (diceTypesToRoll) => {
+  console.log('Received roll-dice event with:', diceTypesToRoll);
+  if (threeJSManager) {
+    threeJSManager.rollDice(diceTypesToRoll).then(results => {
+      results.forEach(result => console.log(`${result.type}면체 주사위 결과: ${result.value}`));
+    });
+  }
+};
 
 const tokenImage = require('@/assets/images/ingame/Token.png');
 const mapImage = require('@/assets/images/maps/map1.png');
@@ -90,6 +105,8 @@ const stopDrag = () => {
 };
 
 onMounted(() => {
+  threeJSManager = new ThreeJSManager(rendererContainer.value);
+  eventBus.on('roll-dice', handleRollDice);
   window.addEventListener('toggle-grid', (event) => {
     showGrid.value = event.detail;
   });
@@ -100,6 +117,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  eventBus.off('roll-dice', handleRollDice);
   window.removeEventListener('toggle-grid', () => {});
   window.removeEventListener('delete-token', () => {});
 });
@@ -112,6 +130,17 @@ onUnmounted(() => {
   margin: 5px;
   position: relative;
   overflow: hidden;
+}
+
+.renderer-container {
+  width: 100%;
+  height: 80vh;
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  stroke: black;
 }
 
 .map-image {

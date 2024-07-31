@@ -483,7 +483,7 @@ const calendarContainerStyle = {
   justify-content: center;
   align-items: center;
   padding: 23px;
-  background-color: #291707;
+  /* background-color: #291707; */
   border-radius: 10px;
   width: 48%;
   height: 78%;

@@ -13,7 +13,10 @@ module.exports = {
         __VUE_PROD_DEVTOOLS__: false,
         __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
       })
-    ]
+    ],
+    optimization: {
+      minimize: false
+    }
   },
   chainWebpack: config => {
     config.plugin('html').tap(args => {
@@ -34,8 +37,26 @@ module.exports = {
     hot: true
   },
   css: {
-    requireModuleExtension: false
+    requireModuleExtension: false,
+    loaderOptions: {
+      postcss: {
+        plugins: [
+          require('cssnano')({
+            preset: [
+              'default',
+              {
+                discardComments: {
+                  removeAll: true,
+                },
+                normalizeWhitespace: false,
+                mergeRules: false
+              },
+            ],
+          }),
+        ],
+      },
+    },
   },
   lintOnSave: false,
-  outputDir: '../backend/src/main/resources/dist'
+  outputDir: '../backEnd/SIXTALEBackEnd/src/main/resources/dist'
 };

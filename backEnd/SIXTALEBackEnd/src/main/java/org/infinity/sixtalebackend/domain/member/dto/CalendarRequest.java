@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,10 +12,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Setter
 public class CalendarRequest {
-    @NotBlank
+    @NotNull
     private LocalDateTime startAt;
 
-    @NotBlank
+    @NotNull
     private LocalDateTime endAt;
 
     private String title;

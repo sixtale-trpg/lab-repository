@@ -28,7 +28,7 @@ const router = useRouter();
 const route = useRoute();
 
 const gm = ref({
-  name: 'Game Master',
+  name: 'GM닉네임입니다',
   profileImage: require('@/assets/images/users/gm.png'),
 });
 

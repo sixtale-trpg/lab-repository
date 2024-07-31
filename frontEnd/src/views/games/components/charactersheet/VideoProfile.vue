@@ -135,9 +135,9 @@ const getVoiceIcon = (userId) => {
 
 <style scoped>
 .video-profile {
-  background-color: #555;
+  /* background-color: #555; */
   color: white;
-  padding: 10px;
+  /* padding: 10px; */
   border-radius: 10px;
   display: flex;
   height: 100%;
@@ -145,7 +145,7 @@ const getVoiceIcon = (userId) => {
 
 .profile-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
   width: 100%;
 }
@@ -177,7 +177,7 @@ const getVoiceIcon = (userId) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px;
+  /* padding: 5px; */
   background-color: rgba(0, 0, 0, 0.5);
   width: 100%;
 }

@@ -73,9 +73,9 @@ onMounted(fetchJobs);
 .jobs-board {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 2%;
   justify-items: center;
-  padding: 20px;
+  padding: 2.5%;
 }
 
 @media (max-width: 1200px) {

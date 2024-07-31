@@ -16,6 +16,9 @@ RUN chmod +x ./gradlew
 # Build the project
 RUN ./gradlew bootJar
 
+# 빌드 아티팩트 확인 (디버깅용)
+RUN ls -la build/libs
+
 # Copy the packaged jar file
 COPY build/libs/*.jar app.jar
 

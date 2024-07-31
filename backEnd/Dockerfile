@@ -13,7 +13,7 @@
 #RUN gradle build -x test
 
 # Use the official OpenJDK image as the base image
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk
 
 # Set the working directory
 WORKDIR /app

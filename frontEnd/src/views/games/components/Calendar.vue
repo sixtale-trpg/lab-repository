@@ -189,9 +189,9 @@ const dropdownStyle = computed(() => ({
   color: #ffffff;
 }
 
-.custom-arrow-button {
-  background-color: #444444;
-  border-color: #444444;
+.arrow-button {
+  background-color: transparent !important;
+  border-color: transparent !important;
   color: #ffffff;
 }
 

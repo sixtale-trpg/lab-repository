@@ -5,7 +5,7 @@ FROM gradle:8.8-jdk17 AS build
 WORKDIR /app
 
 # Copy the project files
-COPY . .
+COPY . /app
 
 # Package the Spring Boot application
 RUN gradle build -x test

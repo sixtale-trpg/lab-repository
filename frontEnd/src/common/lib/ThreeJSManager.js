@@ -8,7 +8,7 @@ class ThreeJSManager {
     this.container = container;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-    this.updateCameraAndWalls(); // 초기 설정 시 카메라와 벽 업데이트
+    this.updateCameraAndWalls();
     this.renderer = new THREE.WebGLRenderer({ alpha: true });
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(this.renderer.domElement);
@@ -35,14 +35,14 @@ class ThreeJSManager {
     this.animate();
 
     eventBus.on('change-camera', this.changeCameraPosition.bind(this));
-    eventBus.on('roll-dice', this.rollDice.bind(this)); // roll-dice 이벤트 구독
+    eventBus.on('roll-dice', this.rollDice.bind(this));
     window.addEventListener('resize', this.onWindowResize.bind(this));
   }
 
   updateCameraAndWalls() {
     const aspect = this.container.clientWidth / this.container.clientHeight;
-    const zoom = 1; // 줌 레벨을 적절히 조정
-    this.camera.position.set(0, 10, 0); // y축 위치를 조정하여 주사위가 굴려지는 바닥에 더 가깝게 설정
+    const zoom = 1;
+    this.camera.position.set(0, 10, 0);
     this.camera.lookAt(0, 0, 0);
     this.camera.zoom = zoom;
     this.camera.updateProjectionMatrix();
@@ -54,8 +54,6 @@ class ThreeJSManager {
     };
   }
 
-
-  
   addFloor() {
     const floorShape = new CANNON.Plane();
     const floorBody = new CANNON.Body({ mass: 0 });
@@ -83,7 +81,7 @@ class ThreeJSManager {
       { x: 0, y: wallHeight / 2, z: -halfDepth, rotation: { x: 0, y: 0, z: 0 } },
       { x: 0, y: wallHeight / 2, z: halfDepth, rotation: { x: 0, y: Math.PI, z: 0 } },
       { x: 0, y: wallHeight, z: 0, rotation: { x: Math.PI / 2, y: 0, z: 0 } },
-      { x: 0, y: -1, z: 0, rotation: { x: -Math.PI / 2, y: 0, z: 0 } }, // 바닥 벽 추가
+      { x: 0, y: -1, z: 0, rotation: { x: -Math.PI / 2, y: 0, z: 0 } },
     ];
   
     walls.forEach(({ x, y, z, rotation }) => {
@@ -100,35 +98,32 @@ class ThreeJSManager {
   
     const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
     leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-halfWidth, wallHeight / 2, 0);
+    leftWall.position.set(-halfWidth, wallHeight / 2 + 1, 0);
     this.scene.add(leftWall);
   
     const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
     rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(halfWidth, wallHeight / 2, 0);
+    rightWall.position.set(halfWidth, wallHeight / 2 + 1, 0);
     this.scene.add(rightWall);
   
     const frontWall = new THREE.Mesh(new THREE.PlaneGeometry(this.wallSize.depth, wallHeight), wallMaterial);
     frontWall.rotation.y = 0;
-    frontWall.position.set(0, wallHeight / 2, -halfDepth);
+    frontWall.position.set(0, wallHeight / 2 + 2, -halfDepth);
     this.scene.add(frontWall);
   
     const backWall = new THREE.Mesh(new THREE.PlaneGeometry(this.wallSize.depth, wallHeight), wallMaterial);
     backWall.rotation.y = Math.PI;
-    backWall.position.set(0, wallHeight / 2 -3, halfDepth);
+    backWall.position.set(0, wallHeight / 2 - 3, halfDepth);
     this.scene.add(backWall);
   }
-  
-  
+
   createD10Geometry() {
     const geometry = new THREE.BufferGeometry();
     const vertices = [];
     const indices = [];
   
-    // 상단 뿔의 꼭지점
     vertices.push(0, 1, 0);
   
-    // 상단 뿔의 기저 꼭지점들
     for (let i = 0; i < 5; i++) {
       const angle = (i * Math.PI * 2) / 5;
       const x = Math.cos(angle);
@@ -137,15 +132,12 @@ class ThreeJSManager {
       vertices.push(x, y, z);
     }
   
-    // 하단 뿔의 꼭지점
     vertices.push(0, -1, 0);
   
-    // 상단 뿔의 면 (반시계 방향으로 수정)
     for (let i = 1; i <= 5; i++) {
       indices.push(0, i % 5 + 1, i);
     }
   
-    // 하단 뿔의 면 (반시계 방향으로 수정)
     for (let i = 1; i <= 5; i++) {
       indices.push(6, i, i % 5 + 1);
     }
@@ -156,10 +148,9 @@ class ThreeJSManager {
   
     return geometry;
   }
-  
+
   createConvexPolyhedron(geometry) {
     if (!geometry.index) {
-      console.warn('Geometry index is missing. Generating index.');
       geometry = this.createIndexedBufferGeometry(geometry);
     }
     if (!geometry.attributes.position) {
@@ -179,7 +170,6 @@ class ThreeJSManager {
   
     return new CANNON.ConvexPolyhedron(cannonVertices, cannonFaces);
   }
-  
 
   createIndexedBufferGeometry(geometry) {
     if (geometry.index) {
@@ -198,12 +188,12 @@ class ThreeJSManager {
     nonIndexed.setIndex(indices);
     return nonIndexed;
   }
+
   loadTexture(url) {
     return new Promise((resolve, reject) => {
       new THREE.TextureLoader().load(url, resolve, undefined, reject);
     });
   }
-  
 
   async loadD4Textures() {
     const textureUrls = [
@@ -215,15 +205,17 @@ class ThreeJSManager {
     return Promise.all(textureUrls.map(url => this.loadTexture(url)));
   }
 
-  createDice(type) {
+  createDice(type, index) {
     let geometry;
     let shape;
     let diceMesh;
+    let body;
+    const material = new THREE.MeshBasicMaterial({ color: 0x804000, side: THREE.DoubleSide });
+
     switch (type) {
       case 4:
         geometry = new THREE.TetrahedronGeometry(1);
         shape = this.createConvexPolyhedron(geometry);
-        
         break;
       case 6:
         geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -245,26 +237,47 @@ class ThreeJSManager {
         geometry = new THREE.IcosahedronGeometry(1);
         shape = this.createConvexPolyhedron(geometry);
         break;
+      case 100:
+        // D100 is handled as two D10 dice
+        if (index % 2 === 0) {
+          type = 10;
+          geometry = this.createD10Geometry();
+          shape = this.createConvexPolyhedron(geometry);
+          body = new CANNON.Body({ mass: 1 });
+          body.addShape(shape);
+          body.userData = { special: 'd100_10' };
+        } else {
+          type = 10;
+          geometry = this.createD10Geometry();
+          shape = this.createConvexPolyhedron(geometry);
+          body = new CANNON.Body({ mass: 1 });
+          body.addShape(shape);
+          body.userData = { special: 'd100_1' };
+        }
+        diceMesh = new THREE.Mesh(geometry, material);
+        diceMesh.userData = { type, index, special: body.userData.special };
+        this.diceMeshes.push(diceMesh);
+        this.diceBodies.push(body);
+        return { diceMesh, body };
       default:
         geometry = new THREE.BoxGeometry(1, 1, 1);
         shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
     }
-    const material = new THREE.MeshBasicMaterial({ color: 0x804000, side: THREE.DoubleSide });
-    diceMesh = new THREE.Mesh(geometry, material);
 
+    diceMesh = new THREE.Mesh(geometry, material);
     const edges = new THREE.EdgesGeometry(geometry);
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
     const lineSegments = new THREE.LineSegments(edges, lineMaterial);
     diceMesh.add(lineSegments);
-  
-    const mass = 1;
-    const body = new CANNON.Body({ mass });
+    body = new CANNON.Body({ mass: 1 });
     body.addShape(shape);
-  
-    body.quaternion.set(0, 0, 0, 1);
-  
+
+    diceMesh.userData = { type, index };
+    this.diceMeshes.push(diceMesh);
+    this.diceBodies.push(body);
     return { diceMesh, body };
   }
+
   rollDice(types) {
     this.clearDice();
 
@@ -272,56 +285,105 @@ class ThreeJSManager {
       return this.rollSingleDice(dice.type, index, types.length);
     });
 
-    return Promise.all(promises);
+    return Promise.all(promises).then(results => {
+      const diceRolls = results.reduce((acc, { type, value, special }) => {
+        if (special === 'd100_10') {
+          acc.d100_10 = (acc.d100_10 || 0) + value;
+        } else if (special === 'd100_1') {
+          acc.d100_1 = (acc.d100_1 || 0) + value;
+        } else {
+          acc[type] = (acc[type] || 0) + value;
+        }
+        return acc;
+      }, {});
+
+      diceRolls.d100 = (diceRolls.d100_10 || 0) + (diceRolls.d100_1 || 0);
+      console.log("Dice Roll Results:", diceRolls);
+      return results;
+    });
   }
 
+  getDiceResult(type, body) {
+    const upVector = new CANNON.Vec3(0, 1, 0);
+    let maxDot = -1;
+    let result = -1;
+  
+    const faces = {
+      4: [1, 2, 3, 4],
+      6: [1, 2, 3, 4, 5, 6],
+      8: [1, 2, 3, 4, 5, 6, 7, 8],
+      10: (body.userData && body.userData.special === 'd100_10') ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      12: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      20: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    };
+  
+    body.shapes[0].vertices.forEach((vertex, index) => {
+      const worldVertex = new CANNON.Vec3();
+      body.quaternion.vmult(vertex, worldVertex);
+      body.position.vadd(worldVertex, worldVertex);
+      const dot = worldVertex.dot(upVector);
+      if (dot > maxDot) {
+        maxDot = dot;
+        result = index;
+      }
+    });
+  
+    // Check if body.userData exists and handle special cases for D100
+    if (type === 10) {
+      if (body.userData && body.userData.special === 'd100_10') {
+        return faces[10][result];
+      } else if (body.userData && body.userData.special === 'd100_1') {
+        return faces[10][result];
+      }
+    }
+  
+    return faces[type][result];
+  }
+  
+  
+  
+
   rollSingleDice(type, index, total) {
-    const { diceMesh, body } = this.createDice(type);
-  
-    // 벽 안에서 생성
-    const startX = (Math.random() * (this.wallSize.width - 4) - (this.wallSize.width / 2 - 2));
+    const { diceMesh, body } = this.createDice(type, index);
+
+    // Random start positions
+    const startX = (Math.random() * (this.wallSize.width - 8) - (this.wallSize.width / 2 - 2));
     const startY = 1 + Math.random() * 1;
-    const startZ = (Math.random() * (this.wallSize.depth - 4) - (this.wallSize.depth / 2 - 2));
-  
+    const startZ = (Math.random() * (this.wallSize.depth - 8) - (this.wallSize.depth / 2 - 2));
+
     diceMesh.position.set(startX, startY, startZ);
     body.position.set(startX, startY, startZ);
     this.scene.add(diceMesh);
-    this.diceMeshes.push(diceMesh);
-    this.diceBodies.push(body);
     this.world.addBody(body);
-  
-    // 주사위에 힘을 가함
-    const maxForce = 100;
+
+    const maxForce = 50;
     const force = new CANNON.Vec3(
       (Math.random() - 0.5) * maxForce,
-      (Math.random() - 0.5) * maxForce / 90,
+      (Math.random() - 0.5) * maxForce / 40,
       (Math.random() - 0.5) * maxForce
     );
-    console.log(`Applying force: ${force.x}, ${force.y}, ${force.z}`);
     body.applyImpulse(force, new CANNON.Vec3(0, 0, 0));
-  
-    // 주사위에 회전 속도를 설정
+
     const angularVelocity = new CANNON.Vec3(
-      Math.random() * 10 - 5,
-      Math.random() * 10 - 5,
-      Math.random() * 10 - 5
+      Math.random() * 10 - 1,
+      Math.random() * 10 - 1,
+      Math.random() * 10 - 1
     );
-    console.log(`Applying angular velocity: ${angularVelocity.x}, ${angularVelocity.y}, ${angularVelocity.z}`);
     body.angularVelocity.set(angularVelocity.x, angularVelocity.y, angularVelocity.z);
-  
+
     return new Promise(resolve => {
       setTimeout(() => {
-        const result = Math.floor((Math.abs(body.quaternion.x) + Math.abs(body.quaternion.y) + Math.abs(body.quaternion.z)) % type) + 1;
+        const result = this.getDiceResult(type, body);
+        console.log(`Rolled a d${type}: ${result}`);
         this.scene.remove(diceMesh);
         this.world.removeBody(body);
         this.diceMeshes = this.diceMeshes.filter(d => d !== diceMesh);
         this.diceBodies = this.diceBodies.filter(b => b !== body);
-        resolve({ type, value: result });
+        resolve({ type, value: result, special: body.userData.special });
       }, 7000);
     });
   }
-  
-  
+
   clearDice() {
     this.diceMeshes.forEach(dice => {
       this.scene.remove(dice);
@@ -364,7 +426,7 @@ class ThreeJSManager {
   }
 
   onWindowResize() {
-    this.updateCameraAndWalls(); // 창 크기 변경 시 카메라와 벽 업데이트
+    this.updateCameraAndWalls();
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
   }
 

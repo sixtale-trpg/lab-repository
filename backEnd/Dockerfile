@@ -19,7 +19,7 @@ FROM openjdk:17-jdk
 WORKDIR /app
 
 # Copy the packaged jar file
-COPY build/libs/*.jar .
+COPY build/libs/*.jar app.jar
 
 # Expose port 8888
 EXPOSE 8888

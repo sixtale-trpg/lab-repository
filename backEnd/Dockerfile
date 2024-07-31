@@ -13,10 +13,7 @@
 #RUN gradle build -x test
 
 # Use the official OpenJDK image as the base image
-FROM openjdk:17-jdk
-
-# 패키지 목록 업데이트 및 findutils 설치
-RUN apt-get update && apk add --no-cache findutils
+FROM openjdk:17-jdk-alpine
 
 # Copy the Gradle wrapper and project files
 COPY . /app

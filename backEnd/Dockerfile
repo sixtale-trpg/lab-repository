@@ -15,6 +15,9 @@
 # Use the official OpenJDK image as the base image
 FROM openjdk:17-jdk
 
+RUN chmod +x ./gradlew
+RUN ./gradlew bootJar
+
 # Set the working directory
 WORKDIR /app
 

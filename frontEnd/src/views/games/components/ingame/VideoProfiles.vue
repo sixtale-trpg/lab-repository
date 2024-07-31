@@ -9,20 +9,20 @@
       </button>
     </div>
     <div class="profile-cards">
-      <div class="profile-card" v-for="n in 8" :key="n">
+      <div class="profile-card" v-for="user in users" :key="user.id">
         <div class="profile-image">
-          <img v-if="showAIImages" :src="getAIImage(n)" :alt="'User ' + n + ' AI profile picture'">
-          <CharacterStats v-else-if="showStats" :playMemberID="n" />
-          <video v-else :id="'video-' + n" autoplay playsinline></video>
+          <img v-if="showAIImages" :src="getAIImage(user.id)" :alt="'User ' + user.name + ' AI profile picture'" @click="fetchUserJob(user.id)">
+          <CharacterStats v-else-if="showStats" :playMemberID="user.id" @click="fetchUserJob(user.id)" />
+          <video v-else :id="'video-' + user.id" autoplay playsinline></video>
         </div>
         <div class="profile-info">
           <div class="user-info">
-            <h3>User {{ n }}</h3>
+            <h3>{{ user.name }}</h3>
             <span v-if="isGM">정보</span>
-            <img v-if="isGM" src="@/assets/images/ingame/Info.png" alt="Info" class="info-icon" @click="showUserInfo(n)" />
+            <img v-if="isGM" src="@/assets/images/ingame/Info.png" alt="Info" class="info-icon" @click="showUserInfo(user.id)" />
           </div>
-          <button class="voice-chat-button" @click="toggleVoiceChat(n)">
-            <img :src="getVoiceIcon(n)" alt="Voice chat">
+          <button class="voice-chat-button" @click="toggleVoiceChat(user.id)">
+            <img :src="getVoiceIcon(user.id)" alt="Voice chat">
           </button>
         </div>
       </div>
@@ -37,6 +37,7 @@ import { ref } from 'vue';
 import { OpenVidu } from 'openvidu-browser';
 import CharacterStats from './CharacterStats.vue';
 import CharacterInfo from '@/views/games/components/ingame/CharacterInfoModal.vue';
+import { selectedPlayMemberID, selectedUserJob } from '@/store/state.js'; // 전역 상태 가져오기
 
 export default {
   components: {
@@ -54,16 +55,63 @@ export default {
     const showCharacterInfo = ref(false);
     const isGM = ref(true);
 
-    // 메서드들
+    // 더미 데이터: 8명의 유저 정보
+    const users = ref([
+      { id: 1, name: 'Player1', aiImage: '@/assets/images/ingame/user1.png' },
+      { id: 2, name: 'Player2', aiImage: '@/assets/images/ingame/user2.png' },
+      { id: 3, name: 'Player3', aiImage: '@/assets/images/ingame/user3.png' },
+      { id: 4, name: 'Player4', aiImage: '@/assets/images/ingame/user4.png' },
+      { id: 5, name: 'Player5', aiImage: '@/assets/images/ingame/user5.png' },
+      { id: 6, name: 'Player6', aiImage: '@/assets/images/ingame/user6.png' },
+      { id: 7, name: 'Player7', aiImage: '@/assets/images/ingame/user7.png' },
+      { id: 8, name: 'Player8', aiImage: '@/assets/images/ingame/user8.png' }
+    ]);
+
+    // AI 이미지 경로 가져오기
+    const getAIImage = (userId) => {
+      return require(`@/assets/images/ingame/user${userId}.png`);
+    };
+
+    const toggleStats = (userId) => {
+      showAIImages.value = false;
+      showStats.value = true;
+      fetchUserJob(userId); // 스탯창을 눌렀을 때 해당 유저의 직업 정보를 가져오도록 함
+    };
+
+    // 플레이어 ID와 직업 정보를 설정하는 메서드
+    const fetchUserJob = async (playMemberID) => {
+      // 전역 상태에 선택된 플레이어 ID 저장
+      console.log("Setting selectedPlayMemberID:", playMemberID);
+      selectedPlayMemberID.value = playMemberID;
+
+      // 실제 API 요청을 보내는 로직 (주석 처리)
+      /*
+      try {
+        const response = await axios.get(`/rooms/${roomID}/sheets/${playMemberID}`);
+        if (response.data.statusCode === 200) {
+          // 전역 상태에 플레이어의 직업 정보를 저장하는 로직
+          selectedUserJob.value = response.data.data.jobName;
+          console.log("Setting selectedUserJob:", response.data.data.jobName);
+        }
+      } catch (error) {
+        console.error('Error fetching user job:', error);
+      }
+      */
+
+      // 임시 데이터 설정 (테스트용)
+      const userJobs = ['Warrior', 'Mage', 'Rogue', 'Cleric', 'Ranger', 'Paladin', 'Druid', 'Bard'];
+      selectedUserJob.value = userJobs[playMemberID - 1] || 'Unknown';
+      console.log("Setting selectedUserJob (dummy data):", selectedUserJob.value);
+    };
+
+
+    // 기타 메서드들...
     const toggleAIImages = () => {
       showAIImages.value = true;
       showStats.value = false;
     };
 
-    const toggleStats = () => {
-      showAIImages.value = false;
-      showStats.value = true;
-    };
+
 
     const showUserInfo = (userId) => {
       showCharacterInfo.value = true;
@@ -71,10 +119,6 @@ export default {
 
     const closeCharacterInfo = () => {
       showCharacterInfo.value = false;
-    };
-
-    const getAIImage = (n) => {
-      return require(`@/assets/images/ingame/user${n}.png`);
     };
 
     const getVoiceIcon = (userId) => {
@@ -180,6 +224,7 @@ export default {
     };
 
     return {
+      users,  // 유저 리스트
       showStats,
       showAIImages,
       showCharacterInfo,
@@ -188,13 +233,15 @@ export default {
       toggleStats,
       showUserInfo,
       closeCharacterInfo,
-      getAIImage,
       getVoiceIcon,
-      toggleVoiceChat
+      toggleVoiceChat,
+      fetchUserJob, // 전역 상태관리
+      getAIImage // AI 이미지 경로 함수 추가
     };
   }
 };
 </script>
+
 
 <style scoped>
 .video-profile {

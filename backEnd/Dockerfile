@@ -15,17 +15,14 @@
 # Use the official OpenJDK image as the base image
 FROM openjdk:17-jdk-alpine
 
-# Copy the Gradle wrapper and project files
-COPY . /app
-
 # Set the working directory
 WORKDIR /app
 
-# COPY gradlew .
-# COPY gradle /app/gradle
-# COPY build.gradle .
-# COPY settings.gradle .
-# COPY src /app/src
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src src
 
 # Ensure the Gradle wrapper script has execution permissions
 RUN chmod +x ./gradlew

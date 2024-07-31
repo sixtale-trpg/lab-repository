@@ -7,14 +7,14 @@ RUN apk add --no-cache findutils
 # Copy the Gradle wrapper and project files
 COPY . /app
 
+# Set the working directory
+WORKDIR /app
+
 # Ensure the Gradle wrapper script has execution permissions
 RUN chmod +x ./gradlew
 
 # Build the project
 RUN ./gradlew bootJar
-
-# Set the working directory
-WORKDIR /app
 
 # Copy the packaged jar file
 COPY build/libs/*.jar app.jar

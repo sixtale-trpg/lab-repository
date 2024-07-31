@@ -2,7 +2,7 @@
 FROM node:16-alpine
 
 # Set the working directory
-WORKDIR /app
+# WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
@@ -20,7 +20,7 @@ RUN npm run build
 FROM nginx:stable-alpine
 
 # Copy the build output to the Nginx HTML directory
-COPY --from=0 /app/dist /usr/share/nginx/html
+COPY --from=0 /dist /usr/share/nginx/html
 
 # Copy the Nginx configuration file
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf

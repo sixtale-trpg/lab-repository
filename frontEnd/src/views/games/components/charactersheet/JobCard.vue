@@ -82,21 +82,21 @@ const deleteCard = () => {
 .job-card {
   background-color: #444;
   color: white;
-  padding: 10px;
+  padding: 3%;
   border-radius: 5px;
   text-align: center;
-  width: 260px; /* 카드의 너비를 적절히 조정 */
-  height: 250px; /* 카드의 높이를 조정 */
-  margin: 10px; /* 카드 간격을 조정 */
+  width: 75%; /* 카드의 너비를 적절히 조정 */
+  height: 95%; /* 카드의 높이를 조정 */
+  /* margin: 10px; 카드 간격을 조정 */
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative; /* 추가 */
-  overflow: hidden; /* 추가 */
+  /* overflow: hidden; 추가 */
 }
 
 .card-border {
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   right: 0;
@@ -110,7 +110,7 @@ const deleteCard = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: opacity 0.3s; /* 추가 */
+  transition: opacity 0.3s;
   z-index: 2; /* 컨텐츠가 테두리 위에 표시되도록 z-index 조정 */
 }
 
@@ -119,15 +119,15 @@ const deleteCard = () => {
 }
 
 .job-image {
-  width: 245px; /* 패딩 값을 제외한 너비 설정 */
-  height: 180px; /* 패딩 값을 제외한 높이 설정 */
+  width: 100%; /* 패딩 값을 제외한 너비 설정 */
+  height: 100%; /* 패딩 값을 제외한 높이 설정 */
   object-fit: cover;
-  margin-bottom: 10px; /* 이미지와 텍스트 사이의 간격을 추가 */
+  /* margin-bottom: 10px; 이미지와 텍스트 사이의 간격을 추가 */
   transition: opacity 0.3s; /* 추가 */
 }
 
 .job-name {
-  margin-top: 10px;
+  margin-top: 2%;
   font-size: 1.2rem; /* 이름 텍스트 크기 조정 */
 }
 

@@ -3,8 +3,14 @@ package org.infinity.sixtalebackend.domain.chat.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.infinity.sixtalebackend.domain.chat.domain.ChatMessage;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
+import org.infinity.sixtalebackend.domain.chat.dto.MessageType;
+import org.infinity.sixtalebackend.domain.chat.repository.ChatRoomRepository;
 import org.infinity.sixtalebackend.domain.chat.service.WaitingLogService;
+import org.infinity.sixtalebackend.domain.member.domain.Member;
+import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
+import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -16,6 +22,9 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(value = "*")
 public class ChatController {
     private final WaitingLogService waitingLogService;
+    private final RedisPublisher redisPublisher;
+    private final ChatRoomRepository chatRoomRepository;
+    private final MemberRepository memberRepository;
 
 //    @MessageMapping("/chat/message")
 //    public void message(
@@ -38,6 +47,25 @@ public class ChatController {
     public void handleWaitingWhisperMessage(ChatMessageRequest chatMessageRequest) {
         // 대기방 귓속말 처리
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
+    }
+
+    /**
+     * websocket "/pub/chat/message"로 들어오는 메시징을 처리한다.
+     */
+    @MessageMapping("/chat/message")
+    public void message(ChatMessage message) {
+        if (MessageType.ENTER.equals(message.getType())) {
+            // 채팅 입장 시, 룸 아이디로 토픽 생성
+            chatRoomRepository.enterChatRoom(String.valueOf(message.getRoomID()));
+            message.setMessage(message.getSender()+ "님이 입장하셨습니다.");
+        }
+        // Websocket에 발행된 메시지를 redis로 발행한다(publish)
+        redisPublisher.publish(chatRoomRepository.getTopic(String.valueOf(message.getRoomID())), message);
+    }
+
+    private Member findMember(Long memberID){
+        return memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다. id=" + memberID));
     }
 
 //    @MessageMapping("/chat/play/message")

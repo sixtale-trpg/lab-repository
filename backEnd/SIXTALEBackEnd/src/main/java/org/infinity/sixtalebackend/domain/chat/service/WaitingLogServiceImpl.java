@@ -29,7 +29,6 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     private final WaitingChatLogRepository waitingChatLogRepository;
     private final WaitingWhisperLogRepository waitingWhisperLogRepository;
     private final RedisTemplate redisTemplate;
-    private final ChannelTopic channelTopic;
 
     /**
      * 대기방 채팅, 귓속말 채팅 기능
@@ -63,8 +62,8 @@ public class WaitingLogServiceImpl implements WaitingLogService{
 
         waitingChatLogRepository.save(waitingChatLog);
 
-         String topic = channelTopic.getTopic();
-         redisTemplate.convertAndSend(topic, chatMessageRequest);
+         // String topic = channelTopic.getTopic();
+         // redisTemplate.convertAndSend(topic, chatMessageRequest);
     }
 
     private void handleWhisperMessage(Room room, Member member, ChatMessageRequest chatMessageRequest) {
@@ -83,8 +82,8 @@ public class WaitingLogServiceImpl implements WaitingLogService{
 
         waitingWhisperLogRepository.save(waitingWhisperLog);
 
-        String topic = channelTopic.getTopic();
-        redisTemplate.convertAndSend(topic, chatMessageRequest);
+        // String topic = channelTopic.getTopic();
+        // redisTemplate.convertAndSend(topic, chatMessageRequest);
 
     }
 
@@ -97,6 +96,5 @@ public class WaitingLogServiceImpl implements WaitingLogService{
         return roomRepository.findById(roomID)
                 .orElseThrow(() -> new IllegalArgumentException("해당 방이 존재하지 않습니다. id=" + roomID));
     }
-
 
 }

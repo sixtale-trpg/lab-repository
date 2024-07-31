@@ -21,20 +21,20 @@ public class RedisConfig {
 
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer( // (1)
-                                                                        RedisConnectionFactory connectionFactory,
-                                                                        MessageListenerAdapter listenerAdapter,
-                                                                        ChannelTopic channelTopic
+                                                                        RedisConnectionFactory connectionFactory
+//                                                                        MessageListenerAdapter listenerAdapter,
+//                                                                        ChannelTopic channelTopic
     ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, channelTopic);
+        // container.addMessageListener(listenerAdapter, channelTopic);
         return container;
     }
 
-    @Bean
-    public MessageListenerAdapter listenerAdapter(RedisSubscriber subscriber) { // (2)
-        return new MessageListenerAdapter(subscriber, "onMessage");
-    }
+//    @Bean
+//    public MessageListenerAdapter listenerAdapter(RedisSubscriber subscriber) { // (2)
+//        return new MessageListenerAdapter(subscriber, "onMessage");
+//    }
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -42,15 +42,15 @@ public class RedisConfig {
         redisTemplate.setConnectionFactory(connectionFactory);
 
         // JSON 직렬화 설정
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        // Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(serializer);
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(String.class));
 
         return redisTemplate;
     }
     // 여기서부터 다시 토픽 하기
-    @Bean
-    public ChannelTopic channelTopic() { // (4)
-        return new ChannelTopic("chatroom");
-    }
+//    @Bean
+//    public ChannelTopic channelTopic() { // (4)
+//        return new ChannelTopic("chatroom");
+//    }
 }

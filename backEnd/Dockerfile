@@ -1,16 +1,16 @@
 # Use the official Gradle image to build the application
-FROM gradle:8.8-jdk17 AS build
+#FROM gradle:8.8-jdk17 AS build
 
 # Set the working directory
-WORKDIR /app
+#WORKDIR /app
 
-USER root
+#USER root
 
 # Copy the project files
-COPY . .
+#COPY . .
 
 # Package the Spring Boot application
-RUN gradle build -x test
+#RUN gradle build -x test
 
 # Use the official OpenJDK image as the base image
 FROM openjdk:17-jdk
@@ -19,7 +19,7 @@ FROM openjdk:17-jdk
 WORKDIR /app
 
 # Copy the packaged jar file
-COPY --from=build /app/build/libs/*.jar app.jar
+COPY build/libs/*.jar .
 
 # Expose port 8888
 EXPOSE 8888

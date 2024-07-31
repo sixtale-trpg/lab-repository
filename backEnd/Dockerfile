@@ -1,8 +1,8 @@
 # Use the official OpenJDK image as the base image
-FROM openjdk:17-jdk
+FROM openjdk:17-jdk-alpine
 
 # 필요 패키지 설치 (xargs 포함)
-RUN apt-get update && apt-get install -y findutils
+RUN apk add --no-cache findutils
 
 # Set the working directory
 WORKDIR /app

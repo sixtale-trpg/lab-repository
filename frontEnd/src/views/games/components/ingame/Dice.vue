@@ -35,8 +35,8 @@ const emitRollDice = () => {
   diceList.forEach(dice => {
     if (dice.diceId === 100) {
       for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push({ type: 10, id: dice.diceId });
-        diceTypesToRoll.push({ type: 10, id: dice.diceId });
+        diceTypesToRoll.push({ type: 10, id: dice.diceId, index: i * 2 }); // 10의 단위
+        diceTypesToRoll.push({ type: 10, id: dice.diceId, index: i * 2 + 1 }); // 1의 단위
       }
     } else {
       for (let i = 0; i < dice.count; i++) {

@@ -5,11 +5,7 @@ FROM openjdk:17-jdk-alpine
 RUN apk add --no-cache findutils
 
 # Copy the Gradle wrapper and project files
-COPY gradlew .
-COPY gradle /app/gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src /app/src
+COPY . /app
 
 # Ensure the Gradle wrapper script has execution permissions
 RUN chmod +x ./gradlew

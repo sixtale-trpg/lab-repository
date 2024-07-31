@@ -15,6 +15,9 @@
 # Use the official OpenJDK image as the base image
 FROM openjdk:17-jdk
 
+# 패키지 목록 업데이트 및 findutils 설치
+RUN apt-get update && apk add --no-cache findutils
+
 # Copy the Gradle wrapper and project files
 COPY . /app
 

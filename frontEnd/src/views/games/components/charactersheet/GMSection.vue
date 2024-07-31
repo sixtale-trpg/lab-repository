@@ -1,13 +1,17 @@
 <template>
   <div class="gm-section-container">
     <div class="gm-info">
-      <div class="gm-header">
-        <h3>Game Master</h3>
-      </div>
       <div class="gm-name-box">
-        <p>{{ gm.name }}</p>
+        <img :src="gmBoxImage" alt="GM Box" class="gm-box-image" />
+        <div class="gm-details">
+          <img :src="gmMarkImage" alt="GM Mark" class="gm-mark-image" />
+          <p class="gm-name">{{ gm.name }}</p>
+        </div>
       </div>
-      <button class="start-game-button" :disabled="!isGM" @click="startGame">게임 시작</button>
+      <button class="start-game-button" :disabled="!isGM" @click="startGame">
+        <img :src="startButtonImagePath" alt="Start Game" class="start-button-image" />
+        <span class="start-button-text">게임 시작</span>
+      </button>
     </div>
     <div class="gm-profile">
       <img :src="gm.profileImage" alt="GM Profile" class="profile-image" />
@@ -16,7 +20,6 @@
 </template>
 
 <script setup>
-
 const props = defineProps({
   gm: {
     type: Object,
@@ -33,6 +36,10 @@ const emit = defineEmits(['start-game']);
 const startGame = () => {
   emit('start-game');
 };
+
+const gmBoxImage = require('@/assets/images/character_sheet/gm_box.png');
+const gmMarkImage = require('@/assets/images/character_sheet/gm_mark.png');
+const startButtonImagePath = require('@/assets/images/room/start_button.png');
 </script>
 
 <style scoped>
@@ -42,62 +49,87 @@ const startGame = () => {
 }
 
 .gm-profile {
-  flex: 7;
+  flex: 3;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .profile-image {
-  width: 100%;
+  width: 80%;
   height: auto;
   border-radius: 10px;
 }
 
 .gm-info {
-  flex: 5;
+  flex: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
-  background-color: #291707;
-  border: 1px solid #5a4d41;
-  border-radius: 10px;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.gm-header {
-  background-color: #564307;
-  width: 100%;
-  text-align: center;
-  padding: 5px;
-  border-radius: 5px;
-  color: #ffffff;
+  justify-content: center;
 }
 
 .gm-name-box {
-  background-color: #564307;
+  position: relative;
   width: 100%;
   text-align: center;
-  padding: 10px;
-  border-radius: 5px;
-  color: #ffffff;
-  border: 1px solid #5a4d41;
+  margin-bottom: 10px;
+}
+
+.gm-box-image {
+  width: 100%;
+}
+
+.gm-details {
+  position: absolute;
+  width: 100%;
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gm-mark-image {
+  width: 13%;
+  height: 13%;
+  margin: 3%;
+}
+
+.gm-name {
+  font-size: 0.8rem;
+  margin: 0;
 }
 
 .start-game-button {
   width: 100%;
-  padding: 10px;
-  background-color: #073467;
-  color: white;
-  border: 1px solid white;
-  border-radius: 5px;
+  padding: 0;
+  background: none;
+  border: none;
   cursor: pointer;
+  position: relative;
+  margin-top: 2%;
 }
 
 .start-game-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.start-button-image {
+  width: 100%;
+  height: auto;
+}
+
+.start-button-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 </style>

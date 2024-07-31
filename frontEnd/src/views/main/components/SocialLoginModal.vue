@@ -2,7 +2,7 @@
   <div v-if="modelValue" class="modal" @click.self="closeModal">
     <div class="modal-content">
       <span class="close-btn" @click="closeModal">&times;</span>
-      <h2 class="modal-title">소셜 로그인!</h2>
+      <h2 class="modal-title">소셜 로그인</h2>
       <button class="social-btn" @click="googleLogin">Google 로그인</button>
     </div>
   </div>

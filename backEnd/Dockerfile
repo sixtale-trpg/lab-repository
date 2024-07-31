@@ -15,18 +15,20 @@
 # Use the official OpenJDK image as the base image
 FROM openjdk:17-jdk
 
+# Copy the Gradle wrapper and project files
+COPY . /app
+
 # Set the working directory
 WORKDIR /app
 
-# Copy the Gradle wrapper and project files
-COPY gradlew .
-COPY gradle /app/gradle
-COPY build.gradle .
-COPY settings.gradle .
-COPY src /app/src
+# COPY gradlew .
+# COPY gradle /app/gradle
+# COPY build.gradle .
+# COPY settings.gradle .
+# COPY src /app/src
 
 # Ensure the Gradle wrapper script has execution permissions
-RUN chmod +x gradlew
+RUN chmod +x ./gradlew
 
 # Build the project
 RUN ./gradlew bootJar

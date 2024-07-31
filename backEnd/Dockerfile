@@ -11,16 +11,20 @@ WORKDIR /app
 COPY . .
 
 # Ensure the Gradle wrapper script has execution permissions
-RUN chmod +x ./gradlew
+# RUN chmod +x ./gradlew
 
 # Build the project
-RUN ./gradlew bootJar
+# RUN ./gradlew bootJar
 
 # 빌드 아티팩트 확인 (디버깅용)
-RUN ls -la build/libs
+# RUN ls -la build/libs
 
 # Copy the packaged jar file
-COPY build/libs/*.jar app.jar
+# COPY build/libs/*.jar app.jar
+
+RUN chmod +x ./gradlew && \
+    ./gradlew bootJar && \
+    cp build/libs/*.jar app.jar
 
 # Expose port 8888
 EXPOSE 8888

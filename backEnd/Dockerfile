@@ -18,11 +18,12 @@ FROM openjdk:17-jdk-alpine
 # Set the working directory
 WORKDIR /app
 
+# Copy the Gradle wrapper and project files
 COPY gradlew .
-COPY gradle gradle
+COPY gradle /app/gradle
 COPY build.gradle .
 COPY settings.gradle .
-COPY src src
+COPY src /app/src
 
 # Ensure the Gradle wrapper script has execution permissions
 RUN chmod +x ./gradlew

@@ -21,6 +21,7 @@ FROM nginx:stable-alpine
 
 COPY . .
 
+TOUCH test.txt
 # Copy the build output to the Nginx HTML directory
 # COPY --from=build-stage /app/dist /var/jenkins_home/workspace/SixTale/nginx/html
 

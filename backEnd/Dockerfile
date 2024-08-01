@@ -29,8 +29,8 @@ COPY . .
 
 # COPY /app/build/libs/*.jar app.jar
 
-RUN chmod +x ../gradlew && \
-    ../gradlew bootJar && \
+RUN chmod +x ./gradlew && \
+    ./gradlew bootJar && \
     ls -la build/libs && \
     cp /app/build/libs/*.jar app.jar
 

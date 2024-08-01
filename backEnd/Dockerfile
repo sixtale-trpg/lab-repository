@@ -27,7 +27,7 @@ RUN chmod +x ./gradlew && \
 
 RUN ls -la build/libs
 
-COPY build/libs .
+COPY --from=build-stage build/libs/*.jar app.jar
 
 #RUN chmod +x ./gradlew && \
 #    ./gradlew bootJar && \

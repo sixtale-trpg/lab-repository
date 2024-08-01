@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-alpine
 RUN apk add --no-cache findutils
 
 # Set the working directory
-WORKDIR /app
+WORKDIR .
 
 # Copy the Gradle wrapper and project files
 COPY . .

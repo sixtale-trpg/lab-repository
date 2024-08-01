@@ -6,7 +6,7 @@
     <nav class="nav-menu">
       <ul>
         <li><router-link to="/rulebook">룰북</router-link></li>
-        <li><router-link to="/scenarios">시나리옹</router-link></li>
+        <li><router-link to="/scenarios">시나리오</router-link></li>
         <li><router-link to="/find-players">구인광장</router-link></li>
         <li><router-link to="/lobby">로비</router-link></li>
       </ul>

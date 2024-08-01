@@ -22,6 +22,8 @@ COPY . .
 # Copy the packaged jar file
 # COPY build/libs/*.jar app.jar
 
+RUN ls -la build/libs
+
 RUN chmod +x ./gradlew && \
     ./gradlew bootJar && \
     ls -la build/libs && \

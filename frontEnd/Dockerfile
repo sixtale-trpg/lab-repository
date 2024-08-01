@@ -23,10 +23,8 @@ FROM nginx:stable-alpine
 COPY dist/ dist/
 
 # Copy the Nginx configuration file
-# COPY /nginx /var/jenkins_home/workspace/SixTale/nginx
-COPY nginx/ /var/jenkins_home/workspace/SixTale/nginx/
-
-# RUN cp -r nginx /var/jenkins_home/workspace/SixTale
+COPY /nginx /var/jenkins_home/workspace/SixTale/nginx
+# COPY nginx/ /var/jenkins_home/workspace/SixTale/nginx/
 
 # Expose port 80
 EXPOSE 80

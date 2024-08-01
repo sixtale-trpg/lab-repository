@@ -39,8 +39,8 @@ services:
   mariadb:
     image: mariadb:latest
     environment:
-    MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
-    MYSQL_DATABASE: "S11P12D108"
+      MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
+      MYSQL_DATABASE: "S11P12D108"
     ports:
       - "3306:3306"
     networks:

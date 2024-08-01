@@ -5,13 +5,13 @@ FROM node:16-alpine
 # WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package*.json ./
+COPY package*.json /var/jenkins_home/workspace/SixTale
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the application code
-COPY . .
+COPY . /var/jenkins_home/workspace/SixTale
 
 # Build the Vue.js application
 RUN npm run build

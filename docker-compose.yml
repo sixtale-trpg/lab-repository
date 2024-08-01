@@ -13,7 +13,7 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/lib/letsencrypt:/var/lib/letsencrypt
-      - /home/ubuntu/nginx:/etc/nginx/conf.d
+      - /home/ubuntu/nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - backend
 

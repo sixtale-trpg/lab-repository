@@ -24,6 +24,7 @@ COPY . .
 
 RUN chmod +x ./gradlew && \
     ./gradlew bootJar && \
+    ls -la build/libs && \
     cp build/libs/*.jar app.jar
 
 # Expose port 8888

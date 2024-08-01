@@ -28,32 +28,32 @@ services:
       SPRING_DATASOURCE_USERNAME: "S11P12D108@stg-yswa-kr-practice-db-master.mariadb.database.azure.com"
       SPRING_DATASOURCE_PASSWORD: "6tfIrEqQzA"
       SPRING_DATA_MONGODB_URI: "mongodb+srv://S11P12D108:nlGDSLzi3v@ssafy.ngivl.mongodb.net/S11P12D108?authSource=admin"
-    # depends_on:
-    #   - mariadb
-    #   - mongodb
+    depends_on:
+      - mariadb
+      - mongodb
 
-  # mariadb:
-  #   image: mariadb:latest
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
-  #     MYSQL_DATABASE: "S11P12D108"
-  #   ports:
-  #     - "3306:3306"
+  mariadb:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
+      MYSQL_DATABASE: "S11P12D108"
+    ports:
+      - "3306:3306"
 
-  # mongodb:
-  #   image: mongo:latest
-  #   ports:
-  #     - "27017:27017"
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
 
-  # redis:
-  #   image: redis:latest
-  #   ports:
-  #     - "6379:6379"
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
 
-  # openvidu:
-  #   image: openvidu/openvidu-server-kms:latest
-  #   environment:
-  #     OPENVIDU_SECRET: "MY_SECRET"
-  #     OPENVIDU_CDR: "false"
-  #   ports:
-  #     - "4443:4443"
+  openvidu:
+    image: openvidu/openvidu-server-kms:latest
+    environment:
+      OPENVIDU_SECRET: "MY_SECRET"
+      OPENVIDU_CDR: "false"
+    ports:
+      - "4443:4443"

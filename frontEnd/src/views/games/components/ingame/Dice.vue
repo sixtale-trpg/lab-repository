@@ -33,15 +33,8 @@ const diceList = reactive([
 const emitRollDice = () => {
   const diceTypesToRoll = [];
   diceList.forEach(dice => {
-    if (dice.diceId === 100) {
-      for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push({ type: 10, id: dice.diceId });
-        diceTypesToRoll.push({ type: 10, id: dice.diceId });
-      }
-    } else {
-      for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push({ type: dice.diceId, id: dice.diceId });
-      }
+    for (let i = 0; i < dice.count; i++) {
+      diceTypesToRoll.push({ type: dice.diceId, id: dice.diceId });
     }
   });
   console.log('Emitting roll-dice event with:', diceTypesToRoll);
@@ -72,6 +65,7 @@ const backgroundStyle = {
   boxSizing: 'border-box',
 };
 </script>
+
 
 <style scoped>
 .dice-area {

@@ -2,16 +2,16 @@
 FROM node:16-alpine
 
 # Set the working directory
-# WORKDIR /app
+WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package*.json /var/jenkins_home/workspace/SixTale
+# COPY package*.json /var/jenkins_home/workspace/SixTale
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the application code
-COPY . /var/jenkins_home/workspace/SixTale
+# COPY . /var/jenkins_home/workspace/SixTale
 
 # Build the Vue.js application
 RUN npm run build
@@ -19,15 +19,14 @@ RUN npm run build
 # Use the official Nginx image as the base image
 FROM nginx:stable-alpine
 
-# COPY . .
-
 # Copy the build output to the Nginx HTML directory
-COPY . /var/jenkins_home/workspace/SixTale/nginx/html
+COPY dist/ dist/
 
 # Copy the Nginx configuration file
-COPY /nginx /var/jenkins_home/workspace/SixTale/nginx
+# COPY /nginx /var/jenkins_home/workspace/SixTale/nginx
+COPY nginx.conf /etc/nginx/conf.d
 
-RUN cp -r nginx /var/jenkins_home/workspace/SixTale
+# RUN cp -r nginx /var/jenkins_home/workspace/SixTale
 
 # Expose port 80
 EXPOSE 80

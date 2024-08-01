@@ -48,6 +48,10 @@ dependencies {
 
     // AWS SDK v2
     implementation 'software.amazon.awssdk:s3'
+
+    // Open Vidu
+    implementation group: 'io.openvidu', name: 'openvidu-java-client', version: '2.30.0'
+
 }
 
 tasks.named('test') {

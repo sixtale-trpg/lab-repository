@@ -65,7 +65,7 @@ class ThreeJSManager {
     this.world.addBody(floorBody);
 
     const floorGeometry = new THREE.PlaneGeometry(this.wallSize.width, this.wallSize.depth);
-    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x108080, side: THREE.DoubleSide });
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x108080, side: THREE.DoubleSide,  opacity: 0, transparent: true  });
     const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
     floorMesh.rotation.x = -Math.PI / 2;
     floorMesh.position.y = -5;
@@ -96,7 +96,7 @@ class ThreeJSManager {
     });
   
     const wallGeometry = new THREE.PlaneGeometry(this.wallSize.width, wallHeight);
-    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.DoubleSide, opacity: 0.5, transparent: true });
+    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.DoubleSide, opacity: 0, transparent: true });
   
     const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
     leftWall.rotation.y = Math.PI / 2;

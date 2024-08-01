@@ -2,7 +2,7 @@
   <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
     <div class="modal-content" :style="modalStyle">
       <div class="modal-header">
-        <h2>룰북</h2>
+        <!-- <h2>룰북</h2> -->
       </div>
       <div class="modal-body">
         <div class="rulebook">
@@ -227,7 +227,7 @@ const contentStyle = computed(() => ({
   align-items: flex-start;
   position: absolute;
   left: -140px; /* Adjust based on tab width */
-  top: 50px; /* Adjust based on header height */
+  top: 20%; /* Adjust based on header height */
 }
 
 .tab {

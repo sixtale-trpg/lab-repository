@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="roll-container">
-        <button @click="emitRollDice" class="roll-dice-button">Roll</button>
+        <button @click="emitRollDice" :style="RollbackgroundStyle">Roll</button>
       </div>
     </div>
   </div>
@@ -71,6 +71,21 @@ const backgroundStyle = {
   padding: '10px',
   boxSizing: 'border-box',
 };
+
+const RollbackgroundStyle = {
+  backgroundImage: `url(${require('@/assets/images/ingame/Roll_button.png')})`,
+  backgroundSize: 'cover',
+  borderRadius: '5px',
+  width: '100%',
+  height: '100%',
+  cursor: 'pointer',
+  boxSizing: 'border-box',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'white',
+};
+
 </script>
 
 <style scoped>

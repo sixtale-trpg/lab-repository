@@ -2,6 +2,7 @@
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
     <img :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
+
     <div
       v-for="token in placedTokens"
       :key="token.id"
@@ -12,6 +13,8 @@
     >
       <img :src="tokenImage" :alt="token.name" />
     </div>
+
+    <!-- Grid Overlay: Visible based on the showGrid state -->
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
         <div
@@ -21,10 +24,25 @@
           @mouseenter="showDescription(row, col)"
           @mouseleave="hideDescription"
         >
+          <!-- Placeholder for grid cells -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Laser Effects: Always visible -->
+    <div class="laser-overlay">
+      <div v-for="row in gridRows" :key="'laser-' + row" class="laser-row">
+        <div
+          v-for="col in gridCols"
+          :key="'laser-' + col"
+          class="laser-cell"
+        >
           <div v-if="isLaserActive(row, col)" class="laser-effect"></div>
         </div>
       </div>
     </div>
+
+    <!-- Info Panel: Shows description when a grid cell is hovered -->
     <div class="info-panel" v-if="hoveredDescription.title">
       <img class="info-background" :src="infoBackground" alt="Information Background" />
       <div class="info-content">
@@ -50,25 +68,25 @@ const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
 
-// 창 크기와 그리드 크기를 기반으로 그리드 행과 열을 계산합니다.
+// Calculate grid rows and columns based on window size and grid size.
 const gridRows = computed(() => Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i));
 
-// 하드코딩된 덤프 데이터로 활성 레이저를 설정합니다.
+// Set active lasers with hardcoded dump data.
 const activeLasers = ref(new Set(['2-3', '4-5', '1-1', '6-7']));
-const hoveredDescription = ref({ title: '', details: '' }); // 현재 마우스가 올려진 그리드 셀의 설명을 저장합니다.
+const hoveredDescription = ref({ title: '', details: '' }); // Store description of the currently hovered grid cell.
 
-// 마우스를 올린 그리드 셀에 대한 설명을 표시합니다.
+// Display description for hovered grid cell.
 const showDescription = (row, col) => {
   hoveredDescription.value = getDescription(row, col);
 };
 
-// 그리드 셀에서 마우스가 벗어나면 설명을 숨깁니다.
+// Hide description when mouse leaves the grid cell.
 const hideDescription = () => {
   hoveredDescription.value = { title: '', details: '' };
 };
 
-// 행과 열에 따라 각 그리드 셀에 대한 설명 세부정보를 제공합니다.
+// Provide description details for each grid cell based on row and column.
 const getDescription = (row, col) => {
   const descriptions = {
     '2-3': {
@@ -79,7 +97,7 @@ const getDescription = (row, col) => {
       title: '다른 이벤트',
       details: '이 이벤트에 대한 설명입니다.'
     }
-    // 필요한 설명을 추가로 넣습니다.
+    // Add additional descriptions as needed.
   };
 
   return descriptions[`${row}-${col}`] || { title: '', details: '' };
@@ -155,6 +173,7 @@ const handleRollDice = (diceTypesToRoll) => {
   }
 };
 
+// Function to determine if a laser effect is active at a given grid cell
 const isLaserActive = (row, col) => {
   return activeLasers.value.has(`${row}-${col}`);
 };
@@ -162,6 +181,8 @@ const isLaserActive = (row, col) => {
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
   eventBus.on('roll-dice', handleRollDice);
+
+  // Event listener for toggling grid visibility
   window.addEventListener('toggle-grid', (event) => {
     showGrid.value = event.detail;
   });
@@ -171,7 +192,7 @@ onMounted(() => {
   });
 
   // 초기 이벤트 좌표 설정
-  activeLasers.value = new Set(['2-3', '4-5', '1-1', '6-7']);
+  // activeLasers.value = new Set(['2-3', '4-5', '1-1', '6-7']);
 });
 
 onUnmounted(() => {
@@ -211,7 +232,7 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   cursor: move;
-  z-index: 3; /* 토큰이 맵의 최상위에 위치하도록 설정 */
+  z-index: 3; /* Ensure tokens are at the top layer */
 }
 
 .token img {
@@ -237,14 +258,37 @@ onUnmounted(() => {
 .grid-cell {
   width: 50px;
   height: 50px;
-  border: 1px solid rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.6);
   position: relative;
-  overflow: visible; /* 툴팁이 보이도록 설정 */
+  overflow: visible; /* Allow tooltip visibility */
+  border: 1px solid rgba(0, 0, 0, 0.5); /* Grid cell border */
+}
+
+.laser-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  pointer-events: none;
+  z-index: 3; /* Ensure laser effects are visible */
+}
+
+.laser-row {
+  display: flex;
+}
+
+.laser-cell {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: visible; /* Allow laser effect visibility */
 }
 
 .laser-effect {
@@ -254,6 +298,7 @@ onUnmounted(() => {
   background-color: red;
   box-shadow: 0 0 10px 5px red;
   animation: pulse 1s infinite;
+  position: absolute;
 }
 
 .info-panel {

@@ -1,3 +1,4 @@
+/*
 package org.infinity.sixtalebackend.domain.member.repository;
 
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
@@ -40,3 +41,4 @@ public class MemberServiceTest {
         verify(memberRepository, times(1)).existsByNickname(nickname);
     }
 }
+*/

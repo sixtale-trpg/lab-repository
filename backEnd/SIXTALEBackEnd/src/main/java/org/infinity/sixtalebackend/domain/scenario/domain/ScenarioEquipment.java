@@ -38,5 +38,9 @@ public class ScenarioEquipment {
     @JoinColumn(name = "job_id")
     private Job job;
 
+    @ManyToOne
+    @JoinColumn(name = "scenario_id", nullable = false)
+    private Scenario scenario;
+
     private String imageURL;
 }

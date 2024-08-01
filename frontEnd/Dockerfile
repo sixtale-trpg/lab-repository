@@ -25,7 +25,7 @@ RUN ls -al
 COPY /src/dist /usr/share/nginx/html
 
 # Copy the Nginx configuration file
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Expose ports for HTTP and HTTPS
 EXPOSE 80

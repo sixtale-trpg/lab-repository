@@ -4,11 +4,8 @@ FROM openjdk:17-jdk-alpine
 # 필요 패키지 설치 (xargs 포함)
 RUN apk add --no-cache findutils
 
-# Set the working directory
-
-
 # Copy the Gradle wrapper and project files
-# COPY . .
+COPY . .
 
 # Ensure the Gradle wrapper script has execution permissions
 # RUN chmod +x ./gradlew
@@ -33,6 +30,7 @@ RUN chmod +x ./gradlew && \
     ./gradlew bootJar && \
     ls -la build/libs
 
+# Set the working directory
 WORKDIR app
 
 COPY /app/build/libs/*.jar app.jar

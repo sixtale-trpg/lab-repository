@@ -19,11 +19,10 @@ RUN npm run build
 # Use the official Nginx image as the base image
 FROM nginx:stable-alpine
 
-COPY . .
+# COPY . .
 
-TOUCH test.txt
 # Copy the build output to the Nginx HTML directory
-# COPY --from=build-stage /app/dist /var/jenkins_home/workspace/SixTale/nginx/html
+COPY --from=build-stage /app/dist /var/jenkins_home/workspace/SixTale/nginx/html
 
 # Copy the Nginx configuration file
 COPY /nginx /var/jenkins_home/workspace/SixTale/nginx

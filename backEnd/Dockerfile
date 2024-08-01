@@ -5,10 +5,10 @@ FROM openjdk:17-jdk-alpine
 RUN apk add --no-cache findutils
 
 # Set the working directory
-WORKDIR app
+
 
 # Copy the Gradle wrapper and project files
-COPY . .
+# COPY . .
 
 # Ensure the Gradle wrapper script has execution permissions
 # RUN chmod +x ./gradlew
@@ -31,8 +31,11 @@ COPY . .
 
 RUN chmod +x ./gradlew && \
     ./gradlew bootJar && \
-    ls -la build/libs && \
-    cp /app/build/libs/*.jar app.jar
+    ls -la build/libs
+
+WORKDIR app
+
+COPY /app/build/libs/*.jar app.jar
 
 # Expose port 8888
 EXPOSE 8888

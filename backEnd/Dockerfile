@@ -31,7 +31,7 @@ WORKDIR app
 
 RUN chmod +x ./gradlew && \
     ./gradlew bootJar && \
-    ls -la build/libs
+    ls -la build/libs && \
     cp /app/build/libs/*.jar app.jar
 
 # Expose port 8888

@@ -12,8 +12,6 @@ services:
       - "443:443"
     volumes:
       - /var/jenkins_home/workspace/SixTale/nginx/nginx.conf:/etc/nginx/sites-available/default.conf
-    networks:
-      - SIXTALE-backend
 
   backend:
     build:

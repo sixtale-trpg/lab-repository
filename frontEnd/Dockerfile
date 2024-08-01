@@ -22,7 +22,7 @@ FROM nginx:stable-alpine
 RUN ls -al
 
 # Copy the build output from the previous stage to Nginx's HTML directory
-COPY dist /usr/share/nginx/html
+COPY ./dist /usr/share/nginx/html
 
 # Copy the Nginx configuration file
 COPY nginx/nginx.conf /etc/nginx/nginx.conf

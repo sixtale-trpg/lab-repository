@@ -16,8 +16,6 @@ services:
       - /home/ubuntu/nginx/conf.d:/etc/nginx/conf.d
     networks:
       - backend-network
-    depends_on:
-      - backend
 
   backend:
     build:

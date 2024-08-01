@@ -23,24 +23,44 @@ import Inventory from '@/views/games/components/ingame/Inventory.vue';
   height: 100%;
 }
 
-.token-area, .action-area {
+.token-area, .action-area, .inventory-area, .dice-area {
+  box-sizing: border-box;
+  padding: 10px;
+  margin: 0; /* 여백 제거 */
   overflow-y: auto;
+}
+
+.token-area {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+.action-area {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+.inventory-area, .dice-area {
+  display: flex;
+  flex-direction: column;
+  padding: 10px; /* 내부 패딩을 통일 */
+  box-sizing: border-box; /* 박스 사이징 */
+  width: 100%;
   height: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  gap: 10px; /* 요소 간 간격 */
 }
 
 .inventory-area {
   grid-column: 1 / 3;
   grid-row: 2 / 3;
-  overflow-y: auto; /* 스크롤 허용 */
-  box-sizing: border-box;
-  height: 100%;
 }
 
 .dice-area {
   grid-column: 1 / 3;
   grid-row: 3 / 4;
-  height: 100%;
-  margin: 5px;
-  overflow-y: auto;
 }
+
 </style>

@@ -6,6 +6,7 @@
         :key="tab.name"
         @click="selectTab(tab.name)"
         :class="{ active: selectedTab === tab.name }"
+        :style="tabStyle(tab.name)"
       >
         {{ tab.label }}
       </button>
@@ -17,6 +18,7 @@
           :key="subTab.name"
           @click="selectSubTab(subTab.name)"
           :class="{ active: selectedSubTab === subTab.name }"
+          :style="subTabStyle(subTab.name)"
         >
           {{ subTab.label }}
         </button>
@@ -28,6 +30,7 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
+            :style="actionItemStyle"
           >
             {{ action.name }}
           </div>
@@ -40,7 +43,8 @@
           v-for="subTab in jobSubTabs"
           :key="subTab.name"
           @click="selectSubTab(subTab.name)"
-          :class="['sub-tab-button', { active: selectedSubTab === subTab.name }]"
+          :class="{ active: selectedSubTab === subTab.name }"
+          :style="subTabStyle(subTab.name)"
         >
           {{ subTab.label }}
         </button>
@@ -52,6 +56,7 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
+            :style="actionItemStyle"
           >
             {{ action.name }}
           </div>
@@ -61,13 +66,18 @@
   </div>
 </template>
 
+
 <script>
 import { ref, computed, watch } from 'vue';
-import { selectedPlayMemberID, selectedUserJob } from '@/store/state'; // 전역 상태 가져오기
+import { selectedPlayMemberID, selectedUserJob } from '@/store/state';
 
 export default {
   setup() {
     const actionAreaBackground = require('@/assets/images/ingame/Border5.png');
+    const coreActionImage = require('@/assets/images/ingame/CoreAction.png');
+    const advancedActionImage = require('@/assets/images/ingame/AdvancedAction.png');
+    const actionListImage = require('@/assets/images/ingame/ActionList.png');
+    const tabImage = require('@/assets/images/ingame/Tab.png');
     
     const backgroundStyle = {
       backgroundImage: `url(${actionAreaBackground})`,
@@ -90,18 +100,18 @@ export default {
     ]);
     
     const commonSubTabs = ref([
-      { name: 'basic', label: '기본' },
-      { name: 'special', label: '특수' }
+      { name: 'basic', label: '기본액션' },
+      { name: 'special', label: '특수액션' }
     ]);
 
     const jobSubTabs = ref([
-      { name: 'core', label: '핵심' },
-      { name: 'advanced', label: '고급' }
+      { name: 'core', label: '핵심액션' },
+      { name: 'advanced', label: '고급액션' }
     ]);
 
     const selectedTab = ref('common');
     const selectedSubTab = ref('basic');
-    const selectedAction = ref(null); // 선택된 액션을 추적하는 변수
+    const selectedAction = ref(null);
 
     const actions = ref({
       basic: [
@@ -127,44 +137,43 @@ export default {
       ]
     });
 
-    // 이 아래 존재하는 모든 스킬들은 임시 더미 데이터
-const jobActions = ref({
-  Warrior: {
-    core: [
-      { id: 1, name: '강타' },
-      { id: 2, name: '방패 돌진' },
-      { id: 3, name: '전투의 함성' },
-      { id: 4, name: '방어 태세' },
-      { id: 5, name: '무적' },
-      { id: 6, name: '분노의 격노' },
-      { id: 7, name: '철벽 방어' },
-      { id: 8, name: '결의' }
-    ],
-    advanced: [
-      { id: 9, name: '전투의 절정' },
-      { id: 10, name: '광전사의 격노' },
-      { id: 11, name: '강철의 의지' },
-      { id: 12, name: '대지의 힘' }
-    ]
-  },
-  Mage: {
-    core: [
-      { id: 13, name: '파이어볼' },
-      { id: 14, name: '아이스 스피어' },
-      { id: 15, name: '라이트닝 볼트' },
-      { id: 16, name: '아케인 미사일' },
-      { id: 17, name: '소환: 고대 정령' },
-      { id: 18, name: '블리자드' },
-      { id: 19, name: '매혹의 눈' },
-      { id: 20, name: '타임 스톱' }
-    ],
-    advanced: [
-      { id: 21, name: '마법 방어' },
-      { id: 22, name: '무한한 지식' },
-      { id: 23, name: '엘리멘탈 마스터리' },
-      { id: 24, name: '현자의 통찰' }
-    ]
-  },
+    const jobActions = ref({
+      Warrior: {
+        core: [
+          { id: 1, name: '강타' },
+          { id: 2, name: '방패 돌진' },
+          { id: 3, name: '전투의 함성' },
+          { id: 4, name: '방어 태세' },
+          { id: 5, name: '무적' },
+          { id: 6, name: '분노의 격노' },
+          { id: 7, name: '철벽 방어' },
+          { id: 8, name: '결의' }
+        ],
+        advanced: [
+          { id: 9, name: '전투의 절정' },
+          { id: 10, name: '광전사의 격노' },
+          { id: 11, name: '강철의 의지' },
+          { id: 12, name: '대지의 힘' }
+        ]
+      },
+      Mage: {
+        core: [
+          { id: 13, name: '파이어볼' },
+          { id: 14, name: '아이스 스피어' },
+          { id: 15, name: '라이트닝 볼트' },
+          { id: 16, name: '아케인 미사일' },
+          { id: 17, name: '소환: 고대 정령' },
+          { id: 18, name: '블리자드' },
+          { id: 19, name: '매혹의 눈' },
+          { id: 20, name: '타임 스톱' }
+        ],
+        advanced: [
+          { id: 21, name: '마법 방어' },
+          { id: 22, name: '무한한 지식' },
+          { id: 23, name: '엘리멘탈 마스터리' },
+          { id: 24, name: '현자의 통찰' }
+        ]
+      },
   Rogue: {
     core: [
       { id: 25, name: '은신' },
@@ -308,43 +317,55 @@ const jobActions = ref({
       return [];
     });
 
+  
+    const tabStyle = (tabName) => {
+      return {
+        background: selectedTab.value === tabName
+          ? 'none'
+          : `url(${tabImage}) no-repeat center center`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        border: 'none',
+        padding: '0',
+        margin: '0',
+      };
+    };
+
     const selectTab = (tabName) => {
       selectedTab.value = tabName;
       selectedSubTab.value = tabName === 'common' ? 'basic' : 'core';
-      selectedAction.value = null; // 탭을 변경할 때 선택된 액션 초기화
+      selectedAction.value = null;
     };
 
     const selectSubTab = (subTabName) => {
       selectedSubTab.value = subTabName;
-      selectedAction.value = null; // 서브탭을 변경할 때 선택된 액션 초기화
+      selectedAction.value = null;
     };
 
     const selectAction = (actionId) => {
       selectedAction.value = actionId;
     };
-    
-    // 전역 상태의 변경을 감지하여 액션 목록 업데이트
+
+    const subTabStyle = (subTabName) => {
+      const isCoreOrBasic = subTabName === 'core' || subTabName === 'basic';
+      return {
+        backgroundImage: `url(${isCoreOrBasic ? coreActionImage : advancedActionImage})`,
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      };
+    };
+
+    const actionItemStyle = {
+      backgroundImage: `url(${require('@/assets/images/ingame/ActionList.png')})`,
+      backgroundSize: '100% 100%',
+      backgroundPosition: 'center',
+      width: '45%',
+      backgroundRepeat: 'no-repeat',
+    };
+
     watch(selectedPlayMemberID, async (newID) => {
       console.log('Selected play member ID changed to:', newID);
-      // 필요한 추가 로직이 있으면 여기에 작성
-
-      // 실제 API 요청을 보내는 로직 (주석 처리)
-      /*
-      try {
-        const response = await axios.get(`/rooms/${roomID}/sheets/${newID}`);
-        if (response.data.statusCode === 200) {
-          // 전역 상태에 플레이어의 직업 정보를 저장하는 로직
-          const { jobName, characterAction } = response.data.data;
-          selectedUserJob.value = jobName;
-          jobActions.value[jobName] = {
-            core: characterAction.filter(action => action.isCore),
-            advanced: characterAction.filter(action => !action.isCore)
-          };
-        }
-      } catch (error) {
-        console.error('Error fetching user job:', error);
-      }
-      */
+      // 필요한 추가 로직 작성...
     });
 
     return {
@@ -358,7 +379,10 @@ const jobActions = ref({
       selectTab,
       selectSubTab,
       selectedAction,
-      selectAction
+      selectAction,
+      subTabStyle,
+      tabStyle,
+      actionItemStyle
     };
   }
 };
@@ -374,49 +398,35 @@ const jobActions = ref({
 .tabs {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  border-bottom: 2px solid #564307;
-}
-
-.sub-tabs {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  padding: 0; /* 여백 제거 */
+  height: 40px; /* 탭의 높이를 설정 */
 }
 
 .tabs button {
   flex: 1;
-  margin: 0;
-  padding: 8px 0;
+  padding: 0; /* 여백 제거 */
   border: none;
-  border-bottom: 3px solid transparent;
-  background-color: #564307;
+  background-color: transparent;
+  background-size: cover; /* 이미지가 버튼을 완전히 덮도록 */
+  background-position: center; /* 이미지를 중앙에 배치 */
   color: white;
   cursor: pointer;
-  height: 40px;
-}
-
-.sub-tabs button {
-  flex: 1;
-  margin: 0 5px;
-  padding: 8px 0;
-  border: none;
-  background-color: #274e13;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  height: 35px;
+  font-size: 1.2rem; /* 글자 크기 */
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬 */
+  justify-content: center; /* 가로 중앙 정렬 */
+  height: 100%;
+  box-sizing: border-box; /* 패딩과 테두리를 포함한 크기 계산 */
 }
 
 .tabs button.active {
-  background-color: #110519;
-  border: 1px solid #ffffff;
-
+  background-color: #000000; /* 선택된 탭의 배경색 */
 }
 
-.sub-tabs button.active {
-  background-color: #800000;
-  border: 1px solid #ffffff;
+.tabs button:not(.active) {
+  background-size: cover;
+  background-position: center;
 }
 
 .tab-content {
@@ -426,9 +436,40 @@ const jobActions = ref({
   overflow: hidden;
 }
 
+.sub-tabs {
+  display: flex;
+
+  justify-content: space-between;
+  margin-top: 15px;
+  margin-bottom: 15px; /* 서브탭과 액션 리스트 사이 간격 */
+  padding: 0 10px; /* 좌우 여백 */
+}
+
+
+.sub-tabs button {
+  flex: 1;
+  margin: 0 5px;
+  padding: 8px 0;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 45%;
+  height: 35px;
+  transition: border 0.3s;
+  font-size: 1rem; /* 글자 크기 조정 */
+}
+
+
+.sub-tabs button.active {
+  border: 1px solid #ffffff;
+}
+
+
 .action-list-container {
   flex-grow: 1;
   overflow: hidden;
+  height: 200px; /* 필요에 따라 높이 값을 조정 */
 }
 
 .action-list {
@@ -441,33 +482,35 @@ const jobActions = ref({
   padding: 10px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #110519 #a56722;
+  scrollbar-color: #855e2fee #201805;
 }
 
 .action-item {
-  background-color: #a56722;
   color: white;
-  padding: 5px;
   border-radius: 5px;
-  width: calc(50% - 5px);
+  width: calc(50% - 15px);
   text-align: center;
   cursor: pointer;
   border: 1px solid #444;
-  height: 50px;
+  height: 35px; /* 적절한 높이 설정 */
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  font-size: 0.8rem; /* 텍스트 크기 조정 */
+  transition: border-color 0.3s ease, transform 0.3s ease;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-sizing: border-box;
 }
 
 .action-item:hover {
-  background-color: #274e13; /* 호버 시 배경색 변경 */
-  border-color: #ffffff; /* 호버 시 테두리 색 변경 */
+  transform: scale(1.05);
+  border-color: #ffffff;
 }
 
 .action-item.selected {
-  background-color: #800000; /* 선택된 액션의 배경색 변경 */
-  border: 1px solid #ffffff; /* 선택된 액션 강조 */
+  border: 1px solid #ffffff;
 }
 
 /* Chrome, Edge, Safari 스크롤바 커스터마이징 */
@@ -477,12 +520,13 @@ const jobActions = ref({
 
 .action-list::-webkit-scrollbar-track {
   background: #a56722;
-  border-radius: 5px;
+  border-radius: 30px; /* 트랙 둥글게 */
 }
 
 .action-list::-webkit-scrollbar-thumb {
-  background-color: #274e13;
-  border-radius: 5px;
-  border: 1px solid #a56722;
+  background-color: #6b3d01;
+  border-radius: 30px; /* 스크롤바 둥글게 */
+  border: 1px solid #5e3b13;
 }
 </style>
+

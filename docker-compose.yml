@@ -4,7 +4,7 @@ services:
   frontend:
     build:
       context: ./frontEnd
-    container-name: SIXTALE-frontend
+    container_name: SIXTALE-frontend
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
     ports:
@@ -18,7 +18,7 @@ services:
   backend:
     build:
       context: ./backEnd
-    container-name: SIXTALE-backend
+    container_name: SIXTALE-backend
     ports:
       - "8888:8888"
     environment:

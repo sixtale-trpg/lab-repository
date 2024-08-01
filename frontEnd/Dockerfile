@@ -19,8 +19,10 @@ RUN npm run build
 # Step 2: Use the Nginx image to serve the app
 FROM nginx:stable-alpine
 
+RUN ls -al
+
 # Copy the build output from the previous stage to Nginx's HTML directory
-COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY /app/dist /usr/share/nginx/html
 
 # Copy the Nginx configuration file
 COPY nginx.conf /etc/nginx/nginx.conf

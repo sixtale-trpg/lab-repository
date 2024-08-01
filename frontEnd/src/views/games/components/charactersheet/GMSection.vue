@@ -3,6 +3,7 @@
     <div class="gm-info">
       <div class="gm-name-box">
         <img :src="gmBoxImage" alt="GM Box" class="gm-box-image" />
+        <img :src="gmMaster" alt="GM Master" class="gm-master-image" />
         <div class="gm-details">
           <img :src="gmMarkImage" alt="GM Mark" class="gm-mark-image" />
           <p class="gm-name">{{ gm.name }}</p>
@@ -40,6 +41,7 @@ const startGame = () => {
 const gmBoxImage = require('@/assets/images/character_sheet/gm_box.png');
 const gmMarkImage = require('@/assets/images/character_sheet/gm_mark.png');
 const startButtonImagePath = require('@/assets/images/room/start_button.png');
+const gmMaster = require('@/assets/images/character_sheet/Game_Master.png')
 </script>
 
 <style scoped>
@@ -78,6 +80,14 @@ const startButtonImagePath = require('@/assets/images/room/start_button.png');
 
 .gm-box-image {
   width: 100%;
+}
+
+.gm-master-image {
+  width: 60%;
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  z-index: 1;
 }
 
 .gm-details {

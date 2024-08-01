@@ -30,28 +30,28 @@ services:
       SPRING_DATASOURCE_USERNAME: "S11P12D108@stg-yswa-kr-practice-db-master.mariadb.database.azure.com"
       SPRING_DATASOURCE_PASSWORD: "6tfIrEqQzA"
       SPRING_DATA_MONGODB_URI: "mongodb+srv://S11P12D108:nlGDSLzi3v@ssafy.ngivl.mongodb.net/S11P12D108?authSource=admin"
-    # depends_on:
-      # - mariadb
-      # - mongodb
+    depends_on:
+      - mariadb
+      -  mongodb
     networks:
       - backend-network
 
-  # mariadb:
-    #   image: mariadb:latest
-  #     environment:
-     #    MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
-    #     MYSQL_DATABASE: "S11P12D108"
-    #   ports:
-    #     - "3306:3306"
-   #    networks:
-   #      - backend-network
+  mariadb:
+    image: mariadb:latest
+    environment:
+    MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
+    MYSQL_DATABASE: "S11P12D108"
+    ports:
+      - "3306:3306"
+    networks:
+      - backend-network
 
-    # mongodb:
-   #    image: mongo:latest
-    #   ports:
-   #      - "27017:27017"
-  #     networks:
-   #      - backend-network
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - backend-network
 
   redis:
     image: redis:latest

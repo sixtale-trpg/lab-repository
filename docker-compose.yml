@@ -11,6 +11,8 @@ services:
       - "443:443"
     volumes:
       - /var/jenkins_home/workspace/SixTale/nginx/nginx.conf:/etc/nginx/sites-available/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
     depends_on:
       - backend
 

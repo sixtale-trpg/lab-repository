@@ -27,7 +27,7 @@ RUN chmod +x ./gradlew && \
 
 RUN ls -la build/libs
 
-COPY --from=sixtale_backend build/libs/*.jar app.jar
+COPY /app/build/libs/*.jar app.jar
 
 #RUN chmod +x ./gradlew && \
 #    ./gradlew bootJar && \

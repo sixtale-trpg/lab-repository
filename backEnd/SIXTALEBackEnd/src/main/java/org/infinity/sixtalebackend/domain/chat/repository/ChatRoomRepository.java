@@ -3,6 +3,7 @@ package org.infinity.sixtalebackend.domain.chat.repository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.domain.ChatRoom;
+import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.infra.redis.service.RedisSubscriber;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,6 +36,10 @@ public class ChatRoomRepository {
         topics = new HashMap<>();
     }
 
+    /**
+     * CHAT_ROOM 이 MAP의 key임
+     * @return
+     */
     public List<ChatRoom> findAllRoom() {
         return opsHashChatRoom.values(CHAT_ROOMS);
     }
@@ -47,7 +52,7 @@ public class ChatRoomRepository {
      * 채팅방 생성 : 서버간 채팅방 공유를 위해 redis hash에 저장한다.
      */
     public ChatRoom createChatRoom(String name) {
-        ChatRoom chatRoom = ChatRoom.create(name);
+        ChatRoom chatRoom = new ChatRoom("1",name);
         opsHashChatRoom.put(CHAT_ROOMS, chatRoom.getRoomID(), chatRoom);
         return chatRoom;
     }

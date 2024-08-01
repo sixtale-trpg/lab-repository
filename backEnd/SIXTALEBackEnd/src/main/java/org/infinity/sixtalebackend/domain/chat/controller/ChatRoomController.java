@@ -3,6 +3,15 @@ package org.infinity.sixtalebackend.domain.chat.controller;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.domain.ChatRoom;
 import org.infinity.sixtalebackend.domain.chat.repository.ChatRoomRepository;
+import org.infinity.sixtalebackend.domain.room.dto.RoomCreateRequest;
+import org.infinity.sixtalebackend.domain.room.dto.RoomResponse;
+import org.infinity.sixtalebackend.domain.room.service.RoomService;
+import org.infinity.sixtalebackend.domain.room.service.RoomServiceImpl;
+import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
+import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
+import org.infinity.sixtalebackend.global.common.response.StatusCode;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +22,7 @@ import java.util.List;
 @RequestMapping("/chat")
 public class ChatRoomController {
     private final ChatRoomRepository chatRoomRepository;
+    private final RoomServiceImpl roomService;
 
 //    @GetMapping("/room")
 //    public String rooms(Model model) {
@@ -25,10 +35,31 @@ public class ChatRoomController {
         return chatRoomRepository.findAllRoom();
     }
 
+    /**
+     * room을 만들때 topic 생성
+     * @param name
+     * @return
+     */
     @PostMapping("/room")
     public ChatRoom createRoom(@RequestParam String name) {
         return chatRoomRepository.createChatRoom(name);
     }
+
+    /**
+     * 게임 방 생성
+     */
+//    @PostMapping("/room")
+//    public ResponseEntity createRoomTest(@RequestBody RoomCreateRequest roomCreateRequest) {
+//        try {
+//            Long gmID = 1L;
+//            RoomResponse roomResponse = roomService.createRoom(roomCreateRequest, gmID);
+//            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_ROOM, roomResponse), HttpStatus.CREATED);
+//        } catch (IllegalArgumentException e) {
+//            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_ROOM_FAIL), HttpStatus.BAD_REQUEST);
+//        }  catch (Exception e) {
+//            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
 //    @GetMapping("/room/enter/{roomID}")
 //    public String roomDetail(Model model, @PathVariable String roomID) {

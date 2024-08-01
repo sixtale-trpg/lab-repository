@@ -43,11 +43,11 @@ public class ChatController {
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
     }
 
-    @MessageMapping("/waiting/whisper/message")
-    public void handleWaitingWhisperMessage(ChatMessageRequest chatMessageRequest) {
-        // 대기방 귓속말 처리
-        waitingLogService.sendWaitingChatMessage(chatMessageRequest);
-    }
+//    @MessageMapping("/waiting/whisper/message")
+//    public void handleWaitingWhisperMessage(ChatMessageRequest chatMessageRequest) {
+//        // 대기방 귓속말 처리
+//        waitingLogService.sendWaitingChatMessage(chatMessageRequest);
+//    }
 
     /**
      * websocket "/pub/chat/message"로 들어오는 메시징을 처리한다.

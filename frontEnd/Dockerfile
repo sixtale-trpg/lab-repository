@@ -1,34 +1,33 @@
-# Use the official Node.js image as the base image
-FROM node:16-alpine
+# Step 1: Build the Vue.js application using Node.js
+FROM node:16-alpine as build-stage
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-# COPY package*.json /var/jenkins_home/workspace/SixTale
+# Copy package.json and package-lock.json to the container
+COPY package*.json ./
 
-# Install dependencies
+# Install the dependencies
 RUN npm install
 
-# Copy the rest of the application code
-# COPY . /var/jenkins_home/workspace/SixTale
+# Copy the rest of the application code to the container
+COPY . .
 
 # Build the Vue.js application
 RUN npm run build
 
-# Use the official Nginx image as the base image
+# Step 2: Use the Nginx image to serve the app
 FROM nginx:stable-alpine
 
-# Copy the build output to the Nginx HTML directory
-COPY dist/ dist/
+# Copy the build output from the previous stage to Nginx's HTML directory
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 
 # Copy the Nginx configuration file
-COPY nginx/nginx.conf /var/jenkins_home/workspace/SixTale/nginx/nginx.conf
-# COPY nginx/ /var/jenkins_home/workspace/SixTale/nginx/
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose port 80
+# Expose ports for HTTP and HTTPS
 EXPOSE 80
 EXPOSE 443
 
-# Start Nginx
+# Start Nginx when the container starts
 CMD ["nginx", "-g", "daemon off;"]

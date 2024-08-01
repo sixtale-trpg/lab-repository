@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
-  nginx:
+  frontend:
     build:
       context: ./frontEnd
+    container-name: SIXTALE-frontend
     environment:
       - NODE_OPTIONS=--openssl-legacy-provider
     ports:
@@ -11,16 +12,13 @@ services:
       - "443:443"
     volumes:
       - /var/jenkins_home/workspace/SixTale/nginx/nginx.conf:/etc/nginx/sites-available/default.conf
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/lib/letsencrypt:/var/lib/letsencrypt
-      - /var/jenkins_home/workspace/SixTale/nginx/html:/usr/share/nginx/html:ro  # Read-only 옵션 추가
-
-    depends_on:
-      - backend
+    networks:
+      - SIXTALE-backend
 
   backend:
     build:
       context: ./backEnd
+    container-name: SIXTALE-backend
     ports:
       - "8888:8888"
     environment:

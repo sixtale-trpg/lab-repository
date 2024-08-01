@@ -24,7 +24,7 @@ COPY dist/ dist/
 
 # Copy the Nginx configuration file
 # COPY /nginx /var/jenkins_home/workspace/SixTale/nginx
-COPY /nginx /etc/nginx/conf.d
+COPY /nginx /var/jenkins_home/workspace/SixTale/nginx
 
 # RUN cp -r nginx /var/jenkins_home/workspace/SixTale
 

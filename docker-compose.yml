@@ -13,7 +13,7 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/lib/letsencrypt:/var/lib/letsencrypt
-      - /var/jenkins_home/workspace/SixTale/frontEnd/nginx:/etc/nginx
+
     depends_on:
       - backend
 

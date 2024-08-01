@@ -26,14 +26,13 @@ COPY . .
 
 # COPY /app/build/libs/*.jar app.jar
 
-RUN chmod +x ./gradlew && \
-    ./gradlew bootJar && \
-    ls -la build/libs
-
 # Set the working directory
 WORKDIR app
 
-COPY /app/build/libs/*.jar app.jar
+RUN chmod +x ./gradlew && \
+    ./gradlew bootJar && \
+    ls -la build/libs
+    cp /app/build/libs/*.jar app.jar
 
 # Expose port 8888
 EXPOSE 8888

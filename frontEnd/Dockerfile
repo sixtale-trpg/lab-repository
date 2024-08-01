@@ -22,7 +22,7 @@ FROM nginx:stable-alpine
 # COPY . .
 
 # Copy the build output to the Nginx HTML directory
-COPY --from=build-stage /app/dist /var/jenkins_home/workspace/SixTale/nginx/html
+COPY . /var/jenkins_home/workspace/SixTale/nginx/html
 
 # Copy the Nginx configuration file
 COPY /nginx /var/jenkins_home/workspace/SixTale/nginx

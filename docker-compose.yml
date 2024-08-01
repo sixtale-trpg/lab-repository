@@ -32,7 +32,7 @@ services:
       SPRING_DATA_MONGODB_URI: "mongodb+srv://S11P12D108:nlGDSLzi3v@ssafy.ngivl.mongodb.net/S11P12D108?authSource=admin"
     depends_on:
       - mariadb
-      -  mongodb
+      - mongodb
     networks:
       - backend-network
 

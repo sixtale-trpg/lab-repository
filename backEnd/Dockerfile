@@ -22,10 +22,16 @@ COPY . .
 # Copy the packaged jar file
 # COPY build/libs/*.jar app.jar
 
-RUN chmod +x ./gradlew && \
-    ./gradlew bootJar && \
-    ls -la build/libs && \
-    cp build/libs/*.jar app.jar
+RUN chmod +x ./gradlew
+
+RUN ./gradlew bootJar
+
+COPY --from=build-stage build/libs/*.jar app.jar
+
+#RUN chmod +x ./gradlew && \
+#    ./gradlew bootJar && \
+#    ls -la build/libs && \
+#    cp build/libs/*.jar app.jar
 
 # Expose port 8888
 EXPOSE 8888

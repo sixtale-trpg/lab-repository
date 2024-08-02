@@ -1,7 +1,6 @@
 package org.infinity.sixtalebackend.domain.scenario.repository;
 
 
-<<<<<<< HEAD
 import org.infinity.sixtalebackend.domain.genre.domain.Genre;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.springframework.data.domain.Page;
@@ -13,6 +12,7 @@ import java.util.Optional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 
 @Repository
 public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
@@ -40,18 +40,8 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
     @Query("SELECT DISTINCT s FROM Scenario s " +
             "WHERE (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
     Page<Scenario> findByTitleContaining(String title, Pageable pageable);
-=======
-import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-
-@Repository
-public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
->>>>>>> bbed1e118b1e58a69da03cad8da463f9cf509a3b
 
     @Query("SELECT s FROM Scenario s JOIN FETCH s.rule WHERE s.id = :id")
     Optional<Scenario> findByIdWithRule(Long id);
+
 }

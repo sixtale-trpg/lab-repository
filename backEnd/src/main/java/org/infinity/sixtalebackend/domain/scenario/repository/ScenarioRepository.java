@@ -42,5 +42,4 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
 
     @Query("SELECT s FROM Scenario s JOIN FETCH s.rule WHERE s.id = :id")
     Optional<Scenario> findByIdWithRule(Long id);
-
 }

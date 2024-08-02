@@ -1,19 +1,14 @@
 <template>
-  <div class="chatting-container">
+  <div class="chatting-container" :style="backgroundStyle">
     <div class="tabs">
-      <button 
-        v-for="tab in tabs" 
-        :key="tab" 
-        @click="activeTab = tab" 
-        :class="{ active: activeTab === tab, [tab]: true }">
-        {{ tab }}
+      <button v-for="tab in tabs" :key="tab.key" @click="selectTab(tab.key)" :class="{ active: activeTab === tab.key, [tab.key]: true }">
+        {{ tab.label }}
       </button>
     </div>
     <div class="chat-content">
-      <div v-if="activeTab === '전체'">전체 채팅 로그</div>
-      <div v-else-if="activeTab === '로그'">로그</div>
-      <div v-else-if="activeTab === '채팅'">채팅</div>
-      <div v-else-if="activeTab === '귓속말'">
+      <div v-if="activeTab === 'all'">전체 채팅 기록</div>
+      <div v-else-if="activeTab === 'chat'">채팅 로그</div>
+      <div v-else-if="activeTab === 'whisper'">
         <select v-model="selectedUser" class="whisper-dropdown">
           <option v-for="user in users" :key="user.id" :value="user">{{ user.name }}</option>
         </select>
@@ -21,11 +16,11 @@
           <div v-for="msg in whisperMessages[selectedUser.id]" :key="msg.id">{{ msg.text }}</div>
         </div>
       </div>
-      <div v-else-if="activeTab === '챗봇 AI'">챗봇 AI</div>
+      <div v-else-if="activeTab === 'bot'">챗봇 AI</div>
     </div>
     <div class="chat-input">
       <input type="text" v-model="message" @keydown.enter="sendMessage" placeholder="메시지를 입력하세요" />
-      <button @click="sendMessage">전송</button>
+      <button @click="sendMessage" :style="sendButtonStyle"></button>
     </div>
   </div>
 </template>
@@ -34,22 +29,77 @@
 import { ref, onMounted } from 'vue';
 // import axios from 'axios'; // 필요시 axios 또는 다른 HTTP 클라이언트를 사용
 
-const tabs = ['전체', '로그', '채팅', '귓속말', '챗봇 AI'];
-const activeTab = ref('전체');
+const tabs = [
+  { key: 'all', label: '전체' },
+  { key: 'chat', label: '채팅' },
+  { key: 'whisper', label: '귓속말' },
+  { key: 'bot', label: '챗봇AI' }
+];
+
+const activeTab = ref('all');
 const message = ref('');
-const users = ref([]);
+const users = ref([
+  { id: 1, name: 'Player1' },
+  { id: 2, name: 'Player2' },
+  { id: 3, name: 'Player3' },
+  { id: 4, name: 'Player4' },
+  { id: 5, name: 'Player5' },
+  { id: 6, name: 'Player6' },
+  { id: 7, name: 'Player7' },
+  { id: 8, name: 'Player8' },
+  { id: 'GM', name: 'Game Master' }
+]); // 예시 사용자 데이터
 const selectedUser = ref(null);
 const whisperMessages = ref({});
 
+// 이미지 경로 설정
+const backgroundImage = require('@/assets/images/ingame/Border8.png');
+const sendButtonImage = require('@/assets/images/ingame/Send_Button.png');
+
+// 배경 스타일 설정
+const backgroundStyle = {
+  backgroundImage: `url(${backgroundImage})`,
+  backgroundSize: '100%',
+  backgroundPosition: 'center',
+  padding: '10px',
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%'
+};
+
+// 전송 버튼 스타일 설정
+const sendButtonStyle = {
+  width: '40px',
+  height: '40px',
+  backgroundImage: `url(${sendButtonImage})`,
+  backgroundSize: 'contain',
+  border: 'none',
+  cursor: 'pointer'
+};
+
+// 주석 처리된 실제 데이터 가져오기 로직
+// const fetchRoomData = async (roomID) => {
+//   try {
+//     const response = await axios.get(`/rooms/${roomID}`);
+//     if (response.data.statusCode === 200) {
+//       const { playMemberList, gmNickname } = response.data.data;
+//       // 플레이어와 GM 정보를 통합하여 사용자가 귓속말을 보낼 수 있도록 설정
+//       users.value = playMemberList.map(member => ({
+//         id: member.playMemberID,
+//         name: member.playMemberNickname
+//       }));
+//       // GM 정보를 추가
+//       users.value.push({ id: 'GM', name: gmNickname });
+//     }
+//   } catch (error) {
+//     console.error('Error fetching room data:', error);
+//   }
+// };
+
 // onMounted(() => {
-//   // 백엔드에서 현재 방의 플레이어 목록을 받아오는 요청 예시
-//   axios.get('/api/game/players')
-//     .then(response => {
-//       users.value = response.data;
-//     })
-//     .catch(error => {
-//       console.error('Error fetching players:', error);
-//     });
+//   const roomID = 5; // 예시 Room ID, 실제로는 동적으로 받아와야 함
+//   fetchRoomData(roomID);
 // });
 
 const sendMessage = () => {
@@ -59,6 +109,13 @@ const sendMessage = () => {
     log.push({ id: Date.now(), text: message.value });
     whisperMessages.value = { ...whisperMessages.value, [target]: log };
     message.value = '';
+  }
+};
+
+const selectTab = (key) => {
+  activeTab.value = key;
+  if (key !== 'whisper') {
+    selectedUser.value = null;
   }
 };
 </script>
@@ -73,67 +130,73 @@ const sendMessage = () => {
 
 .tabs {
   display: flex;
+  margin-bottom: 0;
 }
 
 .tabs button {
   flex: 1;
-  padding: 5px; /* 탭의 높이를 줄임 */
+  padding: 10px;
   cursor: pointer;
-  background-color: lightgray; 
-  color: white; 
+  border: 1px solid #333;
+  color: white;
+  background: linear-gradient(to bottom, #444, #222);
 }
 
 .tabs button.active {
-  background-color: darkgray; /* 액티브된 탭 색상 */
+  background-color: #555;
+  color: #fff;
 }
 
-.tabs button.전체 {
-  background-color: green;
+.tabs button.all {
+  background: linear-gradient(to bottom, #1A4E23, #102F12); 
 }
 
-.tabs button.로그 {
-  background-color: blue;
+.tabs button.chat {
+  background: linear-gradient(to bottom, #0B3A73, #062048); 
 }
 
-.tabs button.채팅 {
-  background-color: purple;
+.tabs button.whisper {
+  background: linear-gradient(to bottom, #8C2A0F, #601A0A); 
 }
 
-.tabs button.귓속말 {
-  background-color: red;
-}
-
-.tabs button.챗봇AI {
-  background-color: orange;
+.tabs button.bot {
+  background: linear-gradient(to bottom, #805500, #5A3B00); 
 }
 
 .chat-content {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
+  border: 1px solid #444;
   color: white;
-  border: 1px solid #ddd;
-  background-color: #4b3a29; /* 캐릭터 시트 헤더와 동일한 색상 */
 }
 
 .chat-input {
   display: flex;
-  padding: 10px;
-  background-color: #4b3a29; /* 캐릭터 시트 헤더와 동일한 색상 */
+  align-items: center;
+  padding: 5px;
+  background-color: rgba(75, 58, 41, 0.9);
 }
 
 .chat-input input {
   flex: 1;
-  padding: 10px;
-  border: 1px solid #4b3a29
+  padding: 8px;
+  border: 1px solid #444;
+  background-color: #222;
+  color: white;
 }
 
-.chat-input button {
-  padding: 10px;
+.chat-input input::placeholder {
+  color: white;
 }
 
 .whisper-dropdown {
-  width: 100%; /* 드롭다운 메뉴 너비를 전체 차지 */
+  width: 100%;
+  margin: 10px 0;
+  padding: 5px;
+  border: 1px solid #444;
+  background-color: #333;
+  color: white;
 }
 
 .whisper-chat {
@@ -145,3 +208,4 @@ const sendMessage = () => {
   color: #000; 
 }
 </style>
+<!-- 주석+ -->

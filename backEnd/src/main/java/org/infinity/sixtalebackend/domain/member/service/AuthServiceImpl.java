@@ -14,6 +14,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -33,14 +35,12 @@ public class AuthServiceImpl implements AuthService {
 
         switch (registrationID) {
             case "google": {
-                authResponse.setId(userResourceNode.get("id").asText());
                 authResponse.setEmail(userResourceNode.get("email").asText());
-                authResponse.setNickname(userResourceNode.get("name").asText());
+                authResponse.setNickname(UUID.randomUUID().toString());
                 break;
             } case "naver": {
-                authResponse.setId(userResourceNode.get("response").get("id").asText());
                 authResponse.setEmail(userResourceNode.get("response").get("email").asText());
-                authResponse.setNickname(userResourceNode.get("response").get("name").asText());
+                authResponse.setNickname(UUID.randomUUID().toString());
                 break;
             } default: {
                 throw new RuntimeException("UNSUPPORTED SOCIAL TYPE");
@@ -52,16 +52,17 @@ public class AuthServiceImpl implements AuthService {
 
         Member findMember = authRepository.findByEmail(authResponse.getEmail());
         if (findMember == null) {
-            Member member = new Member(
-                    authResponse.getEmail(),
-                    authResponse.getNickname(),
-                    accessToken,
-                    Provider.valueOf(registrationID.toUpperCase()),
-                    authResponse.getId(),
-                    false);
-            authRepository.save(member);
+            findMember = Member.builder()
+                    .email(authResponse.getEmail())
+                    .nickname(authResponse.getNickname())
+                    .accessToken(accessToken)
+                    .provider(Provider.valueOf(registrationID.toUpperCase()))
+                    .providerUserID(String.valueOf(userResourceNode.get("id")))
+                    .isWithdrawn(false)
+                    .build();
+
+            authRepository.save(findMember);
         }
-        findMember = authRepository.findByEmail(authResponse.getEmail());
 
         return findMember;
     }

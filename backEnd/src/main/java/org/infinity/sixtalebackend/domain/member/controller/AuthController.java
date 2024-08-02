@@ -40,8 +40,8 @@ public class AuthController {
                     .setSigningKey(SECRET_KEY)
                     .parseClaimsJws(token)
                     .getBody();
-
-            // JWT가 유효한 경우, 사용자 정보 추출
+            //
+            //            // JWT가 유효한 경우, 사용자 정보 추출
             String userId = claims.getSubject();
             return "Protected resource accessed by user: " + userId;
         } catch (Exception e) {
@@ -59,6 +59,8 @@ public class AuthController {
             String accessToken = jwtUtil.generateToken(member.getEmail());
             HttpSession session = request.getSession();
             session.setAttribute("accessToken", accessToken);
+
+            log.info("accessToken" + String.valueOf(session.getAttribute("accessToken")));
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGIN_SUCCESS), HttpStatus.OK);
         } catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

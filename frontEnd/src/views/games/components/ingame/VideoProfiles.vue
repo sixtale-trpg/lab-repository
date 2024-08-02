@@ -1,66 +1,171 @@
 <template>
   <div class="video-profile">
-    <div class="profile-card" v-for="n in 8" :key="n">
-      <div class="profile-picture">
-        <!-- 프로필 사진 (여기에 비디오 또는 이미지 추가) -->
-        <img :src="'https://via.placeholder.com/150?text=User+' + n" alt="User profile picture">
-        <video :id="'video-' + n" autoplay playsinline></video>
-      </div>
-      <div class="profile-details">
-        <!-- 사용자 닉네임 추가 -->
-        <h3>User {{ n }}</h3>
-        <!-- <p>Status: Online</p> -->
-      </div>
-      <button class="voice-chat-button" @click="toggleVoiceChat(n)">{{ isVoiceOn(n) ? 'off' : 'on' }}</button>
+    <div class="sidebar">
+      <button class="icon-button" @click="toggleAIImages">
+        <img src="@/assets/images/ingame/Person.png" alt="AI Images">
+      </button>
+      <button class="icon-button" @click="toggleStats">
+        <img src="@/assets/images/ingame/Status.png" alt="Character Stats">
+      </button>
     </div>
+    <div class="profile-cards">
+      <div class="profile-card" v-for="user in users" :key="user.id">
+        <div class="profile-image">
+          <img v-if="showAIImages" :src="getAIImage(user.id)" :alt="'User ' + user.name + ' AI profile picture'" @click="fetchUserJob(user.id)">
+          <CharacterStats v-else-if="showStats" :playMemberID="user.id" @click="fetchUserJob(user.id)" />
+          <video v-else :id="'video-' + user.id" autoplay playsinline></video>
+        </div>
+        <div class="profile-info">
+          <div class="user-info">
+            <h3>{{ user.name }}</h3>
+            <span v-if="isGM">정보</span>
+            <img v-if="isGM" src="@/assets/images/ingame/Info.png" alt="Info" class="info-icon" @click="showUserInfo(user.id)" />
+          </div>
+          <button class="voice-chat-button" @click="toggleVoiceChat(user.id)">
+            <img :src="getVoiceIcon(user.id)" alt="Voice chat">
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <CharacterInfo v-if="showCharacterInfo" @close="closeCharacterInfo" />
   </div>
 </template>
 
 <script>
+import { ref } from 'vue';
 import { OpenVidu } from 'openvidu-browser';
+import CharacterStats from './CharacterStats.vue';
+import CharacterInfo from '@/views/games/components/ingame/CharacterInfoModal.vue';
+import { selectedPlayMemberID, selectedUserJob } from '@/store/state.js'; // 전역 상태 가져오기
 
 export default {
-  data() {
-    return {
-      OV: null,
-      session: null,
-      publisher: null,
-      subscribers: [],
-      voiceStates: Array(8).fill(false), // 각 사용자에 대한 음성 상태를 저장하는 배열
-    };
+  components: {
+    CharacterStats,
+    CharacterInfo
   },
-  methods: {
-    async startVoiceChat(userId) {
-      this.OV = new OpenVidu();
-      this.session = this.OV.initSession();
+  setup() {
+    const OV = ref(null);
+    const session = ref(null);
+    const publisher = ref(null);
+    const subscribers = ref([]);
+    const voiceStates = ref(Array(8).fill(false));
+    const showStats = ref(false);
+    const showAIImages = ref(true);
+    const showCharacterInfo = ref(false);
+    const isGM = ref(true);
 
-      this.session.on('streamCreated', (event) => {
-        const subscriber = this.session.subscribe(event.stream, `video-${userId}`);
-        this.subscribers.push(subscriber);
+    // 더미 데이터: 8명의 유저 정보
+    const users = ref([
+      { id: 1, name: 'Player1', aiImage: '@/assets/images/ingame/user1.png' },
+      { id: 2, name: 'Player2', aiImage: '@/assets/images/ingame/user2.png' },
+      { id: 3, name: 'Player3', aiImage: '@/assets/images/ingame/user3.png' },
+      { id: 4, name: 'Player4', aiImage: '@/assets/images/ingame/user4.png' },
+      { id: 5, name: 'Player5', aiImage: '@/assets/images/ingame/user5.png' },
+      { id: 6, name: 'Player6', aiImage: '@/assets/images/ingame/user6.png' },
+      { id: 7, name: 'Player7', aiImage: '@/assets/images/ingame/user7.png' },
+      { id: 8, name: 'Player8', aiImage: '@/assets/images/ingame/user8.png' }
+    ]);
+
+    // AI 이미지 경로 가져오기
+    const getAIImage = (userId) => {
+      return require(`@/assets/images/ingame/user${userId}.png`);
+    };
+
+    const toggleStats = (userId) => {
+      showAIImages.value = false;
+      showStats.value = true;
+      fetchUserJob(userId); // 스탯창을 눌렀을 때 해당 유저의 직업 정보를 가져오도록 함
+    };
+
+    // 플레이어 ID와 직업 정보를 설정하는 메서드
+    const fetchUserJob = async (playMemberID) => {
+      // 전역 상태에 선택된 플레이어 ID 저장
+      console.log("Setting selectedPlayMemberID:", playMemberID);
+      selectedPlayMemberID.value = playMemberID;
+
+      // 실제 API 요청을 보내는 로직 (주석 처리)
+      /*
+      try {
+        const response = await axios.get(`/rooms/${roomID}/sheets/${playMemberID}`);
+        if (response.data.statusCode === 200) {
+          // 전역 상태에 플레이어의 직업 정보를 저장하는 로직
+          selectedUserJob.value = response.data.data.jobName;
+          console.log("Setting selectedUserJob:", response.data.data.jobName);
+        }
+      } catch (error) {
+        console.error('Error fetching user job:', error);
+      }
+      */
+
+      // 임시 데이터 설정 (테스트용)
+      const userJobs = ['Warrior', 'Mage', 'Rogue', 'Cleric', 'Ranger', 'Paladin', 'Druid', 'Bard'];
+      selectedUserJob.value = userJobs[playMemberID - 1] || 'Unknown';
+      console.log("Setting selectedUserJob (dummy data):", selectedUserJob.value);
+    };
+
+
+    // 기타 메서드들...
+    const toggleAIImages = () => {
+      showAIImages.value = true;
+      showStats.value = false;
+    };
+
+
+
+    const showUserInfo = (userId) => {
+      showCharacterInfo.value = true;
+    };
+
+    const closeCharacterInfo = () => {
+      showCharacterInfo.value = false;
+    };
+
+    const getVoiceIcon = (userId) => {
+      return voiceStates.value[userId - 1] ? require('@/assets/images/ingame/voice.png') : require('@/assets/images/ingame/voicex.png');
+    };
+
+    const toggleVoiceChat = (userId) => {
+      voiceStates.value[userId - 1] = !voiceStates.value[userId - 1];
+      if (voiceStates.value[userId - 1]) {
+        startVoiceChat(userId);
+      } else {
+        stopVoiceChat(userId);
+      }
+    };
+
+    const startVoiceChat = async (userId) => {
+      OV.value = new OpenVidu();
+      session.value = OV.value.initSession();
+
+      session.value.on('streamCreated', (event) => {
+        const subscriber = session.value.subscribe(event.stream, `video-${userId}`);
+        subscribers.value.push(subscriber);
       });
 
       try {
-        const token = await this.getToken();
-        await this.session.connect(token, { clientData: `User ${userId}` });
+        const token = await getToken();
+        await session.value.connect(token, { clientData: `User ${userId}` });
 
-        const publisher = await this.OV.initPublisherAsync(`video-${userId}`, {
-          audioSource: undefined, // The source of audio. If undefined default microphone
-          videoSource: false, // No video source
-          publishAudio: true, // Whether you want to start publishing with your audio unmuted or not
-          publishVideo: false, // Whether you want to start publishing with your video enabled or not
-          resolution: '640x480', // The resolution of your video
-          frameRate: 30, // The frame rate of your video
-          insertMode: 'APPEND', // How the video is inserted in the target element
-          mirror: false, // Whether to mirror your local video or not
+        const publisher = await OV.value.initPublisherAsync(`video-${userId}`, {
+          audioSource: undefined,
+          videoSource: false,
+          publishAudio: true,
+          publishVideo: false,
+          resolution: '640x480',
+          frameRate: 30,
+          insertMode: 'APPEND',
+          mirror: false,
         });
 
-        this.session.publish(publisher);
-        this.publisher = publisher;
+        session.value.publish(publisher);
+        publisher.value = publisher;
       } catch (error) {
         console.error('There was an error connecting to the session:', error);
       }
-    },
-    async getToken() {
+    };
+
+    const getToken = async () => {
       try {
         const response = await fetch('http://localhost:4443/api/sessions', {
           method: 'POST',
@@ -96,107 +201,163 @@ export default {
         console.error('Error getting token:', error);
         throw error;
       }
-    },
-    toggleVoiceChat(userId) {
-      this.voiceStates[userId - 1] = !this.voiceStates[userId - 1];
-      if (this.voiceStates[userId - 1]) {
-        this.startVoiceChat(userId);
-      } else {
-        this.stopVoiceChat(userId);
+    };
+
+    const stopVoiceChat = (userId) => {
+      if (publisher.value) {
+        session.value.unpublish(publisher.value);
+        publisher.value = null;
       }
-    },
-    isVoiceOn(userId) {
-      return this.voiceStates[userId - 1];
-    },
-    stopVoiceChat(userId) {
-      if (this.publisher) {
-        this.session.unpublish(this.publisher);
-        this.publisher = null;
-      }
-      this.subscribers.forEach(subscriber => {
+      subscribers.value.forEach(subscriber => {
         if (subscriber.stream.connection.connectionId === `video-${userId}`) {
-          this.session.unsubscribe(subscriber);
+          session.value.unsubscribe(subscriber);
         }
       });
-      this.subscribers = this.subscribers.filter(
+      subscribers.value = subscribers.value.filter(
         (subscriber) => subscriber.stream.connection.connectionId !== `video-${userId}`
       );
-      if (this.session) {
-        this.session.disconnect();
+      if (session.value) {
+        session.value.disconnect();
       }
-      this.session = null;
-      this.OV = null;
-    },
-  },
+      session.value = null;
+      OV.value = null;
+    };
+
+    return {
+      users,  // 유저 리스트
+      showStats,
+      showAIImages,
+      showCharacterInfo,
+      isGM,
+      toggleAIImages,
+      toggleStats,
+      showUserInfo,
+      closeCharacterInfo,
+      getVoiceIcon,
+      toggleVoiceChat,
+      fetchUserJob, // 전역 상태관리
+      getAIImage // AI 이미지 경로 함수 추가
+    };
+  }
 };
 </script>
+
 
 <style scoped>
 .video-profile {
   background-color: #555;
   color: white;
-  padding: 20px;
-  border-radius: 10px;
+  padding: 0;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  height: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 10px 0;
+  width: 40px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: center;
   align-items: center;
+}
+
+.icon-button img {
+  width: 30px;
+  height: 30px;
+}
+
+.profile-cards {
+  display: flex;
+  justify-content: space-between;
+  width: calc(100% - 40px);
+  margin-left: 0;
 }
 
 .profile-card {
-  background-color: #666;
-  border-radius: 5px;
-  padding: 10px;
-  height: 180px;
-  width: 100px; /* 넓이를 170px로 수정 */
-  text-align: center;
-  flex: 1;
-  margin: 0 5px;
-  position: relative; /* 버튼을 절대적으로 배치하기 위해 상대적으로 설정 */
-}
-
-.profile-picture img {
-  border-radius: 50%;
-  width: 130px; /* 이미지 크기 수정 */
-  height: 130px; /* 이미지 크기 수정 */
-}
-
-.profile-picture video {
-  border-radius: 50%;
-  width: 100px; /* 비디오 크기 수정 */
-  height: 10px; /* 비디오 크기 수정 */
-}
-
-.profile-details {
+  width: calc(12.5% - 10px);
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.profile-image img,
+.profile-image video,
+.character-stats {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.character-stats .stats-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  object-fit: cover;
+}
+
+.profile-info {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 0 5px;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-.profile-details h3 {
-  margin: -13px 0;
-  font-size: 14px;
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.profile-details p {
+.info-icon {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.profile-info h3 {
   margin: 0;
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .voice-chat-button {
-  background-color: #28a745;
-  color: white;
+  background: none;
   border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
   cursor: pointer;
-  font-size: 12px;
-  position: absolute; /* 버튼을 절대 위치로 설정 */
-  bottom: 10px; /* 프로필 카드의 아래쪽 여백 */
-  right: 10px; /* 프로필 카드의 오른쪽 여백 */
+  padding: 0;
 }
 
-.voice-chat-button:hover {
-  background-color: #218838;
+.voice-chat-button img {
+  width: 15px;
+  height: 15px;
 }
 </style>

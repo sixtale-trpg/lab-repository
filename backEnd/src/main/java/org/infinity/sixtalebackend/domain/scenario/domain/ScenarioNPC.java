@@ -8,6 +8,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Getter
 @Builder
 @AllArgsConstructor
+@Table(name="scenario_npc")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ScenarioNPC {
     @Id

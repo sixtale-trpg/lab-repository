@@ -8,7 +8,10 @@
       </div>
       <div class="right-section">
         <GMSection class="gm-section" :gm="gm" :isGM="isGM" @start-game="startGame" />
-        <Chatting class="chatting" />
+        <div class="log-and-chat">
+          <Log class="log-section" />
+          <Chatting class="chatting-section" />
+        </div>
       </div>
     </div>
   </div>
@@ -22,34 +25,17 @@ import MainContent from '@/views/games/components/ingame/MainContent.vue';
 import VideoProfile from '@/views/games/components/ingame/VideoProfiles.vue';
 import GMSection from '@/views/games/components/ingame/GMSection.vue';
 import Chatting from '@/views/games/components/ingame/Chatting.vue';
+import Log from '@/views/games/components/ingame/Log.vue';
 
 const router = useRouter();
 const route = useRoute();
 
 const gm = ref({
-  name: '미카엘',
-  profileImage: require('@/assets/images/users/gm.png'),
+  name: '미카엘'
 });
 
 const isGM = ref(true);
-const canStartGame = ref(false);
 
-const players = ref([
-  { id: 1, jobSelected: true },
-  { id: 2, jobSelected: true },
-  { id: 3, jobSelected: true },
-  { id: 4, jobSelected: true },
-]);
-
-watch(players, (newPlayers) => {
-  canStartGame.value = newPlayers.every(player => player.jobSelected);
-});
-
-const startGame = () => {
-  if (isGM.value) {
-    router.push(`/game/${route.params.roomId}/in-game`);
-  }
-};
 </script>
 
 <style scoped>
@@ -93,14 +79,26 @@ const startGame = () => {
   width: 20%;
   display: flex;
   flex-direction: column;
+  margin-left: 10px;
+  padding: 3px;
   justify-content: flex-start;
 }
 
 .gm-section {
-  height: 8%;
+  height: 6%;
 }
 
-.chatting {
+.log-and-chat {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-section {
+  flex: 2; /* 2:3 비율 */
+}
+
+.chatting-section {
+  flex: 3; /* 2:3 비율 */
 }
 </style>

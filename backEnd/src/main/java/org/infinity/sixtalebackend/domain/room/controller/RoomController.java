@@ -29,6 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/rooms")
 @AllArgsConstructor
+@CrossOrigin(origins = "https://i11d108.p.ssafy.io")
 public class RoomController {
     private final RoomService roomServiceImpl;
 

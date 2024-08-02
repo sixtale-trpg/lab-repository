@@ -11,8 +11,8 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
-@Slf4j
 public class JWTUtil {
+    private static final String SECRET_KEY = "mySecretKey";
     private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     private static final long EXPIRATION_TIME = 86400000; // 1일
 

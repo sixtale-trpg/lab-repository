@@ -317,6 +317,9 @@ public class RoomServiceImpl implements RoomService{
                 .createdAt(room.getCreatedAt())
                 .updatedAt(room.getUpdatedAt())
                 .playTime(room.getPlayTime())
+                .scenarioId(room.getScenario().getId())
+                .ruleId(room.getRule().getId())
+                .gmId(room.getGm().getId())
                 .build());
     }
 

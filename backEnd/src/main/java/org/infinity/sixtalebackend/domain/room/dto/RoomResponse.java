@@ -28,4 +28,5 @@ public class RoomResponse {
     private LocalTime playTime;
     private Long ruleId;
     private Long gmId;
+    private Long scenarioId;
 }

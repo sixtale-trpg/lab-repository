@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import store from './store';
 import App from './App.vue';
 import axios from 'axios';
@@ -12,7 +13,9 @@ import 'bootstrap-vue-3/dist/bootstrap-vue-3.css';
 import 'element-plus/dist/index.css'
 
 const app = createApp(App);
+const pinia = createPinia();
 
+app.use(pinia);
 app.use(ElementPlus.ElementPlus); // Element Plus 플러그인 등록
 app.use(VueAxios, axios);
 app.use(store);

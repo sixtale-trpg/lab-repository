@@ -178,7 +178,7 @@ const getVoiceIcon = (userId) => {
   justify-content: space-between;
   align-items: center;
   /* padding: 5px; */
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(83, 78, 78, 0.5);
   width: 100%;
 }
 

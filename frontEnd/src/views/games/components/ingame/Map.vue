@@ -1,8 +1,11 @@
 <template>
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
+    <!-- 디버그용 버튼 최상단에 위치 -->
+    <!-- <button class="debug-button" @click="logSelectedMap">Check selectedMap</button> -->
+     
+    <!-- selectedMap prop을 사용하여 이미지 렌더링 -->
     <img :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
-
     <div
       v-for="token in placedTokens"
       :key="token.id"
@@ -13,8 +16,6 @@
     >
       <img :src="tokenImage" :alt="token.name" />
     </div>
-
-    <!-- Grid Overlay: Visible based on the showGrid state -->
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
         <div
@@ -24,27 +25,16 @@
           @mouseenter="showDescription(row, col)"
           @mouseleave="hideDescription"
         >
-          <!-- Placeholder for grid cells -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Laser Effects: Always visible -->
-    <div class="laser-overlay">
-      <div v-for="row in gridRows" :key="'laser-' + row" class="laser-row">
-        <div
-          v-for="col in gridCols"
-          :key="'laser-' + col"
-          class="laser-cell"
-        >
           <div v-if="isLaserActive(row, col)" class="laser-effect"></div>
         </div>
       </div>
     </div>
-
-    <!-- Info Panel: Shows description when a grid cell is hovered -->
     <div class="info-panel" v-if="hoveredDescription.title">
-      <img class="info-background" :src="infoBackground" alt="Information Background" />
+      <img
+        class="info-background"
+        :src="infoBackground"
+        alt="Information Background"
+      />
       <div class="info-content">
         <h3>{{ hoveredDescription.title }}</h3>
         <p>{{ hoveredDescription.details }}</p>
@@ -54,70 +44,105 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import ThreeJSManager from '@/common/lib/ThreeJSManager';
-import eventBus from '@/common/lib/eventBus.js';
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import ThreeJSManager from "@/common/lib/ThreeJSManager";
+import eventBus from "@/common/lib/eventBus.js";
+
+// 컴포넌트의 props 정의
+const props = defineProps({
+  selectedMap: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
 const rendererContainer = ref(null);
 let threeJSManager = null;
 
-const tokenImage = require('@/assets/images/ingame/Token.png');
-const mapImage = require('@/assets/images/maps/map1.png');
-const infoBackground = require('@/assets/images/hover/token_hover.png');
+const tokenImage = require("@/assets/images/ingame/Token.png");
+const defaultMapImage = require("@/assets/images/maps/map1.png");
+const mapImage = ref(defaultMapImage); // 기본 맵 이미지
+const infoBackground = require("@/assets/images/hover/token_hover.png");
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
 
-// Calculate grid rows and columns based on window size and grid size.
-const gridRows = computed(() => Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i));
-const gridCols = computed(() => Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i));
+// selectedMap prop의 변경 사항 감시
+watch(
+  () => props.selectedMap,
+  (newMap) => {
+    // 새로운 맵의 이미지 URL로 mapImage를 업데이트
+    if (newMap && newMap.imageURL) {
+      mapImage.value = newMap.imageURL;
+    } else {
+      mapImage.value = defaultMapImage;
+    }
+  },
+  { immediate: true }
+);
 
-// Set active lasers with hardcoded dump data.
-const activeLasers = ref(new Set(['2-3', '4-5', '1-1', '6-7']));
-const hoveredDescription = ref({ title: '', details: '' }); // Store description of the currently hovered grid cell.
+// selectedMap 값을 로그로 출력하는 함수
+const logSelectedMap = () => {
+  console.log("selectedMap:", props.selectedMap);
+};
 
-// Display description for hovered grid cell.
+// 창 크기와 그리드 크기를 기반으로 그리드 행과 열 계산
+const gridRows = computed(() =>
+  Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i)
+);
+const gridCols = computed(() =>
+  Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i)
+);
+
+// 하드코딩된 덤프 데이터로 활성 레이저 설정
+const activeLasers = ref(new Set(["2-3", "4-5", "1-1", "6-7"]));
+const hoveredDescription = ref({ title: "", details: "" }); // 현재 마우스가 올려진 그리드 셀의 설명 저장
+
+// 마우스를 올린 그리드 셀에 대한 설명 표시
 const showDescription = (row, col) => {
   hoveredDescription.value = getDescription(row, col);
 };
 
-// Hide description when mouse leaves the grid cell.
+// 그리드 셀에서 마우스가 벗어나면 설명 숨김
 const hideDescription = () => {
-  hoveredDescription.value = { title: '', details: '' };
+  hoveredDescription.value = { title: "", details: "" };
 };
 
-// Provide description details for each grid cell based on row and column.
+// 행과 열에 따라 각 그리드 셀에 대한 설명 제공
 const getDescription = (row, col) => {
   const descriptions = {
-    '2-3': {
-      title: '만티코어',
-      details: '외톨이. 큼. 인공물\n독침 (1d10+1 피해, 관통 1) HP 16 장갑 3\n한걸음, 몇걸음, 파괴적\n특기사항: 날개.\n\n키마이라가 흑마술로 가는 첫 걸음이라면, 만티코어는 한 번 열면 닫을 수 없는 문입니다. 사자와 전갈, 비룡을 섞은 모습을 하고 있지만, 가장 특징적인 것은 그 얼굴입니다. 만티코어를 만드는 데에는 의학이 가득한 인간의 얼굴이 필요합니다. 이를 위해서는 너희 도시와 상관없이 인간을 잡아다가 사체의 일부를 병의 동물의 몸과 연결해야 합니다. 일반 만티코어에게 남아 있는 사람으로서의 기억은 없지만, 그 고통만은 남는다고 합니다. 그래서 그런지 만티코어는 성질이 극도로 사납고 잔인합니다.\n\n본능: 죽이다.\n- 독침으로 쏜다.\n- 무언가를 찢어발긴다.'
+    "2-3": {
+      title: "만티코어",
+      details:
+        "외톨이. 큼. 인공물\n독침 (1d10+1 피해, 관통 1) HP 16 장갑 3\n한걸음, 몇걸음, 파괴적\n특기사항: 날개.\n\n키마이라가 흑마술로 가는 첫 걸음이라면, 만티코어는 한 번 열면 닫을 수 없는 문입니다. 사자와 전갈, 비룡을 섞은 모습을 하고 있지만, 가장 특징적인 것은 그 얼굴입니다. 만티코어를 만드는 데에는 의학이 가득한 인간의 얼굴이 필요합니다. 이를 위해서는 너희 도시와 상관없이 인간을 잡아다가 사체의 일부를 병의 동물의 몸과 연결해야 합니다. 일반 만티코어에게 남아 있는 사람으로서의 기억은 없지만, 그 고통만은 남는다고 합니다. 그래서 그런지 만티코어는 성질이 극도로 사납고 잔인합니다.\n\n본능: 죽이다.\n- 독침으로 쏜다.\n- 무언가를 찢어발긴다.",
     },
-    '4-5': {
-      title: '다른 이벤트',
-      details: '이 이벤트에 대한 설명입니다.'
-    }
-    // Add additional descriptions as needed.
+    "4-5": {
+      title: "다른 이벤트",
+      details: "이 이벤트에 대한 설명입니다.",
+    },
+    // 필요한 설명 추가
   };
 
-  return descriptions[`${row}-${col}`] || { title: '', details: '' };
+  return descriptions[`${row}-${col}`] || { title: "", details: "" };
 };
 
 const onDrop = (event) => {
   event.preventDefault();
 
-  const tokenData = event.dataTransfer.getData('text/plain');
+  const tokenData = event.dataTransfer.getData("text/plain");
   try {
     const parsedToken = JSON.parse(tokenData);
-    if (!placedTokens.value.find(t => t.id === parsedToken.id)) {
+    if (!placedTokens.value.find((t) => t.id === parsedToken.id)) {
       const mapRect = event.currentTarget.getBoundingClientRect();
       placedTokens.value.push({
         ...parsedToken,
         x: event.clientX - mapRect.left,
-        y: event.clientY - mapRect.top
+        y: event.clientY - mapRect.top,
       });
 
-      const removeEvent = new CustomEvent('remove-token-from-list', { detail: parsedToken });
+      const removeEvent = new CustomEvent("remove-token-from-list", {
+        detail: parsedToken,
+      });
       window.dispatchEvent(removeEvent);
     }
   } catch (error) {
@@ -126,12 +151,12 @@ const onDrop = (event) => {
 };
 
 const deleteTokenFromMap = (token) => {
-  placedTokens.value = placedTokens.value.filter(t => t.id !== token.id);
+  placedTokens.value = placedTokens.value.filter((t) => t.id !== token.id);
 };
 
 const returnToken = (token) => {
   deleteTokenFromMap(token);
-  window.dispatchEvent(new CustomEvent('add-token-to-list', { detail: token }));
+  window.dispatchEvent(new CustomEvent("add-token-to-list", { detail: token }));
 };
 
 let draggingToken = null;
@@ -143,13 +168,15 @@ const startDrag = (token, event) => {
   const tokenRect = event.target.getBoundingClientRect();
   offsetX = event.clientX - tokenRect.left;
   offsetY = event.clientY - tokenRect.top;
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener("mousemove", onDrag);
+  document.addEventListener("mouseup", stopDrag);
 };
 
 const onDrag = (event) => {
   if (draggingToken) {
-    const mapRect = document.querySelector('.map-section-container').getBoundingClientRect();
+    const mapRect = document
+      .querySelector(".map-section-container")
+      .getBoundingClientRect();
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
 
@@ -160,45 +187,44 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   draggingToken = null;
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener("mousemove", onDrag);
+  document.removeEventListener("mouseup", stopDrag);
 };
 
 const handleRollDice = (diceTypesToRoll) => {
-  console.log('주사위 굴림 이벤트를 받았습니다:', diceTypesToRoll);
+  console.log("주사위 굴림 이벤트를 받았습니다:", diceTypesToRoll);
   if (threeJSManager) {
-    threeJSManager.rollDice(diceTypesToRoll).then(results => {
-      results.forEach(result => console.log(`${result.type}면체 주사위 결과: ${result.value}`));
+    threeJSManager.rollDice(diceTypesToRoll).then((results) => {
+      results.forEach((result) =>
+        console.log(`${result.type}면체 주사위 결과: ${result.value}`)
+      );
     });
   }
 };
 
-// Function to determine if a laser effect is active at a given grid cell
 const isLaserActive = (row, col) => {
   return activeLasers.value.has(`${row}-${col}`);
 };
 
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
-  eventBus.on('roll-dice', handleRollDice);
-
-  // Event listener for toggling grid visibility
-  window.addEventListener('toggle-grid', (event) => {
+  eventBus.on("roll-dice", handleRollDice);
+  window.addEventListener("toggle-grid", (event) => {
     showGrid.value = event.detail;
   });
 
-  window.addEventListener('delete-token', (event) => {
+  window.addEventListener("delete-token", (event) => {
     deleteTokenFromMap(event.detail);
   });
 
   // 초기 이벤트 좌표 설정
-  // activeLasers.value = new Set(['2-3', '4-5', '1-1', '6-7']);
+  activeLasers.value = new Set(["2-3", "4-5", "1-1", "6-7"]);
 });
 
 onUnmounted(() => {
-  eventBus.off('roll-dice', handleRollDice);
-  window.removeEventListener('toggle-grid', () => {});
-  window.removeEventListener('delete-token', () => {});
+  eventBus.off("roll-dice", handleRollDice);
+  window.removeEventListener("toggle-grid", () => {});
+  window.removeEventListener("delete-token", () => {});
 });
 </script>
 
@@ -225,6 +251,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  image-rendering: auto;
+
 }
 
 .token {
@@ -232,7 +260,7 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   cursor: move;
-  z-index: 3; /* Ensure tokens are at the top layer */
+  z-index: 3; /* 맵 위에 토큰 배치 */
 }
 
 .token img {
@@ -258,37 +286,14 @@ onUnmounted(() => {
 .grid-cell {
   width: 50px;
   height: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
   position: relative;
-  overflow: visible; /* Allow tooltip visibility */
-  border: 1px solid rgba(0, 0, 0, 0.5); /* Grid cell border */
-}
-
-.laser-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  pointer-events: none;
-  z-index: 3; /* Ensure laser effects are visible */
-}
-
-.laser-row {
-  display: flex;
-}
-
-.laser-cell {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: visible; /* Allow laser effect visibility */
+  overflow: visible; /* 툴팁이 보이도록 설정 */
 }
 
 .laser-effect {
@@ -298,7 +303,6 @@ onUnmounted(() => {
   background-color: red;
   box-shadow: 0 0 10px 5px red;
   animation: pulse 1s infinite;
-  position: absolute;
 }
 
 .info-panel {
@@ -332,6 +336,23 @@ onUnmounted(() => {
 .info-content p {
   font-size: 14px;
   line-height: 1.6;
+}
+
+.debug-button {
+  position: absolute;
+  top: 10px; /* 화면 최상단에 위치 */
+  left: 10px; /* 왼쪽에 위치 */
+  z-index: 100; /* 다른 요소들 위에 위치하도록 설정 */
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.debug-button:hover {
+  background-color: #0056b3;
 }
 
 @keyframes pulse {

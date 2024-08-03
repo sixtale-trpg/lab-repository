@@ -245,7 +245,7 @@ export default {
 
 <style scoped>
 .video-profile {
-  background-color: #555;
+  /* background-color: #555; */
   color: white;
   padding: 0;
   display: flex;
@@ -326,7 +326,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 0 5px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(83, 78, 78, 0.5);
 }
 
 .user-info {

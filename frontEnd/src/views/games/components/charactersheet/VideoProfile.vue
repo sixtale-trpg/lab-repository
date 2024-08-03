@@ -3,13 +3,13 @@
     <div class="profile-cards">
       <div class="profile-card" v-for="n in 8" :key="n">
         <div class="profile-image">
-          <img :src="getUserImage(n)" :alt="'User ' + n + '의 프로필 사진'" />
+          <img :src="getUserImage(n)" :alt="'User ' + n + ' profile picture'" />
           <video :id="'video-' + n" autoplay playsinline></video>
         </div>
         <div class="profile-info">
-          <h3>사용자 {{ n }}</h3>
-          <button class="voice-chat-button" @click="toggleVoice(n)">
-            <img :src="getVoiceIcon(n)" alt="음성 채팅" />
+          <h3>User {{ n }}</h3>
+          <button class="voice-chat-button" @click="toggleVoiceChat(n)">
+            <img :src="getVoiceIcon(n)" alt="Voice chat" />
           </button>
         </div>
       </div>
@@ -18,32 +18,23 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue';
 import { useSessionStore } from '@/store/session';
 
 const sessionStore = useSessionStore();
-
-const toggleVoice = (userId) => {
-  sessionStore.toggleVoiceChat(userId);
-};
 
 const getUserImage = (n) => {
   return require(`@/assets/images/ingame/user${n}.png`);
 };
 
 const getVoiceIcon = (userId) => {
-  return sessionStore.voiceStates[userId - 1]
+  return sessionStore.isVoiceOn(userId)
     ? require('@/assets/images/ingame/voice.png')
     : require('@/assets/images/ingame/voicex.png');
 };
 
-onMounted(() => {
-  // 추가 초기화 코드가 필요한 경우 여기에 작성합니다.
-});
-
-onBeforeUnmount(() => {
-  sessionStore.disconnect();
-});
+const toggleVoiceChat = (userId) => {
+  sessionStore.toggleVoiceChat(userId);
+};
 </script>
 
 <style scoped>

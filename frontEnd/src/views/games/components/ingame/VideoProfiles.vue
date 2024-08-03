@@ -79,10 +79,15 @@ const getAIImage = (userId) => {
 };
 
 // 스탯 창을 토글하는 함수
-const toggleStats = (userId) => {
+const toggleStats = () => {
   showAIImages.value = false;
   showStats.value = true;
-  fetchUserJob(userId); // 스탯창을 눌렀을 때 해당 유저의 직업 정보를 가져오도록 함
+};
+
+// AI 이미지 토글 함수
+const toggleAIImages = () => {
+  showAIImages.value = true;
+  showStats.value = false;
 };
 
 // 플레이어 ID와 직업 정보를 설정하는 함수
@@ -120,12 +125,6 @@ const fetchUserJob = async (playMemberID) => {
   console.log('선택된 사용자 직업 설정 (더미 데이터):', selectedUserJob.value);
 };
 
-// 기타 메서드들...
-const toggleAIImages = () => {
-  showAIImages.value = true;
-  showStats.value = false;
-};
-
 // 사용자 정보를 보여주는 함수
 const showUserInfo = (userId) => {
   showCharacterInfo.value = true;
@@ -138,7 +137,7 @@ const closeCharacterInfo = () => {
 
 // 음성 아이콘 경로를 가져오는 함수
 const getVoiceIcon = (userId) => {
-  return sessionStore.voiceStates[userId - 1]
+  return sessionStore.isVoiceOn(userId)
     ? require('@/assets/images/ingame/voice.png')
     : require('@/assets/images/ingame/voicex.png');
 };
@@ -150,10 +149,7 @@ const toggleVoiceChat = (userId) => {
 
 // 컴포넌트가 마운트될 때 호출되는 라이프사이클 훅
 onMounted(() => {
-  // 새로운 세션을 생성할 준비를 합니다.
-  // 사용자가 입장할 때마다 새로운 세션을 생성하고 연결합니다.
-  // 각 사용자가 고유의 세션을 가질 수 있도록 처리합니다.
-  // 세션 초기화는 사용자 ID를 기반으로 합니다.
+  // 각 사용자에 대해 세션을 초기화합니다.
   users.value.forEach(user => {
     sessionStore.initializeSession(user.id);
   });

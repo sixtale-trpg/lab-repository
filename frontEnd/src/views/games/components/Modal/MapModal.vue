@@ -1,71 +1,151 @@
 <template>
-  <div class="modal-overlay" @click.self="close">
-    <div class="modal-content">
+  <div class="modal-overlay" v-if="isVisible" @click.self="closeModal">
+    <!-- 모달 콘텐츠 -->
+    <div class="modal-content" :style="modalContentStyle">
+      <!-- 닫기 버튼 -->
+      <button class="close-button" @click="closeModal" aria-label="닫기">
+        &times;
+      </button>
       <div class="modal-header">
-        <h2>시나리오 맵 목록</h2>
+        <div class="modal-title-container">
+          <img :src="titleImage" alt="제목" class="modal-title-image" />
+          <h2 class="modal-title-text">맵 선택</h2>
+        </div>
       </div>
-      <div class="modal-body">
-        <button class="arrow left-arrow" @click="prevMap">◀</button>
-        <div class="map-display">
-          <img :src="maps[currentMapIndex].image" :alt="maps[currentMapIndex].name" />
-          <div class="map-description">
-            <h3>{{ maps[currentMapIndex].name }}</h3>
-            <p>{{ maps[currentMapIndex].description }}</p>
+      <div class="modal-body" :style="modalBodyStyle">
+        <div v-if="isLoading">로딩 중...</div>
+        <div v-else-if="error">{{ error.message }}</div>
+        <div class="map-grid">
+          <div
+            v-for="(map, index) in mapData"
+            :key="map.id"
+            class="map-item"
+            @click="selectMap(index)"
+            :class="{ selected: index === currentMapIndex }"
+          >
+            <img :src="map.imageURL" :alt="map.name" class="map-image" />
+            <div class="map-title" :style="getMapTitleStyle">
+              <span>{{ map.name }}</span>
+            </div>
           </div>
         </div>
-        <button class="arrow right-arrow" @click="nextMap">▶</button>
       </div>
-      <button class="close-button" @click="close">Close</button>
+      <div class="modal-footer" :style="modalFooterStyle">
+        <!-- 닫기 및 저장 버튼 -->
+        <button
+          class="footer-button"
+          @click="closeModal"
+          :style="closeButtonStyle"
+        >
+          닫기
+        </button>
+        <button
+          class="footer-button"
+          @click="saveSelection"
+          :style="saveButtonStyle"
+        >
+          저장
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useMapStore } from '@/store/map/mapStore'; // Pinia 스토어 사용
+import titleImage from '@/assets/images/maps/background/title.png';
+import mainBackground from '@/assets/images/maps/background/main_background.png';
+import tabBackground from '@/assets/images/maps/background/tab_background.png';
+import titleBackground from '@/assets/images/maps/background/nickname_light.png'; // 맵 제목 배경 이미지
+import closeButtonImage from '@/assets/images/maps/background/close.png'; // "닫기" 버튼 이미지
+import saveButtonImage from '@/assets/images/maps/background/save.png'; // "저장" 버튼 이미지
 
-const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    default: false,
-  },
-});
+// 이벤트 발신 설정
+const emit = defineEmits(['close', 'save']);
 
-const emit = defineEmits(['close']);
-
-const maps = ref([
-  { id: 1, name: 'Map 1', image: require('@/assets/images/maps/map1.png'), description: 'This is the first map.' },
-  { id: 2, name: 'Map 2', image: require('@/assets/images/maps/map2.png'), description: 'This is the second map.' },
-  { id: 3, name: 'Map 3', image: require('@/assets/images/maps/map3.png'), description: 'This is the third map.' },
-]);
-
+// 모달 가시성 및 현재 맵 인덱스
+const isVisible = ref(true);
 const currentMapIndex = ref(0);
 
-const prevMap = () => {
-  if (currentMapIndex.value > 0) {
-    currentMapIndex.value--;
-  }
-};
+// Pinia 스토어 인스턴스
+const mapStore = useMapStore();
 
-const nextMap = () => {
-  if (currentMapIndex.value < maps.value.length - 1) {
-    currentMapIndex.value++;
-  }
-};
+// 컴포넌트가 마운트되면 더미 데이터 로드
+onMounted(() => {
+  mapStore.loadDummyData();
+});
 
-const close = () => {
+// 맵 데이터, 로딩 상태 및 오류 메시지를 계산 속성으로 설정
+const mapData = computed(() => mapStore.mapData);
+const isLoading = computed(() => mapStore.isLoading);
+const error = computed(() => mapStore.error);
+
+// 모달 콘텐츠 스타일
+const modalContentStyle = computed(() => ({
+  background: `url(${mainBackground}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+// 모달 바디 스타일
+const modalBodyStyle = computed(() => ({
+  background: `url(${tabBackground}) no-repeat center center`,
+  backgroundSize: 'cover',
+  marginTop: '10px',
+}));
+
+// 모달 푸터 스타일
+const modalFooterStyle = computed(() => ({
+  background: `url(${mainBackground}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+// 맵 제목 스타일에 대한 계산 속성
+const getMapTitleStyle = computed(() => ({
+  backgroundImage: `url(${titleBackground})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  width: '100%', // 이미지의 너비에 맞춤
+  height: '35px', // 이미지의 높이에 맞춤
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  color: '#fff',
+  fontSize: '1rem',
+  textAlign: 'center',
+}));
+
+// 닫기 버튼 스타일
+const closeButtonStyle = computed(() => ({
+  background: `url(${closeButtonImage}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+// 저장 버튼 스타일
+const saveButtonStyle = computed(() => ({
+  background: `url(${saveButtonImage}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+// 모달 닫기
+const closeModal = () => {
+  isVisible.value = false;
   emit('close');
 };
 
-// onMounted(() => {
-//   // 실제 백엔드 요청 예제
-//   axios.get('/api/scenario/maps', { params: { scenarioId: props.scenarioId } })
-//     .then(response => {
-//       maps.value = response.data;
-//     })
-//     .catch(error => {
-//       console.error('Error fetching maps:', error);
-//     });
-// });
+// 맵 선택
+const selectMap = (index) => {
+  currentMapIndex.value = index;
+};
+
+// 맵 선택 저장
+const saveSelection = () => {
+  const selectedMap = mapData.value[currentMapIndex.value];
+  console.log('선택된 맵:', selectedMap);
+  // 선택한 맵을 Pinia 스토어에 저장
+  mapStore.setSelectedMap(selectedMap);
+  emit('save', selectedMap);
+};
 </script>
 
 <style scoped>
@@ -73,74 +153,139 @@ const close = () => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* 모달 오버레이의 z-index를 높게 설정 */
+  z-index: 1000;
 }
 
 .modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 80%;
-  max-width: 800px;
+  background: transparent;
+  padding: 0;
+  border-radius: 10px;
+  width: 800px;
+  max-width: 90%;
+  height: 740px;
+  max-height: 90%;
   position: relative;
-  z-index: 1001; /* 모달 내용의 z-index를 높게 설정 */
-}
-
-.modal-header {
-  background-color: #4b3a29; /* 헤더 배경색 */
-  color: white; /* 텍스트 색상 */
-  padding: 10px;
-  text-align: center;
-  border-radius: 8px 8px 0 0;
-}
-
-.modal-body {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-}
-
-.arrow {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  cursor: pointer;
-}
-
-.map-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-}
-
-.map-display img {
-  width: 100%;
-  height: auto;
-  max-height: 400px;
-  border-radius: 8px;
-}
-
-.map-description {
-  margin-top: 10px;
-  text-align: center;
+  color: #fff;
+  overflow: hidden;
 }
 
 .close-button {
-  background-color: #4b3a29;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 4px;
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #fff;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.modal-title-container {
+  position: relative;
+  width: 100%;
+}
+
+.modal-title-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.modal-title-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* 텍스트 가독성을 위한 그림자 */
+}
+
+.modal-body {
+  padding: 20px;
+  border-radius: 0 0 10px 10px;
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* 열 수 조정 */
+  gap: 20px;
+  grid-auto-rows: minmax(150px, auto); /* 자동으로 행 높이 설정 */
+  max-height: 600px; /* 그리드 높이를 제한하기 위해 추가 */
+  overflow-y: auto; /* 스크롤 가능하도록 추가 */
+}
+
+.map-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.map-item.selected {
+  border-color: #cd853f; /* 페루 색상 (Peru) */
+}
+
+.map-image {
+  width: 160px; /* 모든 이미지의 동일한 너비 */
+  height: 100px; /* 모든 이미지의 동일한 높이 */
+  object-fit: cover;
+  /* border-radius: 8px; */
+}
+
+.map-title {
+  margin-top: 8px;
+  width: 100%;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.6); /* 배경을 투명하게 변경하여 텍스트 가독성 향상 */
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 0 0 10px 10px;
+}
+
+.footer-button {
+  padding: 10px 20px;
+  border: none;
+  width: 20%;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  margin: 0 10px;
+  background-size: cover;
+  transition: background-color 0.3s, transform 0.3s; /* 부드러운 전환 효과 추가 */
+}
+
+.footer-button:hover {
+  background-color: #777;
+  transform: translateY(-2px); /* 버튼 호버 시 살짝 위로 움직이는 효과 */
 }
 </style>

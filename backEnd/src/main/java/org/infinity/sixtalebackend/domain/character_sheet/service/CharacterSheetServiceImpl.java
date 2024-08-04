@@ -193,6 +193,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         log.info("액션 업데이트 완료");
 
         // 캐릭터 장비 업데이트
+        // 여기서는 기존 장비를 업데이트 하거나 새로운 장비가 추가됨
+        // 근데 장비 여러 개 있는 경우는??
         List<CharacterEquipment> existingEquipments = characterEquipmentRepository.findByPlayMember(playMember);
         List<Long> newEquipmentIds = characterSheetRequest.getCharacterEquipment().stream()
                 .map(CharacterEquipmentRequest::getEquipmentId)
@@ -201,7 +203,14 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         List<CharacterEquipment> equipmentsToDelete = existingEquipments.stream()
                 .filter(e -> !newEquipmentIds.contains(e.getEquipment().getId()))
                 .collect(Collectors.toList());
+
+        // 삭제할 장비들의 무게 합산
+        int totalWeightToRemove = equipmentsToDelete.stream()
+                .mapToInt(CharacterEquipment::getWeight)
+                .sum();
         characterEquipmentRepository.deleteAll(equipmentsToDelete);
+
+        int totalWeightToAdd = 0;
 
         // 업데이트 또는 추가할 장비
         for (CharacterEquipmentRequest equipmentRequest : characterSheetRequest.getCharacterEquipment()) {
@@ -211,10 +220,12 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                     .orElse(null);
 
             if (existingEquipment != null) {
+                //기존 장비 업데이트
                 existingEquipment.setCurrentCount(equipmentRequest.getCurrentCount());
                 existingEquipment.setWeight(equipmentRequest.getWeight());
                 characterEquipmentRepository.save(existingEquipment);
             } else {
+                // 새 장비 추가
                 CharacterEquipment newEquipment = CharacterEquipment.builder()
                         .playMember(playMember)
                         .equipment(scenarioEquipmentRepository.findById(equipmentRequest.getEquipmentId())
@@ -224,8 +235,15 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                         .build();
                 characterEquipmentRepository.save(newEquipment);
             }
+
+            // 새로 추가되는 무게 합산
+            totalWeightToAdd += equipmentRequest.getWeight();
         }
         log.info("장비 업데이트 완료");
+
+        //현재 무게 업데이트
+        characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() - totalWeightToRemove + totalWeightToAdd);
+        characterSheetRepository.save(characterSheet);
     }
 
     /**

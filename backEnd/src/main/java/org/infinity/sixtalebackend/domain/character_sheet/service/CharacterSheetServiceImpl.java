@@ -256,9 +256,27 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         List<CharacterAction> actions = characterActionRepository.findByPlayMember(playMember);
         List<CharacterEquipment> equipments = characterEquipmentRepository.findByPlayMember(playMember);
 
+        /*
+
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberIdWithFetch(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+         String beliefDescription = characterSheet.getJobBeliefs().stream()
+                .filter(jb -> jb.getBelief().equals(characterSheet.getBelief()))
+                .map(JobBelief::getDescription)
+                .findFirst()
+                .orElse("");
+
+        String raceDescription = characterSheet.getJobRaces().stream()
+                .filter(jr -> jr.getRace().equals(characterSheet.getRace()))
+                .map(JobRace::getDescription)
+                .findFirst()
+                .orElse("");
+         */
+
         return CharacterSheetResponse.builder()
                 .jobId(job.getId())
                 .jobName(job.getName())
+                .jobDiceType(job.getDiceType())
                 .raceId(race.getId())
                 .raceName(race.getName())
                 .raceDescription(raceDescription) // 다시 jobRace필드에서?

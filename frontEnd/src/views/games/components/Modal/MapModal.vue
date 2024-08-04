@@ -233,7 +233,6 @@ const saveSelection = () => {
   gap: 20px;
   grid-auto-rows: minmax(150px, auto); /* 자동으로 행 높이 설정 */
   max-height: 600px; /* 그리드 높이를 제한하기 위해 추가 */
-  overflow-y: auto; /* 스크롤 가능하도록 추가 */
 }
 
 .map-item {
@@ -250,19 +249,19 @@ const saveSelection = () => {
 }
 
 .map-image {
-  width: 160px; /* 모든 이미지의 동일한 너비 */
+  width: 170px; /* 모든 이미지의 동일한 너비 */
   height: 100px; /* 모든 이미지의 동일한 높이 */
   object-fit: cover;
   /* border-radius: 8px; */
 }
 
 .map-title {
-  margin-top: 8px;
+  /* margin-top: 2px; */
   width: 100%;
   text-align: center;
   padding: 5px 0;
   border-radius: 5px;
-  background-color: rgba(0, 0, 0, 0.6); /* 배경을 투명하게 변경하여 텍스트 가독성 향상 */
+  /* background-color: rgba(0, 0, 0, 0.6); */
 }
 
 .modal-footer {

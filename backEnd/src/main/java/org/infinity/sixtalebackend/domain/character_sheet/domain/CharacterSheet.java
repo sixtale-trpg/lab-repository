@@ -5,9 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
-import org.infinity.sixtalebackend.domain.rule.domain.Belief;
-import org.infinity.sixtalebackend.domain.rule.domain.Job;
-import org.infinity.sixtalebackend.domain.rule.domain.Race;
+import org.infinity.sixtalebackend.domain.rule.domain.*;
+
+import java.util.List;
 
 @Entity
 @Getter

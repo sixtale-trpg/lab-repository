@@ -34,4 +34,8 @@ public class CharacterEquipment {
     @ColumnDefault("0")
     private Integer weight;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "character_sheet_id", nullable = false)
+    private CharacterSheet characterSheet;
+
 }

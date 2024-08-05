@@ -34,4 +34,6 @@ public interface CharacterSheetRepository extends JpaRepository<CharacterSheet, 
     Optional<CharacterSheet> findByPlayMemberIdWithFetch(@Param("playMemberID") Long playMemberID);
 
     Optional<CharacterSheet> findByPlayMember(PlayMember playMember);
+
+    Optional<CharacterSheet> findByPlayMemberId(Long playMemberID);
 }

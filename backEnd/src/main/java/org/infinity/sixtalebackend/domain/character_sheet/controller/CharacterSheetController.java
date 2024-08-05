@@ -28,7 +28,7 @@ public class CharacterSheetController {
     /**
      * 캐릭터 시트 작성
      */
-    @PostMapping
+    @PatchMapping
     public ResponseEntity createCharacterSheet(@PathVariable Long roomID, @RequestBody @Valid CharacterSheetRequest characterSheetRequest) {
         try {
             //memberID = 1L 가정

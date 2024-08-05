@@ -27,15 +27,15 @@ public class CharacterSheet {
     @JoinColumn(name = "play_member_id")
     private PlayMember playMember;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "belief_id", nullable = false)
     private Belief belief;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "race_id", nullable = false)
     private Race race;
 
@@ -86,4 +86,13 @@ public class CharacterSheet {
 
     @Column(nullable = false, name="image_url")
     private String imageURL;
+
+   /* @OneToMany(mappedBy = "playMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CharacterStat> characterStats;
+
+    @OneToMany(mappedBy = "playMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CharacterEquipment> characterEquipments;
+
+    @OneToMany(mappedBy = "playMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CharacterAction> characterActions;*/
 }

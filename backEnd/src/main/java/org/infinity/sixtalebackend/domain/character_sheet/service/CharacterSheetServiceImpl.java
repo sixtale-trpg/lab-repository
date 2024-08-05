@@ -11,16 +11,19 @@ import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterAc
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterEquipmentRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterStatRepository;
+import org.infinity.sixtalebackend.domain.equipment.domain.EquipmentType;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.rule.domain.*;
 import org.infinity.sixtalebackend.domain.rule.repository.*;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioEquipment;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioEquipmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -273,27 +276,9 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 .map(JobBelief::getDescription)
                 .orElse("");
 
-
-        List<CharacterStat> stats = characterStatRepository.findByPlayMember(playMember);
+                     List<CharacterStat> stats = characterStatRepository.findByPlayMember(playMember);
         List<CharacterAction> actions = characterActionRepository.findByPlayMember(playMember);
         List<CharacterEquipment> equipments = characterEquipmentRepository.findByPlayMember(playMember);
-
-        /*
-
-        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberIdWithFetch(playMemberID)
-                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
-         String beliefDescription = characterSheet.getJobBeliefs().stream()
-                .filter(jb -> jb.getBelief().equals(characterSheet.getBelief()))
-                .map(JobBelief::getDescription)
-                .findFirst()
-                .orElse("");
-
-        String raceDescription = characterSheet.getJobRaces().stream()
-                .filter(jr -> jr.getRace().equals(characterSheet.getRace()))
-                .map(JobRace::getDescription)
-                .findFirst()
-                .orElse("");
-         */
 
         return CharacterSheetResponse.builder()
                 .jobId(job.getId())
@@ -314,7 +299,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                         .statWeight(stat.getStatWeight())
                         .build()).collect(Collectors.toList()))
                 .characterAction(actions.stream().map(action -> CharacterActionResponse.builder()
-                        .id(action.getJobAction().getId())
+                        .id(action.getId())
+                        .actionID(action.getJobAction().getId())
                         .name(action.getJobAction().getName())
                         .isCore(action.getJobAction().getIsCore())
                         .description(action.getJobAction().getDescription())
@@ -330,7 +316,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                                 : Collections.emptyList())
                         .build()).collect(Collectors.toList()))
                 .characterEquipment(equipments.stream().map(equipment -> CharacterEquipmentResponse.builder()
-                        .id(equipment.getEquipment().getId())
+                        .id(equipment.getId())
+                        .equipmentID(equipment.getEquipment().getId())
                         .name(equipment.getEquipment().getName())
                         .description(equipment.getEquipment().getDescription())
                         .typeID(equipment.getEquipment().getEquipmentType().getId()) //
@@ -350,6 +337,178 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 .exp(characterSheet.getExp())
                 .imageURL(characterSheet.getImageURL())
                 .build();
+
+       /* List<Object[]> results  = characterSheetRepository.findByPlayMemberIdWithFetch(playMemberID);
+
+        Object[] result = results.get(0);
+        CharacterSheet characterSheet = (CharacterSheet) result[0];
+        String beliefDescription = (String) result[1];
+        String raceDescription = (String) result[2];
+
+        // 각 엔티티 데이터 분리해 리스트로 생성
+        List<CharacterStat> stats = results.stream()
+                .map(res -> (CharacterStat) res[3])
+                .filter(Objects::nonNull) //null 값 제거
+                .collect(Collectors.toList());
+
+        List<CharacterEquipment> equipments = results.stream()
+                .map(res -> (CharacterEquipment) res[4])
+                .filter(Objects::nonNull) //null 값 제거
+                .collect(Collectors.toList());
+
+        List<CharacterAction> actions = results.stream()
+                .map(res -> (CharacterAction) res[5])
+                .filter(Objects::nonNull) //null값 제거
+                .collect(Collectors.toList());
+
+        // 각 리스트를 DTO로 변환
+        List<CharacterStatResponse> statResponses = stats.stream()
+                .map(stat -> CharacterStatResponse.builder()
+                        .statID(stat.getStat().getId())
+                        .statValue(stat.getStatValue())
+                        .statWeight(stat.getStatWeight())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<CharacterEquipmentResponse> equipmentResponses = equipments.stream()
+                .map(equipment -> {
+                    ScenarioEquipment scenarioEquipment = equipment.getEquipment();
+                    EquipmentType equipmentType = scenarioEquipment.getEquipmentType();
+                    return CharacterEquipmentResponse.builder()
+                            .id(equipment.getId())
+                            .equipmentID(scenarioEquipment.getId())
+                            .name(scenarioEquipment.getName())
+                            .description(scenarioEquipment.getDescription())
+                            .typeID(equipmentType.getId())
+                            .typeName(equipmentType.getName())
+                            .weight(equipment.getWeight())
+                            .currentCount(equipment.getCurrentCount())
+                            .imageURL(scenarioEquipment.getImageURL())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        List<CharacterActionResponse> actionResponses = actions.stream()
+                .map(action -> {
+                    JobAction jobAction = action.getJobAction();
+                    ActionOption actionOption = action.getActionOption();
+                    return CharacterActionResponse.builder()
+                            .id(action.getId())
+                            .actionID(jobAction.getId())
+                            .name(jobAction.getName())
+                            .isCore(jobAction.getIsCore())
+                            .description(jobAction.getDescription())
+                            .isDice(jobAction.getIsDice())
+                            .diceType(jobAction.getDiceType())
+                            .diceCount(jobAction.getDiceCount())
+                            .level(jobAction.getLevel())
+                            .actionOption(actionOption != null ?
+                                    Collections.singletonList(ActionOptionResponse.builder()
+                                            .id(actionOption.getId())
+                                            .content(actionOption.getContent())
+                                            .build())
+                                    : Collections.emptyList())
+                            .build();
+                })
+                .collect(Collectors.toList());
+*/
+       /*
+       모든 것에 fetch 쓸 때
+       CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberIdWithFetch(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        Job job = characterSheet.getJob();
+        Race race = characterSheet.getRace();
+        Belief belief = characterSheet.getBelief();
+
+        String beliefDescription = job.getJobBeliefs().stream()
+                .filter(jb -> jb.getBelief().equals(belief))
+                .map(JobBelief::getDescription)
+                .findFirst()
+                .orElse("");
+
+        String raceDescription = job.getJobRaces().stream()
+                .filter(jr -> jr.getRace().equals(race))
+                .map(JobRace::getDescription)
+                .findFirst()
+                .orElse("");
+// DTO 변환 로직
+        List<CharacterStatResponse> statResponses = characterSheet.getCharacterStats().stream()
+                .map(stat -> CharacterStatResponse.builder()
+                        .statID(stat.getStat().getId())
+                        .statValue(stat.getStatValue())
+                        .statWeight(stat.getStatWeight())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<CharacterEquipmentResponse> equipmentResponses = characterSheet.getCharacterEquipments().stream()
+                .map(equipment -> {
+                    ScenarioEquipment scenarioEquipment = equipment.getEquipment();
+                    EquipmentType equipmentType = scenarioEquipment.getEquipmentType();
+                    return CharacterEquipmentResponse.builder()
+                            .id(equipment.getId())
+                            .equipmentID(scenarioEquipment.getId())
+                            .name(scenarioEquipment.getName())
+                            .description(scenarioEquipment.getDescription())
+                            .typeID(equipmentType.getId())
+                            .typeName(equipmentType.getName())
+                            .weight(equipment.getWeight())
+                            .currentCount(equipment.getCurrentCount())
+                            .imageURL(scenarioEquipment.getImageURL())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        List<CharacterActionResponse> actionResponses = characterSheet.getCharacterActions().stream()
+                .map(action -> {
+                    JobAction jobAction = action.getJobAction();
+                    ActionOption actionOption = action.getActionOption();
+                    return CharacterActionResponse.builder()
+                            .id(action.getId())
+                            .actionID(jobAction.getId())
+                            .name(jobAction.getName())
+                            .isCore(jobAction.getIsCore())
+                            .description(jobAction.getDescription())
+                            .isDice(jobAction.getIsDice())
+                            .diceType(jobAction.getDiceType())
+                            .diceCount(jobAction.getDiceCount())
+                            .level(jobAction.getLevel())
+                            .actionOption(actionOption != null ?
+                                    Collections.singletonList(ActionOptionResponse.builder()
+                                            .id(actionOption.getId())
+                                            .content(actionOption.getContent())
+                                            .build())
+                                    : Collections.emptyList())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return CharacterSheetResponse.builder()
+                .jobId(job.getId())
+                .jobName(job.getName())
+                .jobDiceType(job.getDiceType())
+                .raceId(race.getId())
+                .raceName(race.getName())
+                .raceDescription(raceDescription) //
+                .beliefId(belief.getId())
+                .beliefName(belief.getName())
+                .beliefDescription(beliefDescription) //
+                .name(characterSheet.getName())
+                .appearance(characterSheet.getAppearance())
+                .background(characterSheet.getBackground())
+                .stat(statResponses)
+                .characterAction(actionResponses)
+                .characterEquipment(equipmentResponses)
+                .currentHp(characterSheet.getCurrentHp())
+                .currentMoney(characterSheet.getCurrentMoney())
+                .limitWeight(characterSheet.getLimitWeight())
+                .limitHp(characterSheet.getLimitHp())
+                .glove(characterSheet.getGlove())
+                .inspirationScore(characterSheet.getInspirationScore())
+                .level(characterSheet.getLevel())
+                .exp(characterSheet.getExp())
+                .imageURL(characterSheet.getImageURL())
+                .build();*/
     }
 
     /**

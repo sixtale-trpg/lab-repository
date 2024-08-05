@@ -24,7 +24,7 @@ public class Scenario extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id", nullable = false)
     private Member writer;
 
@@ -50,7 +50,7 @@ public class Scenario extends BaseTimeEntity {
     @ColumnDefault("true")
     private Boolean isOpen;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 

@@ -19,15 +19,15 @@ public class CharacterAction {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_action_id", nullable = false)
     private JobAction jobAction;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "action_option_id")
     private ActionOption actionOption;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "play_member_id", nullable = false)
     private PlayMember playMember;
 

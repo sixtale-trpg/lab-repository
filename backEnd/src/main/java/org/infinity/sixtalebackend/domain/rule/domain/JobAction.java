@@ -40,11 +40,11 @@ public class JobAction {
     @Column(nullable = false)
     private Integer level;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id")
     private Rule rule;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
 }

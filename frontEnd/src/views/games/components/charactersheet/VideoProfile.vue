@@ -67,7 +67,8 @@ const getUserImage = (n) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
+  /* padding: 5px; */
+  background-color: rgba(83, 78, 78, 0.5);
   width: 100%;
 }
 

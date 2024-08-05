@@ -22,6 +22,7 @@ public class ScenarioNPC {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -32,5 +33,6 @@ public class ScenarioNPC {
     @ColumnDefault("0")
     private Integer glove;
 
+    @Column(name = "image_url")
     private String imageURL;
 }

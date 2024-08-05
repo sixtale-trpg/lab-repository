@@ -22,6 +22,7 @@ public class Equipment {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(nullable = false)
     private String description;
 
     @ManyToOne
@@ -37,12 +38,13 @@ public class Equipment {
     private Integer count;
 
     @ManyToOne
-    @JoinColumn(name = "rule_id")
+    @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 
     @ManyToOne
-    @JoinColumn(name = "job_id")
+    @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
+    @Column(name = "image_url")
     private String imageUrl;
 }

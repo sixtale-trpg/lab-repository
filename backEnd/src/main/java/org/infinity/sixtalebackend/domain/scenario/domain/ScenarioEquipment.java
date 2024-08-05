@@ -20,6 +20,7 @@ public class ScenarioEquipment {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne
@@ -42,5 +43,6 @@ public class ScenarioEquipment {
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
 
+    @Column(name = "image_url")
     private String imageURL;
 }

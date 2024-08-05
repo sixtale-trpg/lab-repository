@@ -36,6 +36,7 @@ public class Job {
     @Enumerated(EnumType.STRING)
     private DiceType diceType;
 
+    @Column(name = "image_url")
     private String imageURL;
 
     @ManyToOne

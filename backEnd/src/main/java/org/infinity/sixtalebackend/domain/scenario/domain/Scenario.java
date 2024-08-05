@@ -31,8 +31,7 @@ public class Scenario extends BaseTimeEntity {
     @Column(nullable = false, length = 512)
     private String summary;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

@@ -73,7 +73,7 @@ public class CharacterSheetEquipmentController {
     }
 
     /**
-     * 특정 장비 삭제
+     * 특정 장비 삭제, 장비 테이블의 고유 ID이어야 함
      */
     @DeleteMapping("/{equipmentID}")
     public ResponseEntity deleteCharacterEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID, @PathVariable Long equipmentID) {

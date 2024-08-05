@@ -29,6 +29,9 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
     private final CharacterEquipmentRepository characterEquipmentRepository;
     private final PlayMemberRepository playMemberRepository;
 
+    /**
+     * 장비 목록 조회
+     */
     @Override
     @Transactional(readOnly = true)
     public CharacterSheetEquipmentResponse getCharacterSheetEquipment(Long roomID, Long playMemberID) {
@@ -54,6 +57,9 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
                 .build();
     }
 
+    /**
+     *캐릭터 장비 추가
+     */
     @Override
     @Transactional
     public void addCharacterEquipment(Long roomID, Long playMemberID, List<CharacterEquipmentRequest> equipmentRequests) {

@@ -44,6 +44,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
 
     /**
      * 캐릭터 시트 작성
+     * 무게 합 프론트에서 보내줄 것임
      */
     @Override
     @Transactional
@@ -128,44 +129,44 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      */
     @Override
     @Transactional
-    public void updateCharacterSheet(Long roomID, Long playMemberID, CharacterSheetRequest characterSheetRequest) {
+    public void updateCharacterSheet(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest) {
         PlayMember playMember = playMemberRepository.findById(playMemberID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember"));
 
         CharacterSheet characterSheet = characterSheetRepository.findById(playMemberID)
                 .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
 
-        Job job = jobRepository.findById(characterSheetRequest.getJobId())
+        Job job = jobRepository.findById(characterSheetUpdateRequest.getJobId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Job ID"));
 
-        Belief belief = beliefRepository.findById(characterSheetRequest.getBeliefId())
+        Belief belief = beliefRepository.findById(characterSheetUpdateRequest.getBeliefId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Belief ID"));
 
-        Race race = raceRepository.findById(characterSheetRequest.getRaceId())
+        Race race = raceRepository.findById(characterSheetUpdateRequest.getRaceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
 
         // 캐릭터 시트 업데이트
         characterSheet.setJob(job);
         characterSheet.setBelief(belief);
         characterSheet.setRace(race);
-        characterSheet.setName(characterSheetRequest.getName());
-        characterSheet.setAppearance(characterSheetRequest.getAppearance());
-        characterSheet.setBackground(characterSheetRequest.getBackground());
-        characterSheet.setCurrentWeight(characterSheetRequest.getCurrentWeight());
-        characterSheet.setCurrentHp(characterSheetRequest.getCurrentHp());
-        characterSheet.setCurrentMoney(characterSheetRequest.getCurrentMoney());
-        characterSheet.setLimitWeight(characterSheetRequest.getLimitWeight());
-        characterSheet.setLimitHp(characterSheetRequest.getLimitHp());
-        characterSheet.setGlove(characterSheetRequest.getGlove());
-        characterSheet.setInspirationScore(characterSheetRequest.getInspirationScore());
-        characterSheet.setLevel(characterSheetRequest.getLevel());
-        characterSheet.setExp(characterSheetRequest.getExp());
-        characterSheet.setImageURL(characterSheetRequest.getImageURL());
+        characterSheet.setName(characterSheetUpdateRequest.getName());
+        characterSheet.setAppearance(characterSheetUpdateRequest.getAppearance());
+        characterSheet.setBackground(characterSheetUpdateRequest.getBackground());
+        characterSheet.setCurrentWeight(characterSheetUpdateRequest.getCurrentWeight());
+        characterSheet.setCurrentHp(characterSheetUpdateRequest.getCurrentHp());
+        characterSheet.setCurrentMoney(characterSheetUpdateRequest.getCurrentMoney());
+        characterSheet.setLimitWeight(characterSheetUpdateRequest.getLimitWeight());
+        characterSheet.setLimitHp(characterSheetUpdateRequest.getLimitHp());
+        characterSheet.setGlove(characterSheetUpdateRequest.getGlove());
+        characterSheet.setInspirationScore(characterSheetUpdateRequest.getInspirationScore());
+        characterSheet.setLevel(characterSheetUpdateRequest.getLevel());
+        characterSheet.setExp(characterSheetUpdateRequest.getExp());
+        characterSheet.setImageURL(characterSheetUpdateRequest.getImageURL());
         characterSheetRepository.save(characterSheet);
 
         // 캐릭터 스탯 업데이트
         characterStatRepository.deleteByPlayMember(playMember);
-        for (CharacterStatRequest statRequest : characterSheetRequest.getStat()) {
+        for (CharacterStatRequest statRequest : characterSheetUpdateRequest.getStat()) {
             CharacterStat characterStat = CharacterStat.builder()
                     .playMember(playMember)
                     .stat(statRepository.findById(statRequest.getStatID())
@@ -177,6 +178,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         }
         log.info("스탯 업데이트 완료");
 
+        /*
+        캐릭터 시트에서는 액션, 장비 업데이트 안함!!!!
         // 캐릭터 액션 업데이트
         characterActionRepository.deleteByPlayMember(playMember);
         for (CharacterActionRequest actionRequest : characterSheetRequest.getCharacterAction()) {
@@ -244,6 +247,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         //현재 무게 업데이트
         characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() - totalWeightToRemove + totalWeightToAdd);
         characterSheetRepository.save(characterSheet);
+         */
     }
 
     /**

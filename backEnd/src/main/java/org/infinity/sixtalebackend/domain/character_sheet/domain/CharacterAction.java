@@ -31,4 +31,8 @@ public class CharacterAction {
     @JoinColumn(name = "play_member_id", nullable = false)
     private PlayMember playMember;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "character_sheet_id", nullable = false)
+    private CharacterSheet characterSheet;
+
 }

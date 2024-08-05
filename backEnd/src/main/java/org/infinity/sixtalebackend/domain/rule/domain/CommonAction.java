@@ -36,7 +36,7 @@ public class CommonAction {
 
     private Integer diceCount;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 }

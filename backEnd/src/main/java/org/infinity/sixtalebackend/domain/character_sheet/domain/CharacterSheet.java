@@ -2,12 +2,14 @@ package org.infinity.sixtalebackend.domain.character_sheet.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.rule.domain.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -17,13 +19,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CharacterSheet {
-
     @Id
-    @Column(name = "play_member_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id;
 
-    @OneToOne
-    @MapsId
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "play_member_id")
     private PlayMember playMember;
 
@@ -87,12 +88,15 @@ public class CharacterSheet {
     @Column(nullable = false, name="image_url")
     private String imageURL;
 
-   /* @OneToMany(mappedBy = "playMember", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CharacterStat> characterStats;
+    @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<CharacterStat> characterStats;
 
-    @OneToMany(mappedBy = "playMember", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CharacterEquipment> characterEquipments;
+    @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<CharacterEquipment> characterEquipments;
 
-    @OneToMany(mappedBy = "playMember", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CharacterAction> characterActions;*/
+    @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<CharacterAction> characterActions;
 }

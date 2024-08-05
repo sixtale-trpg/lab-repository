@@ -137,18 +137,7 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
         // 변경된 무게 저장
         characterSheetRepository.save(characterSheet);
         log.info("장비 삭제 완료 - 장비 ID: {}, 업데이트된 무게: {}", equipmentID, updatedWeight);
-       /* PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
-        CharacterEquipment equipment = characterEquipmentRepository.findByPlayMemberAndEquipment_Id(playMember, equipmentID)
-                .orElseThrow(() -> new IllegalArgumentException("Equipment not found"));
-
-        characterEquipmentRepository.delete(equipment);
-
-        //삭제된 장비의 무게를 현재 무게에서 뺌
-        CharacterSheet characterSheet = characterSheetRepository.findById(playMemberID)
-                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
-        characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() - equipment.getWeight());
-        characterSheetRepository.save(characterSheet);*/
+    
 
     }
 }

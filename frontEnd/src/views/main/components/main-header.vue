@@ -14,27 +14,45 @@
     </nav>
     <div class="profile">
       <img src="@/assets/images/user.png" alt="Profile Image" class="profile-image"/>
-      <div class="account" @click="openLoginModal">로그인</div>
-      <div class="dropdown">
+      <div v-if="isLoggedIn" class="dropdown">
         <button class="btn dropdown-toggle custom-dropdown-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         </button>
         <ul class="dropdown-menu custom-dropdown-menu">
-          <li><a class="dropdown-item custom-dropdown-item" href="#" @click="logout">로그아웃</a></li>
+          <li><a class="dropdown-item custom-dropdown-item" href="#" @click="doLogout">로그아웃</a></li>
           <li><hr class="dropdown-divider custom-divider"></li>
           <li><a class="dropdown-item custom-dropdown-item" href="#" @click="deleteAccount">회원탈퇴</a></li>
         </ul>
       </div>
+      <div v-else class="account" @click="openLoginModal">로그인</div>
     </div>
     <SocialLoginModal v-model="isModalOpen" />
   </header>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAccountApi } from '@/common/api/accountAPI.js'; // 경로가 올바른지 확인
+import Cookies from 'js-cookie';
 
 import SocialLoginModal from './SocialLoginModal.vue';
+
+const isLoggedIn = ref(false);
+
+const checkLoginStatus = () => {
+  const token = Cookies.get('access-token');
+  console.log('access-token', token); // 토큰 값을 콘솔에 출력
+  isLoggedIn.value = token != null;
+};
+
+const doLogout = () => {
+  Cookies.remove('access-token'); // 쿠키 삭제
+  checkLoginStatus();
+};
+
+onMounted(() => {
+  checkLoginStatus();
+});
 
 // Props
 const props = defineProps({

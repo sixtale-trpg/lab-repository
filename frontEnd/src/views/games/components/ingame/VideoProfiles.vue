@@ -22,7 +22,13 @@
             :playMemberID="user.id"
             @click="fetchUserJob(user.id)"
           />
-          <video v-else :id="'video-' + user.id" autoplay playsinline></video>
+          <video
+            v-show="!showAIImages && !showStats"
+            :id="'video-' + user.id"
+            autoplay
+            playsinline
+            ref="videoElements"
+          ></video>
         </div>
         <div class="profile-info">
           <div class="user-info">
@@ -36,9 +42,8 @@
               @click="showUserInfo(user.id)"
             />
           </div>
-          <button class="voice-chat-button" @click="toggleVoiceChat(user.id)">
-            <img :src="getVoiceIcon(user.id)" alt="음성 채팅" />
-          </button>
+          <!-- VoiceChatButton 컴포넌트를 사용합니다 -->
+          <VoiceChatButton :userId="user.id" />
         </div>
       </div>
     </div>
@@ -48,10 +53,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref } from 'vue';
 import { useSessionStore } from '@/store/session';
 import CharacterStats from './CharacterStats.vue';
 import CharacterInfo from '@/views/games/components/ingame/CharacterInfoModal.vue';
+import VoiceChatButton from '../../VoiceChatButton.vue';
 import { selectedPlayMemberID, selectedUserJob } from '@/store/state.js'; // 전역 상태 가져오기
 
 const sessionStore = useSessionStore();
@@ -60,6 +66,7 @@ const showStats = ref(false);
 const showAIImages = ref(true);
 const showCharacterInfo = ref(false);
 const isGM = ref(true);
+const videoElements = ref([]); // 비디오 요소를 참조할 배열
 
 // 더미 데이터: 8명의 유저 정보
 const users = ref([
@@ -135,30 +142,6 @@ const closeCharacterInfo = () => {
   showCharacterInfo.value = false;
 };
 
-// 음성 아이콘 경로를 가져오는 함수
-const getVoiceIcon = (userId) => {
-  return sessionStore.isVoiceOn(userId)
-    ? require('@/assets/images/ingame/voice.png')
-    : require('@/assets/images/ingame/voicex.png');
-};
-
-// 음성 채팅을 토글하는 함수
-const toggleVoiceChat = (userId) => {
-  sessionStore.toggleVoiceChat(userId);
-};
-
-// 컴포넌트가 마운트될 때 호출되는 라이프사이클 훅
-onMounted(() => {
-  // 각 사용자에 대해 세션을 초기화합니다.
-  users.value.forEach(user => {
-    sessionStore.initializeSession(user.id);
-  });
-});
-
-// 컴포넌트가 제거되기 전에 호출되는 라이프사이클 훅
-onBeforeUnmount(() => {
-  sessionStore.disconnect();
-});
 </script>
 
 <style scoped>
@@ -265,17 +248,5 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.voice-chat-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.voice-chat-button img {
-  width: 15px;
-  height: 15px;
 }
 </style>

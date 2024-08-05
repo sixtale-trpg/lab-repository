@@ -1,4 +1,3 @@
-// src/store/session.js
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { OpenVidu } from 'openvidu-browser';
@@ -6,12 +5,12 @@ import { OpenVidu } from 'openvidu-browser';
 export const useSessionStore = defineStore('session', () => {
   const OV = ref(new OpenVidu());
   const session = ref(null);
-  const publishers = ref(Array(8).fill(null)); // 사용자별 발행자 저장
-  const subscribers = ref(Array(8).fill([])); // 사용자별 구독자 저장
-  const voiceStates = ref(Array(8).fill(false)); // 사용자별 음성 상태 저장
+  const publishers = ref(Array(9).fill(null)); // 사용자별 발행자 저장
+  const subscribers = ref(Array(9).fill([])); // 사용자별 구독자 저장
+  const voiceStates = ref(Array(9).fill(false)); // 사용자별 음성 상태 저장
 
   // 세션을 초기화하는 함수
-  const initializeSession = (userId) => {
+  const initializeSession = () => {
     if (!session.value) {
       session.value = OV.value.initSession();
 
@@ -48,7 +47,7 @@ export const useSessionStore = defineStore('session', () => {
   // 음성 채팅을 시작하는 함수
   const startVoiceChat = async (userId) => {
     if (!session.value) {
-      initializeSession(userId);
+      initializeSession();
     }
 
     try {
@@ -156,6 +155,11 @@ export const useSessionStore = defineStore('session', () => {
       session.value.disconnect();
       console.log('Session disconnected');
       session.value = null; // 세션 초기화
+
+      // 모든 사용자 음성 상태 초기화
+      voiceStates.value.fill(false);
+      publishers.value.fill(null);
+      subscribers.value.forEach((subs) => subs.splice(0));
     }
   };
 

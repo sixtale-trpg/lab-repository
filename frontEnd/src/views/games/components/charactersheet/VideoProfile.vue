@@ -8,9 +8,8 @@
         </div>
         <div class="profile-info">
           <h3>User {{ n }}</h3>
-          <button class="voice-chat-button" @click="toggleVoiceChat(n)">
-            <img :src="getVoiceIcon(n)" alt="Voice chat" />
-          </button>
+          <!-- 여기서 VoiceChatButton 컴포넌트를 사용합니다 -->
+          <VoiceChatButton :userId="n" />
         </div>
       </div>
     </div>
@@ -18,22 +17,11 @@
 </template>
 
 <script setup>
-import { useSessionStore } from '@/store/session';
+import VoiceChatButton from '../../VoiceChatButton.vue';
 
-const sessionStore = useSessionStore();
-
+// 사용자 ID에 따라 사용자 이미지를 가져오는 함수
 const getUserImage = (n) => {
   return require(`@/assets/images/ingame/user${n}.png`);
-};
-
-const getVoiceIcon = (userId) => {
-  return sessionStore.isVoiceOn(userId)
-    ? require('@/assets/images/ingame/voice.png')
-    : require('@/assets/images/ingame/voicex.png');
-};
-
-const toggleVoiceChat = (userId) => {
-  sessionStore.toggleVoiceChat(userId);
 };
 </script>
 
@@ -89,17 +77,5 @@ const toggleVoiceChat = (userId) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.voice-chat-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.voice-chat-button img {
-  width: 15px;
-  height: 15px;
 }
 </style>

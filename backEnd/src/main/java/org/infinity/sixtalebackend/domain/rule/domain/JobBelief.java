@@ -12,12 +12,12 @@ public class JobBelief {
     @EmbeddedId
     private JobBeliefID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("jobID")
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("beliefID")
     @JoinColumn(name = "belief_id", nullable = false)
     private Belief belief;

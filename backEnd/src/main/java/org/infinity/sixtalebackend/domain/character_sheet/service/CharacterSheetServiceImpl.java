@@ -183,7 +183,6 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 stat.setStatWeight(statRequest.getStatWeight());
             }
         });
-        log.info("스탯 업데이트 완료");
     }
 
     /**

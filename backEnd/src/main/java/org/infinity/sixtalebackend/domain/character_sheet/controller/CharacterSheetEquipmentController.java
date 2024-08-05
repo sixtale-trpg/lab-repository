@@ -50,9 +50,9 @@ public class CharacterSheetEquipmentController {
      */
     @PostMapping
     public ResponseEntity addCharacterSheetEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID,
-                                                     @RequestBody List<CharacterEquipmentRequest> equipmentRequests) {
+                                                     @RequestBody CharacterEquipmentRequest equipmentRequest) {
         try {
-            characterSheetEquipmentService.addCharacterEquipment(roomID, playMemberID, equipmentRequests);
+            characterSheetEquipmentService.addCharacterEquipment(roomID, playMemberID, equipmentRequest);
 
             String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             UpdateCharacterSheetResponse response = UpdateCharacterSheetResponse.builder()
@@ -73,7 +73,7 @@ public class CharacterSheetEquipmentController {
     }
 
     /**
-     * 특정 장비 삭제, 장비 테이블의 고유 ID이어야 함
+     * 특정 장비 삭제, equipment_id 기준
      */
     @DeleteMapping("/{equipmentID}")
     public ResponseEntity deleteCharacterEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID, @PathVariable Long equipmentID) {

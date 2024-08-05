@@ -18,11 +18,11 @@ public class CharacterStat {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "play_member_id", nullable = false)
     private PlayMember playMember;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stat_id", nullable = false)
     private Stat stat;
 

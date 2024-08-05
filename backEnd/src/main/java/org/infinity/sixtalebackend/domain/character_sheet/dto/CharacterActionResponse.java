@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 public class CharacterActionResponse {
     private Long id;
+    private Long actionID;
     private String name;
     private Boolean isCore;
     private String description;

@@ -35,4 +35,10 @@ public class CharacterStat {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "character_sheet_id", nullable = false)
     private CharacterSheet characterSheet;
+
+    public void setStatValue(Integer statValue) {
+    }
+
+    public void setStatWeight(Integer statWeight) {
+    }
 }

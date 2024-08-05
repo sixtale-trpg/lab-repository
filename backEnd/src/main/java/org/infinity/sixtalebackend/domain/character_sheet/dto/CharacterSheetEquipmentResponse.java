@@ -9,6 +9,7 @@ import java.util.List;
 @Builder
 public class CharacterSheetEquipmentResponse {
     private List<EquipmentInfo> characterEquipment;
+    private List<EquipmentInfo> commonEquipment;
 
     @Getter
     @Builder

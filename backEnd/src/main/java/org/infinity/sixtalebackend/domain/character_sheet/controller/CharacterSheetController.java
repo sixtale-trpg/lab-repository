@@ -50,8 +50,6 @@ public class CharacterSheetController {
     @PutMapping("/{playMemberID}")
     public ResponseEntity updateCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID, @RequestBody @Valid CharacterSheetUpdateRequest characterSheetUpdateRequest) {
         try {
-            // memberID = 1L 가정
-//            Long memberID = 1L;
             characterSheetService.updateCharacterSheet(roomID, playMemberID, characterSheetUpdateRequest);
 
             // 현재 시각 설정

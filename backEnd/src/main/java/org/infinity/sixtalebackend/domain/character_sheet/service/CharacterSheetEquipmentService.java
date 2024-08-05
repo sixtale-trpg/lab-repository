@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface CharacterSheetEquipmentService {
     CharacterSheetEquipmentResponse getCharacterSheetEquipment(Long roomID, Long playMemberID);
-    void addCharacterEquipment(Long roomID, Long playMemberID, List<CharacterEquipmentRequest> equipmentRequests);
+    void addCharacterEquipment(Long roomID, Long playMemberID, CharacterEquipmentRequest equipmentRequest);
     void deleteCharacterEquipment(Long roomID, Long playMemberID, Long equipmentID);
 }

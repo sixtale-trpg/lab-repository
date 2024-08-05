@@ -6,6 +6,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.infinity.sixtalebackend.domain.model.DiceType;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -46,10 +47,10 @@ public class Job {
     private Rule rule;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<JobBelief> jobBeliefs;
+    private Set<JobBelief> jobBeliefs;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<JobRace> jobRaces;
+    private Set<JobRace> jobRaces;
     @PrePersist
     public void prePersist() {
         if (diceType == null) {

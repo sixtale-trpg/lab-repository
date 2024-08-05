@@ -35,25 +35,42 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
     @Override
     @Transactional(readOnly = true)
     public CharacterSheetEquipmentResponse getCharacterSheetEquipment(Long roomID, Long playMemberID) {
-        CharacterSheet characterSheet = characterSheetRepository.findById(playMemberID)
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
                 .orElseThrow(() -> new IllegalArgumentException(("Character Sheet not found")));
-        List<ScenarioEquipment> equipmentList = scenarioEquipmentRepository.findByJobId(characterSheet.getJob().getId());
 
-        List<CharacterSheetEquipmentResponse.EquipmentInfo> equipmentInfoList = equipmentList.stream()
-                .map(equipment -> CharacterSheetEquipmentResponse.EquipmentInfo.builder()
-                        .id(equipment.getId())
-                        .name(equipment.getName())
-                        .description(equipment.getDescription())
-                        .typeID(equipment.getEquipmentType().getId())
-                        .typeName(equipment.getEquipmentType().getName())
-                        .weight(equipment.getWeight())
-                        .currentCount(equipment.getCount())
-                        .imageURL(equipment.getImageURL())
-                        .build())
+        // 캐릭터 장비 조회
+        List<ScenarioEquipment> characterEquipmentList = scenarioEquipmentRepository.findByJobId(characterSheet.getJob().getId());
+
+        // 공통 장비 목록을 조회
+        List<ScenarioEquipment> commonEquipmentList = scenarioEquipmentRepository.findCommonEquipments();
+
+        // CharacterSheet에 관련된 장비 정보 리스트를 작성
+        List<CharacterSheetEquipmentResponse.EquipmentInfo> characterEquipmentInfoList = characterEquipmentList.stream()
+                .map(this::mapToEquipmentInfo)
+                .collect(Collectors.toList());
+
+        // 공통 장비 정보 리스트를 작성
+        List<CharacterSheetEquipmentResponse.EquipmentInfo> commonEquipmentInfoList = commonEquipmentList.stream()
+                .map(this::mapToEquipmentInfo)
                 .collect(Collectors.toList());
 
         return CharacterSheetEquipmentResponse.builder()
-                .characterEquipment(equipmentInfoList)
+                .characterEquipment(characterEquipmentInfoList)
+                .commonEquipment(commonEquipmentInfoList)
+                .build();
+    }
+
+    // ScenarioEquipment를 EquipmentInfo로 변환하는 메서드
+    private CharacterSheetEquipmentResponse.EquipmentInfo mapToEquipmentInfo(ScenarioEquipment equipment) {
+        return CharacterSheetEquipmentResponse.EquipmentInfo.builder()
+                .id(equipment.getId())
+                .name(equipment.getName())
+                .description(equipment.getDescription())
+                .typeID(equipment.getEquipmentType().getId())
+                .typeName(equipment.getEquipmentType().getName())
+                .weight(equipment.getWeight())
+                .currentCount(equipment.getCount()) // 현재 수량을 그대로 사용합니다.
+                .imageURL(equipment.getImageURL())
                 .build();
     }
 
@@ -62,52 +79,65 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
      */
     @Override
     @Transactional
-    public void addCharacterEquipment(Long roomID, Long playMemberID, List<CharacterEquipmentRequest> equipmentRequests) {
+    public void addCharacterEquipment(Long roomID, Long playMemberID, CharacterEquipmentRequest equipmentRequest) {
         PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
-        CharacterSheet characterSheet = characterSheetRepository.findById(playMemberID)
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
                 .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
 
-        int totalWeightToAdd = 0;
+        // 장비 정보를 조회
+        ScenarioEquipment equipment = scenarioEquipmentRepository.findById(equipmentRequest.getEquipmentId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Equipment ID: " + equipmentRequest.getEquipmentId()));
+        // 추가할 무게
+        int equipmentTotalWeight = equipmentRequest.getWeight();
 
-        for (CharacterEquipmentRequest equipmentRequest : equipmentRequests) {
-            ScenarioEquipment equipment = scenarioEquipmentRepository.findById(equipmentRequest.getEquipmentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Equipment ID: " + equipmentRequest.getEquipmentId()));
-
+        // 동일한 장비가 있는지 확인하고 수량 업데이트
+        CharacterEquipment existingEquipment = characterEquipmentRepository.findByCharacterSheetAndEquipment(characterSheet, equipment);
+        if (existingEquipment != null) {
+            // 이미 존재하는 장비의 수량 업데이트(무게는 안바꾸죠?)
+            existingEquipment.setCurrentCount(existingEquipment.getCurrentCount() + equipmentRequest.getCurrentCount());
+//            existingEquipment.setWeight(existingEquipment.getWeight() + equipmentTotalWeight);
+            characterEquipmentRepository.save(existingEquipment);
+        } else {
+            // 새 장비를 추가
             CharacterEquipment newEquipment = CharacterEquipment.builder()
                     .playMember(playMember)
+                    .characterSheet(characterSheet)
                     .equipment(equipment)
                     .currentCount(equipmentRequest.getCurrentCount())
-                    .weight(equipmentRequest.getWeight())
+                    .weight(equipmentTotalWeight)
                     .build();
             characterEquipmentRepository.save(newEquipment);
 
-            //새로 추가되는 무게들의 합
-            totalWeightToAdd += equipmentRequest.getWeight();
+            // CharacterSheet의 현재 무게 업데이트
+            characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() + equipmentTotalWeight);
+            characterSheetRepository.save(characterSheet);
         }
-
-        characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() + totalWeightToAdd);
-        characterSheetRepository.save(characterSheet);
     }
 
     /**
      * 캐릭터 장비 삭제
+     * equipment_id 가 삭제
      */
     @Override
     @Transactional
     public void deleteCharacterEquipment(Long roomID, Long playMemberID, Long equipmentID) {
-        PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
-        CharacterEquipment equipment = characterEquipmentRepository.findByPlayMemberAndEquipment_Id(playMember, equipmentID)
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        CharacterEquipment equipment = characterEquipmentRepository.findByCharacterSheetAndEquipment_Id(characterSheet, equipmentID)
                 .orElseThrow(() -> new IllegalArgumentException("Equipment not found"));
-        
+
         characterEquipmentRepository.delete(equipment);
 
-        //삭제된 장비의 무게를 현재 무게에서 뺌
-        CharacterSheet characterSheet = characterSheetRepository.findById(playMemberID)
-                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
-        characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() - equipment.getWeight());
+        // 삭제된 장비의 무게를 현재 무게에서 뺌
+        int updatedWeight = characterSheet.getCurrentWeight() - equipment.getWeight();
+        characterSheet.setCurrentWeight(updatedWeight);
+
+        // 변경된 무게 저장
         characterSheetRepository.save(characterSheet);
+        log.info("장비 삭제 완료 - 장비 ID: {}, 업데이트된 무게: {}", equipmentID, updatedWeight);
+    
 
     }
 }

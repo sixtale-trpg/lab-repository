@@ -24,7 +24,7 @@ public class JobAction {
     @ColumnDefault("true")
     private Boolean isCore;
 
-    @Lob @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

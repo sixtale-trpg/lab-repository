@@ -1,7 +1,5 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingWhisperLog;
@@ -11,10 +9,8 @@ import org.infinity.sixtalebackend.domain.chat.repository.WaitingChatLogReposito
 import org.infinity.sixtalebackend.domain.chat.repository.WaitingWhisperLogRepository;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
-import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
+import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +24,8 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     private final MemberRepository memberRepository;
     private final WaitingChatLogRepository waitingChatLogRepository;
     private final WaitingWhisperLogRepository waitingWhisperLogRepository;
-    private final RedisTemplate redisTemplate;
+    private final ChatRoomService chatRoomService;
+    private final RedisPublisher redisPublisher;
 
     /**
      * 대기방 채팅, 귓속말 채팅 기능
@@ -37,24 +34,36 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     @Transactional
     @Override
     public void sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
+
         Member member = findMember(chatMessageRequest.getMemberID());
         // 닉네임 저장
         chatMessageRequest.setNickName(member.getNickname());
 
-        Room room = findRoom(chatMessageRequest.getRoomID());
+        findRoom(chatMessageRequest.getRoomID());
 
-        // 채팅 메시지 생성 및 저장
-        // 대기방 채팅인 경우(전체 전송)
-        if (chatMessageRequest.getType() == MessageType.TALK) {
-            handleChatMessage(room, member, chatMessageRequest);
-        } else if (chatMessageRequest.getType() == MessageType.WHISPER) {
-            handleWhisperMessage(room, member, chatMessageRequest);
+        if (MessageType.ENTER.equals(chatMessageRequest.getType())) {
+            // 채팅 입장 시, 룸 아이디 토픽없으면 토픽 생성 -> pub/sub기능 할 수 있도록 리스너 설정
+            chatRoomService.enterChatRoom(chatMessageRequest.getRoomID().toString());
+            chatMessageRequest.setContent(chatMessageRequest.getNickName()+ "님이 입장하셨습니다.");
         }
+        if(MessageType.WHISPER.equals(chatMessageRequest.getType())){
+            handleWhisperMessage(chatMessageRequest.getRoomID(), member, chatMessageRequest);
+        }else {
+            handleChatMessage(chatMessageRequest.getRoomID(), member, chatMessageRequest);
+        }
+        // Websocket에 발행된 메시지를 redis로 발행한다(publish)
+        redisPublisher.publish(chatRoomService.getTopic(String.valueOf(chatMessageRequest.getRoomID())), chatMessageRequest);
     }
 
-    private void handleChatMessage(Room room, Member member, ChatMessageRequest chatMessageRequest) {
+    /**
+     * 전체 전송 로그 저장
+     * @param roomID
+     * @param member
+     * @param chatMessageRequest
+     */
+    private void handleChatMessage(Long roomID, Member member, ChatMessageRequest chatMessageRequest) {
         WaitingChatLog waitingChatLog = WaitingChatLog.builder()
-                .roomID(room.getId())
+                .roomID(roomID)
                 .memberID(member.getId())
                 .content(chatMessageRequest.getContent())
                 .createdAt(LocalDateTime.now())
@@ -62,18 +71,21 @@ public class WaitingLogServiceImpl implements WaitingLogService{
 
         waitingChatLogRepository.save(waitingChatLog);
 
-         // String topic = channelTopic.getTopic();
-         // redisTemplate.convertAndSend(topic, chatMessageRequest);
+        // redisTemplate.convertAndSend(topic, chatMessageRequest);
     }
 
-    private void handleWhisperMessage(Room room, Member member, ChatMessageRequest chatMessageRequest) {
+    /**
+     * 귓속말 로그 저장
+     * @param roomID
+     * @param member
+     * @param chatMessageRequest
+     */
+    private void handleWhisperMessage(Long roomID, Member member, ChatMessageRequest chatMessageRequest) {
         Member recipient = findMember(chatMessageRequest.getRecipientID());
         chatMessageRequest.setRecipientNickName(recipient.getNickname());
 
-        System.out.println(recipient.getNickname());
-
         WaitingWhisperLog waitingWhisperLog = WaitingWhisperLog.builder()
-                .roomID(room.getId())
+                .roomID(roomID)
                 .memberID(member.getId())
                 .recipientID(recipient.getId())
                 .content(chatMessageRequest.getContent())
@@ -92,9 +104,10 @@ public class WaitingLogServiceImpl implements WaitingLogService{
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다. id=" + memberID));
     }
 
-    private Room findRoom(Long roomID){
-        return roomRepository.findById(roomID)
-                .orElseThrow(() -> new IllegalArgumentException("해당 방이 존재하지 않습니다. id=" + roomID));
+    private Boolean findRoom(Long roomID){
+        boolean existRoom = roomRepository.existsById(roomID);
+        if(!existRoom) throw new IllegalArgumentException("해당 방이 존재하지 않습니다. id=" + roomID);
+        return true;
     }
 
 }

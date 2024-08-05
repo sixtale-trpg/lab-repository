@@ -29,10 +29,19 @@ public class RedisSubscriber implements MessageListener {
         try {
             // redis에서 발행된 데이터를 받아 deserialize
             String publishMessage = (String) redisTemplate.getStringSerializer().deserialize(message.getBody());
-            // ChatMessage 객채로 맵핑
-            ChatMessage roomMessage = objectMapper.readValue(publishMessage, ChatMessage.class);
+            // JSON 문자열을 ChatMessageRequest 객체로 변환
+            ChatMessageRequest roomMessage = objectMapper.readValue(publishMessage, ChatMessageRequest.class);
+            // 받는 메시지 ChatMessageResponse로 데이터 가공
+            ChatMessageResponse chatMessageResponse = new ChatMessageResponse(roomMessage);
             // Websocket 구독자에게 채팅 메시지 Send
-            messagingTemplate.convertAndSend("/sub/chat/room/" + roomMessage.getRoomID(), roomMessage);
+            // 메시지 처리
+            if (roomMessage.getType().equals(MessageType.WHISPER)) {
+                // messagingTemplate.convertAndSend("/sub/chat/whisper/" + roomMessage.getRoomID() + "/"+roomMessage.getMemberID(), chatMessageResponse);
+                messagingTemplate.convertAndSend("/sub/chat/whisper/" + roomMessage.getRoomID() + "/"+roomMessage.getRecipientID(), chatMessageResponse);
+            }else {
+                messagingTemplate.convertAndSend("/sub/chat/room/" + roomMessage.getRoomID(), chatMessageResponse);
+            }
+
         } catch (Exception e) {
             log.error(e.getMessage());
         }

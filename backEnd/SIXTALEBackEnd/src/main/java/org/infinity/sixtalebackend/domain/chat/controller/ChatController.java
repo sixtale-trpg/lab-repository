@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(value = "*")
 public class ChatController {
     private final WaitingLogService waitingLogService;
-    private final RedisPublisher redisPublisher;
-    private final ChatRoomRepository chatRoomRepository;
     private final MemberRepository memberRepository;
 
 //    @MessageMapping("/chat/message")
@@ -37,7 +35,7 @@ public class ChatController {
 //        chatMessageService.sendMessage(chatMessageRequest, member);
 //    }
 
-    @MessageMapping("/waiting/chat/message")
+    @MessageMapping("/chat/message")
     public void handleWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
         // 대기방 채팅 처리
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
@@ -52,16 +50,16 @@ public class ChatController {
     /**
      * websocket "/pub/chat/message"로 들어오는 메시징을 처리한다.
      */
-    @MessageMapping("/chat/message")
-    public void message(ChatMessage message) {
-        if (MessageType.ENTER.equals(message.getType())) {
-            // 채팅 입장 시, 룸 아이디로 토픽 생성
-            chatRoomRepository.enterChatRoom(String.valueOf(message.getRoomID()));
-            message.setMessage(message.getSender()+ "님이 입장하셨습니다.");
-        }
-        // Websocket에 발행된 메시지를 redis로 발행한다(publish)
-        redisPublisher.publish(chatRoomRepository.getTopic(String.valueOf(message.getRoomID())), message);
-    }
+//    @MessageMapping("/chat/message")
+//    public void message(ChatMessage message) {
+//        if (MessageType.ENTER.equals(message.getType())) {
+//            // 채팅 입장 시, 룸 아이디로 토픽 생성
+//            chatRoomRepository.enterChatRoom(String.valueOf(message.getRoomID()));
+//            message.setMessage(message.getSender()+ "님이 입장하셨습니다.");
+//        }
+//        // Websocket에 발행된 메시지를 redis로 발행한다(publish)
+//        redisPublisher.publish(chatRoomRepository.getTopic(String.valueOf(message.getRoomID())), message);
+//    }
 
     private Member findMember(Long memberID){
         return memberRepository.findById(memberID)

@@ -1,18 +1,9 @@
 package org.infinity.sixtalebackend.domain.chat.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.infinity.sixtalebackend.domain.chat.domain.ChatRoom;
+import org.infinity.sixtalebackend.domain.chat.dto.ChatRoom;
 import org.infinity.sixtalebackend.domain.chat.repository.ChatRoomRepository;
-import org.infinity.sixtalebackend.domain.room.dto.RoomCreateRequest;
-import org.infinity.sixtalebackend.domain.room.dto.RoomResponse;
-import org.infinity.sixtalebackend.domain.room.service.RoomService;
 import org.infinity.sixtalebackend.domain.room.service.RoomServiceImpl;
-import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
-import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
-import org.infinity.sixtalebackend.global.common.response.StatusCode;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

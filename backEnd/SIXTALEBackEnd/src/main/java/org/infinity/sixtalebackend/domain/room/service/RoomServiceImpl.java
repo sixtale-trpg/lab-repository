@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.domain.room.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.infinity.sixtalebackend.domain.chat.service.ChatRoomService;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
@@ -30,6 +31,7 @@ public class RoomServiceImpl implements RoomService{
     private final PlayMemberRepository playMemberRepository;
     private final ScenarioRepository scenarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ChatRoomService chatRoomService;
 
     /**
      * 게임 방 유저 입장
@@ -56,6 +58,10 @@ public class RoomServiceImpl implements RoomService{
         // Room의 current_count 증가
         room.setCurrentCount((byte) (room.getCurrentCount() + 1));
         roomRepository.save(room);
+
+        /**
+         * 브로드캐스트로 입장 메시지 전송
+         */
 
         RoomResponse roomResponse = RoomResponse.builder()
                 .id(room.getId())
@@ -140,6 +146,12 @@ public class RoomServiceImpl implements RoomService{
                 .currentCount((byte) 1)  // 명시적 기본 값 설정
                 .build();
         roomRepository.save(room);
+
+        /**
+         * 방 생성시, Redis Topic생성을 위한 로직 추가
+         */
+        chatRoomService.createChatRoom(room.getId());
+
 
         return RoomResponse.builder()
                 .id(room.getId())

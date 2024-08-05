@@ -1,5 +1,6 @@
-package org.infinity.sixtalebackend.domain.chat.domain;
+package org.infinity.sixtalebackend.domain.chat.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
@@ -8,9 +9,8 @@ import java.io.Serializable;
 import java.util.UUID;
 
 @Getter
-@Setter
+@Builder
 public class ChatRoom implements Serializable {
-    // private static final long serialVersionUID = 6494678977089006639L;
 
     private String roomID;
     private String name;

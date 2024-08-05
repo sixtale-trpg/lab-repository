@@ -37,46 +37,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-stomp") // ws://localhost:8080/ws-stomp
+        registry.addEndpoint("/ws") // ws://localhost:8080/ws
                 .setAllowedOrigins("*");
-    }
-    /**
-     * stomp websocket의 경우, handshake도중에 custom header 사용할 수 없음
-     * ChannelInterceptor를 통해 정보 인증
-     * => configureClientInboundChannel 에서 CONNECT를 맽는 순간에 nativeHeader user정보 뽑아서 Principal을 세션에 지정
-     */
-
-    /**
-     *
-     * 현재 접속한 세션이 어떤 유저인지 binding 시킴
-     * -> 들어오는 세션에 대해 user를 매핑
-     * CONNECT를 맽는 순간에 nativeHeader user정보 뽑아서 Principal을 세션에 지정
-     * 이렇게 작업하거나 아니면 stompEndPoint 등록 시에 setHandshakeHandler를 등록 또는
-     * 별도의 filter를 만들어서 동작해도 됨
-     * @param registration
-     */
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                System.out.println(1111);
-                StompHeaderAccessor accessor =
-                        MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                System.out.println(accessor);
-                if(StompCommand.CONNECT.equals(accessor.getCommand())){
-                    String user = accessor.getFirstNativeHeader("user");
-                    System.out.println(user);
-                    if(user!=null){
-                        List<GrantedAuthority> authorities = new ArrayList<>();
-                        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-                        Authentication auth = new UsernamePasswordAuthenticationToken(user,user,authorities);
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                        accessor.setUser(auth);
-                    }
-                }
-                return message;
-            }
-        });
     }
 }

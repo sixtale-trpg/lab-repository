@@ -69,8 +69,8 @@ public class AuthController {
             
             // HTTP-Only 및 Secure 속성 사용해서 보안 강화하기 (예정)
             Cookie cookie = new Cookie("access-token", accessToken);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정
+            cookie.setHttpOnly(false);
+            cookie.setSecure(false); // HTTPS를 사용하는 경우에만 설정
             cookie.setPath("/");
             cookie.setMaxAge(86400); // 1일
 

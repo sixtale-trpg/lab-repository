@@ -24,7 +24,7 @@ public class CommonAction {
     @ColumnDefault("true")
     private Boolean isBasic;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ColumnDefault("false")

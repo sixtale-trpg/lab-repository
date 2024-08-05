@@ -21,5 +21,6 @@ app.use(VueAxios, axios);
 app.use(store);
 app.use(router);
 app.use(BootstrapVue3);
+app.use(pinia);
 
 app.mount('#app');

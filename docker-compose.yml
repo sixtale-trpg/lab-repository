@@ -63,10 +63,6 @@ services:
     environment:
       OPENVIDU_SECRET: "MY_SECRET"
       OPENVIDU_CDR: "false"
-    volumes: 
-      - /opt/openvidu/.env:/.env
-    env_file: 
-      - /opt/openvidu/.env
     ports:
       - "8443:8443"
     networks:

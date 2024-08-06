@@ -1,6 +1,8 @@
 package org.infinity.sixtalebackend.domain.rule.controller;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.infinity.sixtalebackend.domain.rule.dto.CharacterActionListResponse;
 import org.infinity.sixtalebackend.domain.rule.dto.JobListResponse;
 import org.infinity.sixtalebackend.domain.rule.dto.JobOptionListResponse;
 import org.infinity.sixtalebackend.domain.rule.service.RuleService;
@@ -56,4 +58,20 @@ public class RuleController {
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 공통 액션 조회
+     */
+    @GetMapping("/{ruleID}/actions")
+    public ResponseEntity getCommonActions(@PathVariable Long ruleID) {
+        try {
+            CharacterActionListResponse response = ruleServiceImpl.getCommonActions(ruleID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_COMMON_ACTION, response), HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_COMMON_ACTION_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

@@ -30,7 +30,8 @@ module.exports = {
     open: true,
     proxy: {
       '/api/v1': {
-        target: 'http://localhost:8080/'
+        target: 'http://localhost:8888/', // 백엔드 서버 주소로 변경
+        changeOrigin: true
       }
     },
     historyApiFallback: true,

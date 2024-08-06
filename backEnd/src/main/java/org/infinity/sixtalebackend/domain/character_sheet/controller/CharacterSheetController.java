@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetResponse;
+import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetUpdateRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.UpdateCharacterSheetResponse;
 import org.infinity.sixtalebackend.domain.character_sheet.service.CharacterSheetService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
@@ -27,7 +28,7 @@ public class CharacterSheetController {
     /**
      * 캐릭터 시트 작성
      */
-    @PostMapping
+    @PatchMapping
     public ResponseEntity createCharacterSheet(@PathVariable Long roomID, @RequestBody @Valid CharacterSheetRequest characterSheetRequest) {
         try {
             //memberID = 1L 가정
@@ -47,11 +48,9 @@ public class CharacterSheetController {
      * 캐릭터 시트 수정
      */
     @PutMapping("/{playMemberID}")
-    public ResponseEntity updateCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID, @RequestBody @Valid CharacterSheetRequest characterSheetRequest) {
+    public ResponseEntity updateCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID, @RequestBody @Valid CharacterSheetUpdateRequest characterSheetUpdateRequest) {
         try {
-            // memberID = 1L 가정
-//            Long memberID = 1L;
-            characterSheetService.updateCharacterSheet(roomID, playMemberID, characterSheetRequest);
+            characterSheetService.updateCharacterSheet(roomID, playMemberID, characterSheetUpdateRequest);
 
             // 현재 시각 설정
             String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

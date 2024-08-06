@@ -282,7 +282,7 @@ const contentStyle = computed(() => ({
 
 .nav-button {
   position: absolute;
-  top: 95%;
+  top: 105%;
   transform: translateY(-50%)translateX(-20%);
   width: 30px;
   height: 30px;
@@ -292,11 +292,11 @@ const contentStyle = computed(() => ({
 }
 
 .nav-button.prev {
-  left: 10px;
+  left: 3%;
 }
 
 .nav-button.next {
-  right: 10px;
+  right: 3%;
 }
 
 .modal-footer {

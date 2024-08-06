@@ -32,6 +32,11 @@ module.exports = {
       '/api/v1': {
         target: 'http://localhost:8888/', // 백엔드 서버 주소로 변경
         changeOrigin: true
+      },
+      '/ws': {
+        target: 'http://localhost:8080', // WebSocket 서버 주소
+        ws: true, // WebSocket 프록시 활성화
+        changeOrigin: true
       }
     },
     historyApiFallback: true,

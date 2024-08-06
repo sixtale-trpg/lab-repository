@@ -25,9 +25,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import WebSocketService from '@/store/WebSocketService'; // WebSocket 서비스 가져오기
 
-// 이미지를 동적으로 가져옵니다.
+// 이미지 동적 로드
 const background1 = require('@/assets/images/room/chat/chat_background1.png');
 const background2 = require('@/assets/images/room/chat/chat_background2.png');
 const tabAllImage = require('@/assets/images/room/chat/chat_all.png');
@@ -38,32 +39,40 @@ const sendButtonImage = require('@/assets/images/room/chat/Send_Button.png');
 
 const selectedTab = ref('all');
 const newMessage = ref('');
-const messages = ref([
-  { id: 1, sender: 'User1', text: '안녕하세요!', type: 'all' },
-  { id: 2, sender: 'User2', text: '안녕하세요, User1!', type: 'all' },
-  { id: 3, sender: 'User3', text: '안녕하세요!', type: 'whisper' },
-]);
+const messages = ref([]);
+
+// 컴포넌트가 마운트되면 WebSocket 연결 설정
+onMounted(() => {
+  WebSocketService.connect();
+
+  // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  WebSocketService.onMessageReceived((message) => {
+    messages.value.push(message); // 메시지 목록에 추가
+  });
+});
 
 const selectTab = (tab) => {
-  selectedTab.value = tab;
+  selectedTab.value = tab; // 탭 선택
 };
 
 const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
-  messages.value.push({
-    id: messages.value.length + 1,
-    sender: 'Me',
-    text: newMessage.value,
-    type: selectedTab.value,
-  });
-  newMessage.value = '';
+
+  const message = {
+    sender: 'Me', // 메시지 발신자
+    text: newMessage.value, // 메시지 내용
+    type: selectedTab.value, // 메시지 유형 (전체, 채팅, 귓속말)
+  };
+
+  WebSocketService.sendMessage(message); // 서버로 메시지 전송
+  newMessage.value = ''; // 입력 필드 초기화
 };
 
 const filteredMessages = computed(() => {
   if (selectedTab.value === 'all') {
-    return messages.value;
+    return messages.value; // 전체 메시지 반환
   }
-  return messages.value.filter((message) => message.type === selectedTab.value);
+  return messages.value.filter((message) => message.type === selectedTab.value); // 선택된 탭에 맞는 메시지 필터링
 });
 
 const chatSectionStyle = {

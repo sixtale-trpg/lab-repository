@@ -2,13 +2,11 @@
   <div :style="userCardStyle" class="user-card">
     <div class="user-profile">
       <div class="profile-image-container">
-        <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" />
+        <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" @click="showUserModal = true" />
         <img :src="avatarFrameImage" alt="테두리" class="avatar-frame" />
       </div>
     </div>
     <div class="user-actions">
-      <img src="@/assets/images/room/info.png" alt="보기" @click="showUserModal = true" />
-      <img src="@/assets/images/room/add-friend.png" alt="친구 추가" @click="showAddFriendModal = true" />
       <img v-if="isGM" src="@/assets/images/room/kick.png" alt="강퇴" @click="showKickModal = true" />
     </div>
     <div :style="userNameStyle" class="user-name" :title="user.name">{{ truncatedName }}</div>
@@ -131,6 +129,7 @@ const fetchUserProfile = async (userId) => {
   height: 90%;
   object-fit: cover;
   border-radius: 50%;
+  cursor: pointer;
 }
 
 .avatar-frame {
@@ -148,12 +147,12 @@ const fetchUserProfile = async (userId) => {
   gap: 5%;
   position: absolute;
   top: 2%;
-  right: -8%;
+  right: -2%;
   z-index: 1;
 }
 
 .user-actions img {
-  width: 20%;
+  width: 65%;
   height: auto;
   cursor: pointer;
 }

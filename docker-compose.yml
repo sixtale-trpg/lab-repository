@@ -64,7 +64,7 @@ services:
       OPENVIDU_SECRET: "MY_SECRET"
       OPENVIDU_CDR: "false"
     ports:
-      - "4443:4443"
+      - "8443:8443"
     networks:
       - backend-network
 

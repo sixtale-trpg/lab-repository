@@ -13,6 +13,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
@@ -80,6 +81,12 @@ public class AuthServiceImpl implements AuthService {
         String redirectURI = env.getProperty(envPath + "registration." + registrationID + ".redirect-uri");
         String tokenURI = env.getProperty(envPath + "provider." + registrationID + ".token-uri");
 
+        // 환경 변수 확인 로그
+        log.info("clientID: " + clientID);
+        log.info("clientSecret: " + clientSecret);
+        log.info("redirectURI: " + redirectURI);
+        log.info("tokenURI: " + tokenURI);
+
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("code", code);
         params.add("client_id", clientID);
@@ -90,12 +97,24 @@ public class AuthServiceImpl implements AuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        HttpEntity entity = new HttpEntity<>(params, headers);
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
 
-        ResponseEntity<JsonNode> responseNode = restTemplate.exchange(tokenURI, HttpMethod.POST, entity, JsonNode.class);
-        JsonNode accessTokenNode = responseNode.getBody();
+        try {
+            // 얘가 문제
+            ResponseEntity<JsonNode> responseNode = restTemplate.exchange(tokenURI, HttpMethod.POST, entity, JsonNode.class);
 
-        return accessTokenNode.get("access_token").asText();
+            log.info("Response: " + responseNode);
+            JsonNode accessTokenNode = responseNode.getBody();
+            log.info("here? 4");
+
+            return accessTokenNode.get("access_token").asText();
+        } catch (HttpClientErrorException e) {
+        log.error("HTTP Status Code: " + e.getStatusCode());
+        log.error("Response Body: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
+        return null;
     }
 
     public JsonNode getUserResource(String accessToken, String registrationID) {

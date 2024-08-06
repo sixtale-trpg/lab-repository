@@ -300,15 +300,11 @@ const stopDrag = () => {
   document.removeEventListener("mouseup", stopDrag);
 };
 
-const handleRollDice = (diceTypesToRoll) => {
-  console.log("주사위 굴림 이벤트를 받았습니다:", diceTypesToRoll);
-  if (threeJSManager) {
-    threeJSManager.rollDice(diceTypesToRoll).then((results) => {
-      results.forEach((result) =>
-        console.log(`${result.type}면체 주사위 결과: ${result.value}`)
-      );
-    });
-  }
+const handleDiceRolled = (results) => {
+  console.log("주사위 굴림 결과:", results);
+  results.forEach((result) =>
+    console.log(`${result.type}면체 주사위 결과: ${result.value}`)
+  );
 };
 
 const isLaserActive = (row, col) => {
@@ -352,7 +348,7 @@ const modalStyle = computed(() => ({
 
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
-  eventBus.on("roll-dice", handleRollDice);
+  eventBus.on("dice-rolled", handleDiceRolled);
   window.addEventListener("toggle-grid", (event) => {
     showGrid.value = event.detail;
   });
@@ -366,7 +362,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  eventBus.off("roll-dice", handleRollDice);
+  eventBus.off("dice-rolled", handleDiceRolled);
   window.removeEventListener("toggle-grid", () => {});
   window.removeEventListener("delete-token", () => {});
 });

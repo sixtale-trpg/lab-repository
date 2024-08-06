@@ -36,4 +36,12 @@ public interface CharacterSheetRepository extends JpaRepository<CharacterSheet, 
     Optional<CharacterSheet> findByPlayMember(PlayMember playMember);
 
     Optional<CharacterSheet> findByPlayMemberId(Long playMemberID);
+
+    @Query("SELECT cs FROM CharacterSheet cs " +
+            "JOIN FETCH cs.job j " +
+            "LEFT JOIN FETCH cs.characterActions ca " +
+            "LEFT JOIN FETCH ca.jobAction ja " +
+            "LEFT JOIN FETCH ja.actionOptions ao " + // 모두 다 가져오는게 좋으려나? 오히려 손해?
+            "WHERE cs.playMember.id = :playMemberId")
+    Optional<CharacterSheet> findByPlayMemberWithActions(@Param("playMemberId") Long playMemberId);
 }

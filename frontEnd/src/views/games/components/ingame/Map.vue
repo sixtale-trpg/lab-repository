@@ -15,6 +15,7 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
+      <span class="token-coordinates">{{ `(${token.x.toFixed(1)}, ${token.y.toFixed(1)})` }}</span>
     </div>
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
@@ -411,6 +412,19 @@ onUnmounted(() => {
 .token img {
   width: 100%;
   height: 100%;
+}
+
+.token-coordinates {
+  position: absolute;
+  top: -20px; /* Position above the token */
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  pointer-events: none; /* Ensure it doesn't interfere with drag events */
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .grid-overlay {

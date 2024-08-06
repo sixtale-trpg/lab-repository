@@ -24,7 +24,7 @@ public class CommonAction {
     @ColumnDefault("true")
     private Boolean isBasic;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ColumnDefault("false")
@@ -36,7 +36,7 @@ public class CommonAction {
 
     private Integer diceCount;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 }

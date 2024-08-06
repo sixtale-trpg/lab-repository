@@ -14,12 +14,12 @@ public class ScenarioLike {
     @EmbeddedId
     private ScenarioLikeID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("scenarioID")
     @JoinColumn(name = "scenario_id")
     private Scenario scenario;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("memberID")
     @JoinColumn(name = "member_id")
     private Member member;

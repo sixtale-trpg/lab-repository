@@ -1,15 +1,25 @@
 <template>
   <div class="main-content-inner">
     <div class="map-container">
-      <Map class="map" />
+      <!-- Map에 selectedMap을 prop으로 전달 -->
+      <Map class="map" :selectedMap="selectedMap" />
     </div>
     <RightGrid class="right-grid" />
   </div>
 </template>
 
 <script setup>
+import { defineProps } from 'vue';
 import Map from '@/views/games/components/ingame/Map.vue';
 import RightGrid from '@/views/games/components/ingame/RightGrid.vue';
+
+// Props 정의
+const props = defineProps({
+  selectedMap: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 </script>
 
 <style scoped>

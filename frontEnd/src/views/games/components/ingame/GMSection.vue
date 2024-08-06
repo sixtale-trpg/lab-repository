@@ -1,34 +1,35 @@
 <template>
   <div class="gm-section-container" :style="backgroundStyle">
     <div class="gm-info-box">
-      <img :src="gmImage" alt="Game Master" class="gm-image">
-      <p class="gm-name">{{ gmNickname }}</p>
+      <img :src="gmImage" alt="Game Master" class="gm-image" />
+      <p class="gm-name">{{ gm.nickname }}</p>
+      <VoiceChatButton :userId="gm.id" /> <!-- GM의 음성 채팅 버튼 -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-// import axios from 'axios'; // 필요 시 axios 사용
+import { ref } from 'vue';
+import VoiceChatButton from '../../VoiceChatButton.vue'; // VoiceChatButton 컴포넌트 임포트
 
 const props = defineProps({
-  gm: {
-    type: Object,
-    required: true
-  },
   isGM: {
     type: Boolean,
-    required: true
+    required: true,
   },
   canStartGame: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
-const gmNickname = ref('미카엘');
+// 더미 데이터로 GM 정보 설정
+const gm = ref({
+  id: 9, // GM의 고유 ID를 하드코딩으로 설정
+  nickname: '미카엘', // GM의 닉네임
+});
 
-// 배경 이미지 설정
+// 배경 이미지와 GM 이미지 설정
 const backgroundImage = require('@/assets/images/ingame/Border2.png');
 const gmImage = require('@/assets/images/ingame/GM.png');
 
@@ -36,32 +37,21 @@ const backgroundStyle = {
   backgroundImage: `url(${backgroundImage})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  padding: '2px', 
+  padding: '2px',
   boxSizing: 'border-box',
-  height: '5%', 
+  height: '5%',
   display: 'flex',
   alignItems: 'center',
 };
 
-// GM 닉네임 가져오는 로직 (주석 처리)
-/*
-onMounted(() => {
-  axios.get('/rooms/:roomID')
-    .then(response => {
-      gmNickname.value = response.data.data.gmNickname;
-    })
-    .catch(error => {
-      console.error("Error fetching GM nickname:", error);
-    });
-});
-*/
+console.log('GM 정보:', gm.value); // GM 정보 로그 출력
 </script>
 
 <style scoped>
 .gm-section-container {
   display: flex;
   align-items: center;
-  justify-content: center; 
+  justify-content: center;
   box-sizing: border-box;
   border: 1px solid #5a4d41;
 }
@@ -72,11 +62,11 @@ onMounted(() => {
   text-align: center;
   padding: 5px;
   color: #ffffff;
-  overflow: hidden; 
+  overflow: hidden;
   display: flex;
-  flex-direction: row; 
+  flex-direction: row;
   justify-content: center;
-  align-items: center; 
+  align-items: center;
 }
 
 .gm-image {
@@ -86,9 +76,9 @@ onMounted(() => {
 
 .gm-name {
   margin: 0;
-  white-space: nowrap; 
+  white-space: nowrap;
   font-size: 1.1rem;
-  overflow: hidden; 
-  text-overflow: ellipsis; 
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

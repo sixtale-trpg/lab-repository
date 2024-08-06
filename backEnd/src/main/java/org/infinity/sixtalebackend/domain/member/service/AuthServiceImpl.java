@@ -6,6 +6,7 @@ import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.domain.Provider;
 import org.infinity.sixtalebackend.domain.member.dto.AuthResponse;
 import org.infinity.sixtalebackend.domain.member.repository.AuthRepository;
+import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.springframework.core.env.Environment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -22,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthRepository authRepository;
     private final Environment env;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final MemberRepository memberRepository;
 
     public Member socialLogin(String code, String registrationID) {
         log.info("======================================================");
@@ -31,16 +35,18 @@ public class AuthServiceImpl implements AuthService {
         AuthResponse authResponse = new AuthResponse();
         log.info("userResource = {}", authResponse);
 
+        String providerID = null;
+
         switch (registrationID) {
             case "google": {
-                authResponse.setId(userResourceNode.get("id").asText());
+                providerID = userResourceNode.get("id").toString();
                 authResponse.setEmail(userResourceNode.get("email").asText());
-                authResponse.setNickname(userResourceNode.get("name").asText());
+                authResponse.setNickname(UUID.randomUUID().toString());
                 break;
             } case "naver": {
-                authResponse.setId(userResourceNode.get("response").get("id").asText());
+                providerID = userResourceNode.get("response").get("id").toString();
                 authResponse.setEmail(userResourceNode.get("response").get("email").asText());
-                authResponse.setNickname(userResourceNode.get("response").get("name").asText());
+                authResponse.setNickname(UUID.randomUUID().toString());
                 break;
             } default: {
                 throw new RuntimeException("UNSUPPORTED SOCIAL TYPE");
@@ -52,13 +58,13 @@ public class AuthServiceImpl implements AuthService {
 
         Member findMember = authRepository.findByEmail(authResponse.getEmail());
         if (findMember == null) {
-            Member member = new Member(
-                    authResponse.getEmail(),
-                    authResponse.getNickname(),
-                    accessToken,
-                    Provider.valueOf(registrationID.toUpperCase()),
-                    authResponse.getId(),
-                    false);
+            Member member = Member.builder()
+                    .email(authResponse.getEmail())
+                    .nickname(authResponse.getNickname())
+                    .provider(Provider.valueOf(registrationID.toUpperCase()))
+                    .providerUserID(providerID)
+                    .isWithdrawn(false)
+                    .build();
             authRepository.save(member);
         }
         findMember = authRepository.findByEmail(authResponse.getEmail());
@@ -84,10 +90,11 @@ public class AuthServiceImpl implements AuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        HttpEntity entity = new HttpEntity(params, headers);
+        HttpEntity entity = new HttpEntity<>(params, headers);
 
         ResponseEntity<JsonNode> responseNode = restTemplate.exchange(tokenURI, HttpMethod.POST, entity, JsonNode.class);
         JsonNode accessTokenNode = responseNode.getBody();
+
         return accessTokenNode.get("access_token").asText();
     }
 
@@ -109,6 +116,12 @@ public class AuthServiceImpl implements AuthService {
     public void withdraw(Member member) {
         Member findMember = authRepository.findById(member.getId()).get();
         findMember.setIsWithdrawn(true);
+    }
+
+    @Override
+    public void saveAccessToken(Member member, String accessToken) {
+        Member findMember = memberRepository.findById(member.getId()).get();
+        findMember.setAccessToken(accessToken);
     }
 
 }

@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.domain.character_sheet.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import org.infinity.sixtalebackend.domain.model.DiceType;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
 public class CharacterSheetResponse {
     private Long jobId;
     private String jobName;
+    private DiceType jobDiceType; //피해 주사위 종류
     private Long raceId;
     private String raceName;
     private String raceDescription;

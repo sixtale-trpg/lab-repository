@@ -18,14 +18,14 @@ public class NPCEvent {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "map_id", nullable = false)
     private Map map;
 
     @Column(length = 100)
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "npc_id", nullable = false)
     private ScenarioNPC scenarioNPC;
 

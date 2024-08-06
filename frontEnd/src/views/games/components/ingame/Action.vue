@@ -30,7 +30,7 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
-            :style="actionItemStyle"
+            :style="getActionItemStyle(action.id)"
           >
             {{ action.name }}
           </div>
@@ -56,7 +56,7 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
-            :style="actionItemStyle"
+            :style="getActionItemStyle(action.id)"
           >
             {{ action.name }}
           </div>
@@ -65,7 +65,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import { ref, computed, watch } from 'vue';
@@ -76,9 +75,13 @@ export default {
     const actionAreaBackground = require('@/assets/images/ingame/Border5.png');
     const coreActionImage = require('@/assets/images/ingame/CoreAction.png');
     const advancedActionImage = require('@/assets/images/ingame/AdvancedAction.png');
+    const coreActionSelectImage = require('@/assets/images/ingame/CoreActionSelect.png');
+    const advancedActionSelectImage = require('@/assets/images/ingame/AdvancedActionSelect.png');
     const actionListImage = require('@/assets/images/ingame/ActionList.png');
+    const actionListHoverImage = require('@/assets/images/ingame/ActionListHover.png');
+    const actionListSelectImage = require('@/assets/images/ingame/ActionListSelect.png');
     const tabImage = require('@/assets/images/ingame/Tab.png');
-    
+
     const backgroundStyle = {
       backgroundImage: `url(${actionAreaBackground})`,
       backgroundSize: '100% 100%',
@@ -93,12 +96,12 @@ export default {
       height: '100%',
       position: 'relative',
     };
-    
+
     const tabs = ref([
       { name: 'common', label: '공통' },
       { name: 'job', label: selectedUserJob.value || '직업' }
     ]);
-    
+
     const commonSubTabs = ref([
       { name: 'basic', label: '기본액션' },
       { name: 'special', label: '특수액션' }
@@ -284,6 +287,7 @@ export default {
   }
 });
 
+
     // 실제 백엔드 연동 시 사용할 함수 (주석 처리)
     /*
     const fetchRuleData = async (ruleID) => {
@@ -304,6 +308,7 @@ export default {
     };
     */
 
+
     // 현재 액션 목록을 선택된 탭과 전역 상태의 직업에 따라 필터링
     const currentActions = computed(() => {
       if (selectedTab.value === 'job') {
@@ -317,7 +322,6 @@ export default {
       return [];
     });
 
-  
     const tabStyle = (tabName) => {
       return {
         background: selectedTab.value === tabName
@@ -348,20 +352,42 @@ export default {
 
     const subTabStyle = (subTabName) => {
       const isCoreOrBasic = subTabName === 'core' || subTabName === 'basic';
+      const isSelected = selectedSubTab.value === subTabName;
+      const imagePath = isSelected
+        ? (isCoreOrBasic ? coreActionSelectImage : advancedActionSelectImage)
+        : (isCoreOrBasic ? coreActionImage : advancedActionImage);
       return {
-        backgroundImage: `url(${isCoreOrBasic ? coreActionImage : advancedActionImage})`,
+        backgroundImage: `url(${imagePath})`,
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
       };
     };
 
-    const actionItemStyle = {
-      backgroundImage: `url(${require('@/assets/images/ingame/ActionList.png')})`,
-      backgroundSize: '100% 100%',
-      backgroundPosition: 'center',
-      width: '45%',
-      backgroundRepeat: 'no-repeat',
+    const getActionItemStyle = (actionId) => {
+  const isSelected = selectedAction.value === actionId;
+  const baseStyle = {
+    backgroundSize: '100% 100%',
+    backgroundPosition: 'center',
+    width: '45%',
+    backgroundRepeat: 'no-repeat',
+  };
+
+  if (isSelected) {
+    return {
+      ...baseStyle,
+      backgroundImage: `url(${actionListSelectImage})`,
     };
+  }
+
+  return {
+    ...baseStyle,
+    backgroundImage: `url(${actionListImage})`,
+    ':hover': {
+      backgroundImage: `url(${actionListHoverImage})`,
+    },
+  };
+};
+
 
     watch(selectedPlayMemberID, async (newID) => {
       console.log('Selected play member ID changed to:', newID);
@@ -382,7 +408,7 @@ export default {
       selectAction,
       subTabStyle,
       tabStyle,
-      actionItemStyle
+      getActionItemStyle
     };
   }
 };
@@ -405,23 +431,23 @@ export default {
 
 .tabs button {
   flex: 1;
-  padding: 0; /* 여백 제거 */
+  padding: 0; 
   border: none;
   background-color: transparent;
-  background-size: cover; /* 이미지가 버튼을 완전히 덮도록 */
-  background-position: center; /* 이미지를 중앙에 배치 */
+  background-size: cover; 
+  background-position: center; 
   color: white;
   cursor: pointer;
-  font-size: 1.2rem; /* 글자 크기 */
+  font-size: 1.2rem; 
   display: flex;
-  align-items: center; /* 세로 중앙 정렬 */
-  justify-content: center; /* 가로 중앙 정렬 */
+  align-items: center; 
+  justify-content: center; 
   height: 100%;
-  box-sizing: border-box; /* 패딩과 테두리를 포함한 크기 계산 */
+  box-sizing: border-box; 
 }
 
 .tabs button.active {
-  background-color: #000000; /* 선택된 탭의 배경색 */
+  background-color: #000000; 
 }
 
 .tabs button:not(.active) {
@@ -461,9 +487,6 @@ export default {
 }
 
 
-.sub-tabs button.active {
-  border: 1px solid #ffffff;
-}
 
 
 .action-list-container {
@@ -504,14 +527,6 @@ export default {
   box-sizing: border-box;
 }
 
-.action-item:hover {
-  transform: scale(1.05);
-  border-color: #ffffff;
-}
-
-.action-item.selected {
-  border: 1px solid #ffffff;
-}
 
 /* Chrome, Edge, Safari 스크롤바 커스터마이징 */
 .action-list::-webkit-scrollbar {
@@ -529,4 +544,3 @@ export default {
   border: 1px solid #5e3b13;
 }
 </style>
-

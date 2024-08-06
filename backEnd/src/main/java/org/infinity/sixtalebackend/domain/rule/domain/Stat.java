@@ -17,7 +17,7 @@ public class Stat {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 }

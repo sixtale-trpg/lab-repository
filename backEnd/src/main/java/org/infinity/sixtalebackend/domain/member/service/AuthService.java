@@ -8,4 +8,6 @@ public interface AuthService {
     public String getAccessToken(String code, String registrationID);
     public JsonNode getUserResource(String accessToken, String registrationID);
     public void withdraw(Member meber);
+
+    void saveAccessToken(Member member, String accessToken);
 }

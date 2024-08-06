@@ -58,15 +58,6 @@ services:
     networks:
       - backend-network
 
-  openvidu:
-    image: openvidu/openvidu-server-kms:latest
-    environment:
-      OPENVIDU_SECRET: "MY_SECRET"
-      OPENVIDU_CDR: "false"
-    ports:
-      - "8443:8443"
-    networks:
-      - backend-network
-
+  
 networks:
   backend-network:

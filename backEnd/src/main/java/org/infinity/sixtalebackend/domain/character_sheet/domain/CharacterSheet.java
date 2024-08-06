@@ -2,12 +2,14 @@ package org.infinity.sixtalebackend.domain.character_sheet.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
-import org.infinity.sixtalebackend.domain.rule.domain.Belief;
-import org.infinity.sixtalebackend.domain.rule.domain.Job;
-import org.infinity.sixtalebackend.domain.rule.domain.Race;
+import org.infinity.sixtalebackend.domain.rule.domain.*;
+
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -17,25 +19,24 @@ import org.infinity.sixtalebackend.domain.rule.domain.Race;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CharacterSheet {
-
     @Id
-    @Column(name = "play_member_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id;
 
-    @OneToOne
-    @MapsId
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "play_member_id")
     private PlayMember playMember;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "belief_id", nullable = false)
     private Belief belief;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "race_id", nullable = false)
     private Race race;
 
@@ -86,4 +87,16 @@ public class CharacterSheet {
 
     @Column(nullable = false, name="image_url")
     private String imageURL;
+
+    @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<CharacterStat> characterStats;
+
+    @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<CharacterEquipment> characterEquipments;
+
+    @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
+    private Set<CharacterAction> characterActions;
 }

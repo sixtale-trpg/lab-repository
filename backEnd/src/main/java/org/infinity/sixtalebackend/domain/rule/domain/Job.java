@@ -5,6 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.infinity.sixtalebackend.domain.model.DiceType;
 
+import java.util.List;
+import java.util.Set;
+
 @Entity
 @Getter
 @Builder
@@ -36,12 +39,18 @@ public class Job {
     @Enumerated(EnumType.STRING)
     private DiceType diceType;
 
+    @Column(name = "image_url")
     private String imageURL;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id")
     private Rule rule;
 
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<JobBelief> jobBeliefs;
+
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<JobRace> jobRaces;
     @PrePersist
     public void prePersist() {
         if (diceType == null) {

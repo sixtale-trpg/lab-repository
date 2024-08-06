@@ -5,17 +5,19 @@
         v-for="(item, index) in items"
         :key="index"
         class="inventory-slot"
+        @click="openItemInfoModal(item)"
       >
         <template v-if="item">
           <img :src="item.image" :alt="item.name" class="inventory-item" />
-          <button @click="removeItem(index)" class="remove-item-button">
+          <span class="item-count">{{ item.count }}</span>
+          <button @click.stop="confirmDelete(item, index)" class="remove-item-button">
             <img :src="require('@/assets/images/ingame/Trash.png')" alt="Delete" class="delete" />
           </button>
         </template>
       </div>
       <div v-if="items.length < maxSlots">
-        <button @click="showItemSelection" class="add-item-button">
-          <img :src="require('@/assets/images/ingame/Plus.png')" alt="Add" class="add" />
+        <button @click="openAddItemModal" class="add-item-button">
+          <img :src="require('@/assets/images/ingame/Plus2.png')" alt="Add" class="add" />
         </button>
       </div>
     </div>
@@ -23,35 +25,66 @@
       <div class="info-box weight-info" :style="infoBoxStyle">
         <img :src="require('@/assets/images/ingame/weight.png')" alt="weight-icon" class="gold-icon"> WEIGHT: {{ currentWeight }}/{{ limitWeight }}
       </div>
-      <div class="info-box gold-info" :style="infoBoxStyle">
+      <div class="info-box gold-info" :style="infoBoxStyle" @click="openGoldModal">
         <img :src="require('@/assets/images/ingame/Gold.png')" alt="Gold" class="gold-icon"> GOLD: {{ currentGold }}
       </div>
-      <button class="save-button" :style="saveButtonStyle">
-        저장
-      </button>
     </div>
-    <div v-if="itemSelectionVisible" class="item-selection-modal">
-      <div class="item-selection-content">
-        <h3>아이템 선택</h3>
-        <div v-for="availableItem in availableItems" :key="availableItem.id" class="available-item" @click="selectItem(availableItem)">
-          <img :src="availableItem.image" :alt="availableItem.name" />
-          <span>{{ availableItem.name }}</span>
-        </div>
-        <button @click="closeItemSelection">닫기</button>
-      </div>
-    </div>
+    <AddItemModal 
+      v-if="isAddItemModalVisible" 
+      @close="closeAddItemModal" 
+      @select-item="addItem" 
+      :current-weight="currentWeight" 
+      :total-weight="limitWeight"
+    />
+    <ItemInfoModal 
+      v-if="isItemInfoModalVisible" 
+      :item="selectedItem" 
+      :isGM="isGM" 
+      :currentWeight="currentWeight" 
+      :totalWeight="limitWeight"
+      @close="closeItemInfoModal" 
+      @update-item="updateItem"
+    />
+    <GoldModal 
+      v-if="isGoldModalVisible" 
+      :isVisible="isGoldModalVisible" 
+      :isGM="isGM" 
+      @close="closeGoldModal" 
+      @update-gold="updateGold" 
+      :current-gold="currentGold"
+    />
+    <ConfirmDeleteModal
+      v-if="isConfirmDeleteModalVisible"
+      :isVisible="isConfirmDeleteModalVisible"
+      :item="selectedItem"
+      @close="closeConfirmDeleteModal"
+      @confirm="deleteItem"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
-import { selectedPlayMemberID } from '@/store/state.js'; // 전역 상태에서 선택된 플레이어 ID 가져오기
+import { selectedPlayMemberID } from '@/store/state.js';
+import AddItemModal from '@/views/games/components/Modal/AddItemModal.vue';
+import ItemInfoModal from '@/views/games/components/Modal/ItemInfoModal.vue';
+import GoldModal from '@/views/games/components/Modal/GoldModal.vue';
+import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModal.vue';
 
 const items = reactive([]);
 const maxSlots = 18;
 const currentWeight = ref(5);
 const limitWeight = ref(11);
 const currentGold = ref(7);
+const selectedItem = ref(null);
+const selectedIndex = ref(null);
+const isGM = ref(true);
+
+const isAddItemModalVisible = ref(false);
+const isItemInfoModalVisible = ref(false);
+const isGoldModalVisible = ref(false);
+const isConfirmDeleteModalVisible = ref(false);
+
 const backgroundStyle = {
   backgroundImage: `url(${require('@/assets/images/ingame/Border4.png')})`,
   backgroundSize: '100% 100%',
@@ -75,91 +108,53 @@ const infoBoxStyle = {
   textAlign: 'center',
   fontSize: '0.7rem',
   margin: '0 5px',
-  flex: '0 0 30%',
+  flex: '0 0 40%',
   boxSizing: 'border-box',
 };
-
-const saveButtonStyle = {
-  backgroundImage: `url(${require('@/assets/images/ingame/Save.png')})`,
-  backgroundSize: 'contain',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-  flex: '0 0 20%',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  cursor: 'pointer',
-  color: 'white',
-  fontSize: '1rem',
-  padding: '5px 10px',
-  boxSizing: 'border-box',
-  backgroundColor: 'transparent',
-};
-
-const itemSelectionVisible = ref(false);
-const availableItems = ref([
-  { id: 1, name: 'Sword', image: require('@/assets/images/ingame/Sword.png') },
-  { id: 2, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png') },
-]);
 
 const fetchUserItems = async (playMemberID) => {
-  // 임시 데이터
   const dummyItems = [
     [
-      { id: 1, name: 'Sword', image: require('@/assets/images/ingame/Sword.png') },
-      { id: 2, name: 'Shield', image: require('@/assets/images/ingame/Shield.png') },
+      { id: 1, name: 'Sword', image: require('@/assets/images/ingame/Sword.png'), count: 1, weight: 2 },
+      { id: 2, name: 'Shield', image: require('@/assets/images/ingame/Shield.png'), count: 1, weight: 5 },
     ],
     [
-      { id: 3, name: 'Potion', image: require('@/assets/images/ingame/Potion.png') },
-      { id: 4, name: 'Bow', image: require('@/assets/images/ingame/Bow.png') },
+      { id: 3, name: 'Potion', image: require('@/assets/images/ingame/Potion.png'), count: 1, weight: 1 },
+      { id: 4, name: 'Bow', image: require('@/assets/images/ingame/Bow.png'), count: 1, weight: 3 },
     ],
     [
-      { id: 5, name: 'Arrow', image: require('@/assets/images/ingame/Arrow.png') },
-      { id: 6, name: 'Magic Staff', image: require('@/assets/images/ingame/MagicStaff.png') },
+      { id: 5, name: 'Arrow', image: require('@/assets/images/ingame/Arrow.png'), count: 1, weight: 0.5 },
+      { id: 6, name: 'Magic Staff', image: require('@/assets/images/ingame/MagicStaff.png'), count: 1, weight: 4 },
     ],
     [
-      { id: 7, name: 'Armor', image: require('@/assets/images/ingame/Armor.png') },
-      { id: 8, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png') },
+      { id: 7, name: 'Armor', image: require('@/assets/images/ingame/Armor.png'), count: 1, weight: 7 },
+      { id: 8, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png'), count: 1, weight: 2 },
     ],
     [
-      { id: 9, name: 'Ring', image: require('@/assets/images/ingame/Ring.png') },
-      { id: 10, name: 'Amulet', image: require('@/assets/images/ingame/Amulet.png') },
+      { id: 9, name: 'Ring', image: require('@/assets/images/ingame/Ring.png'), count: 1, weight: 0.2 },
+      { id: 10, name: 'Amulet', image: require('@/assets/images/ingame/Amulet.png'), count: 1, weight: 0.3 },
     ],
     [
-      { id: 11, name: 'Boots', image: require('@/assets/images/ingame/Boots.png') },
-      { id: 12, name: 'Gloves', image: require('@/assets/images/ingame/Gloves.png') },
+      { id: 11, name: 'Boots', image: require('@/assets/images/ingame/Boots.png'), count: 1, weight: 1.5 },
+      { id: 12, name: 'Gloves', image: require('@/assets/images/ingame/Gloves.png'), count: 1, weight: 0.5 },
     ],
     [
-      { id: 13, name: 'Torch', image: require('@/assets/images/ingame/Torch.png') },
-      { id: 14, name: 'Map', image: require('@/assets/images/ingame/Maps.png') },
+      { id: 13, name: 'Torch', image: require('@/assets/images/ingame/Torch.png'), count: 1, weight: 1 },
+      { id: 14, name: 'Map', image: require('@/assets/images/ingame/Maps.png'), count: 1, weight: 0.1 },
     ],
     [
-      { id: 15, name: 'Rope', image: require('@/assets/images/ingame/Rope.png') },
-      { id: 16, name: 'Lantern', image: require('@/assets/images/ingame/Lantern.png') },
+      { id: 15, name: 'Rope', image: require('@/assets/images/ingame/Rope.png'), count: 1, weight: 3 },
+      { id: 16, name: 'Lantern', image: require('@/assets/images/ingame/Lantern.png'), count: 1, weight: 2 },
     ],
   ];
 
   const userIndex = (playMemberID - 1) % dummyItems.length;
   items.splice(0, items.length, ...dummyItems[userIndex]);
+  updateCurrentWeight();
+};
 
-  // 실제 API 요청 부분 (주석 처리)
-  /*
-  try {
-    const response = await axios.get(`/rooms/${roomID}/sheets/${playMemberID}`);
-    if (response.data.statusCode === 200) {
-      const characterItems = response.data.data.characterEquipment.map(equipment => ({
-        id: equipment.id,
-        name: equipment.name,
-        image: equipment.imageURL,
-        description: equipment.description,
-      }));
-      items.splice(0, items.length, ...characterItems);
-    }
-  } catch (error) {
-    console.error('Error fetching user items:', error);
-  }
-  */
+const updateCurrentWeight = () => {
+  currentWeight.value = items.reduce((acc, item) => acc + (item.weight * item.count), 0);
 };
 
 watch(selectedPlayMemberID, (newID) => {
@@ -168,57 +163,71 @@ watch(selectedPlayMemberID, (newID) => {
   }
 });
 
-const showItemSelection = () => {
-  itemSelectionVisible.value = true;
+const openAddItemModal = () => {
+  isAddItemModalVisible.value = true;
 };
 
-const selectItem = (availableItem) => {
+const closeAddItemModal = () => {
+  isAddItemModalVisible.value = false;
+};
+
+const openItemInfoModal = (item) => {
+  selectedItem.value = item;
+  isItemInfoModalVisible.value = true;
+};
+
+const closeItemInfoModal = () => {
+  isItemInfoModalVisible.value = false;
+  selectedItem.value = null;
+};
+
+const openGoldModal = () => {
+  if (isGM.value) {
+    isGoldModalVisible.value = true;
+  }
+};
+
+const closeGoldModal = () => {
+  isGoldModalVisible.value = false;
+};
+
+const confirmDelete = (item, index) => {
+  selectedItem.value = item;
+  selectedIndex.value = index;
+  isConfirmDeleteModalVisible.value = true;
+};
+
+const closeConfirmDeleteModal = () => {
+  isConfirmDeleteModalVisible.value = false;
+  selectedItem.value = null;
+  selectedIndex.value = null;
+};
+
+const deleteItem = () => {
+  if (selectedIndex.value !== null) {
+    items.splice(selectedIndex.value, 1);
+    updateCurrentWeight();
+    closeConfirmDeleteModal();
+  }
+};
+
+const addItem = (item) => {
   if (items.length < maxSlots) {
-    items.push({ ...availableItem, count: 1 });
-  }
-  itemSelectionVisible.value = false;
-};
-
-const closeItemSelection = () => {
-  itemSelectionVisible.value = false;
-};
-
-const removeItem = (index) => {
-  items.splice(index, 1);
-};
-
-const confirmSave = () => {
-  if (confirm("현재 아이템 정보를 저장하시겠습니까?")) {
-    saveInventory();
+    items.push(item);
+    updateCurrentWeight();
   }
 };
 
-const saveInventory = async () => {
-  // 실제 서버로 전송할 데이터 구조
-  const payload = {
-    characterEquipment: items.map(item => ({
-      equipmentId: item.id,
-      currentCount: item.count || 1, // 개수를 나타내는 속성 (가정)
-      weight: item.weight || 0, // 무게 속성 (가정)
-    })),
-    currentWeight: currentWeight.value,
-    currentMoney: currentGold.value,
-    // 추가로 필요한 다른 데이터들...
-  };
-
-  console.log('Saving inventory with payload:', payload);
-
-  // 실제 API 요청 부분 (주석 처리)
-  /*
-  try {
-    const response = await axios.put(`/rooms/${roomID}/sheets/${selectedPlayMemberID.value}`, payload);
-    if (response.data.statusCode === 200) {
-      alert('저장되었습니다.');
-    }
-  } catch (error) {
-    console.error('Error saving inventory:', error);
+const updateItem = (updatedItem) => {
+  const itemIndex = items.findIndex(item => item.id === updatedItem.id);
+  if (itemIndex !== -1) {
+    items[itemIndex] = updatedItem;
+    updateCurrentWeight();
   }
-  */
+};
+
+const updateGold = (newGoldAmount) => {
+  currentGold.value = newGoldAmount;
 };
 
 onMounted(() => {
@@ -275,7 +284,7 @@ html, body {
 
 .inventory-info {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
   padding: 5px 0;
   width: 100%;
@@ -291,28 +300,14 @@ html, body {
   border-radius: 5px;
   color: white;
   box-sizing: border-box;
+  flex: 1;
 }
 
 .gold-icon, .weight-icon {
-  width: 16px; 
-  height: 16px; 
-  margin-left: 5px; 
-  vertical-align: middle; 
-}
-
-.save-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 5px 10px;
-  box-sizing: border-box;
-  background-color: transparent;
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+  vertical-align: middle;
 }
 
 .inventory-slot {
@@ -333,14 +328,23 @@ html, body {
   object-fit: cover;
 }
 
+.item-count {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 0.8rem;
+}
+
 .remove-item-button {
   position: absolute;
   top: 2px;
   right: 2px;
-  background: red;
-  color: white;
+  background: none;
   border: none;
-  border-radius: 50%;
   width: 20px;
   height: 20px;
   cursor: pointer;
@@ -358,40 +362,5 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.item-selection-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 3;
-}
-
-.item-selection-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.available-item {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  margin-bottom: 10px;
-}
-
-.available-item img {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
 }
 </style>

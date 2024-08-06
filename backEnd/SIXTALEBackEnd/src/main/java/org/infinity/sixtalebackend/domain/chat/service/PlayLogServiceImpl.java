@@ -1,11 +1,15 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import org.infinity.sixtalebackend.domain.chat.domain.PlayChatLog;
+import org.infinity.sixtalebackend.domain.chat.domain.PlayWhisperLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingWhisperLog;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.infinity.sixtalebackend.domain.chat.dto.MessageType;
 import org.infinity.sixtalebackend.domain.chat.dto.RoomType;
+import org.infinity.sixtalebackend.domain.chat.repository.PlayChatLogRepository;
+import org.infinity.sixtalebackend.domain.chat.repository.PlayWhisperLogRepository;
 import org.infinity.sixtalebackend.domain.chat.repository.WaitingChatLogRepository;
 import org.infinity.sixtalebackend.domain.chat.repository.WaitingWhisperLogRepository;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
@@ -17,13 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+
 @Service
 @RequiredArgsConstructor
-public class WaitingLogServiceImpl implements WaitingLogService{
+public class PlayLogServiceImpl implements PlayLogService{
     private final RoomRepository roomRepository;
     private final MemberRepository memberRepository;
-    private final WaitingChatLogRepository waitingChatLogRepository;
-    private final WaitingWhisperLogRepository waitingWhisperLogRepository;
+    private final PlayChatLogRepository playChatLogRepository;
+    private final PlayWhisperLogRepository playWhisperLogRepository;
     private final ChatRoomService chatRoomService;
     private final RedisPublisher redisPublisher;
 
@@ -33,12 +38,12 @@ public class WaitingLogServiceImpl implements WaitingLogService{
      */
     @Transactional
     @Override
-    public void sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
+    public void sendPlayChatMessage(ChatMessageRequest chatMessageRequest) {
 
         Member member = findMember(chatMessageRequest.getMemberID());
         // 닉네임 저장
         chatMessageRequest.setNickName(member.getNickname());
-        chatMessageRequest.setRoomType(RoomType.WAITING);
+        chatMessageRequest.setRoomType(RoomType.PLAY);
         findRoom(chatMessageRequest.getRoomID());
 
         if (MessageType.ENTER.equals(chatMessageRequest.getType())) {
@@ -62,16 +67,14 @@ public class WaitingLogServiceImpl implements WaitingLogService{
      * @param chatMessageRequest
      */
     private void handleChatMessage(Long roomID, Member member, ChatMessageRequest chatMessageRequest) {
-        WaitingChatLog waitingChatLog = WaitingChatLog.builder()
+        PlayChatLog playChatLog = PlayChatLog.builder()
                 .roomID(roomID)
                 .memberID(member.getId())
                 .content(chatMessageRequest.getContent())
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        waitingChatLogRepository.save(waitingChatLog);
-
-        // redisTemplate.convertAndSend(topic, chatMessageRequest);
+        playChatLogRepository.save(playChatLog);
     }
 
     /**
@@ -84,7 +87,7 @@ public class WaitingLogServiceImpl implements WaitingLogService{
         Member recipient = findMember(chatMessageRequest.getRecipientID());
         chatMessageRequest.setRecipientNickName(recipient.getNickname());
 
-        WaitingWhisperLog waitingWhisperLog = WaitingWhisperLog.builder()
+        PlayWhisperLog playWhisperLog = PlayWhisperLog.builder()
                 .roomID(roomID)
                 .memberID(member.getId())
                 .recipientID(recipient.getId())
@@ -92,11 +95,7 @@ public class WaitingLogServiceImpl implements WaitingLogService{
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        waitingWhisperLogRepository.save(waitingWhisperLog);
-
-        // String topic = channelTopic.getTopic();
-        // redisTemplate.convertAndSend(topic, chatMessageRequest);
-
+        playWhisperLogRepository.save(playWhisperLog);
     }
 
     private Member findMember(Long memberID){

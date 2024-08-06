@@ -17,4 +17,5 @@ public class ChatMessageRequest {
     private String recipientNickName; // 귓속말 수신자 닉네임
     private String content;      // 메시지 내용
     private MessageType type;    // 메시지 유형
+    private RoomType roomType; //방 유형
 }

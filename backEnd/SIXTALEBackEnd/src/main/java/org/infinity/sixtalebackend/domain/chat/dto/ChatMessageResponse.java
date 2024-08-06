@@ -14,6 +14,7 @@ public class ChatMessageResponse {
     private String recipient; // 귓속말 수신자
     private String content;  // 메시지 내용
     private MessageType type; // 메시지 유형
+    private RoomType roomType;
 
     public ChatMessageResponse(ChatMessageRequest request) {
         this.roomID = request.getRoomID();
@@ -21,6 +22,7 @@ public class ChatMessageResponse {
         this.recipient = request.getRecipientNickName();
         this.content = request.getContent();
         this.type = request.getType();
+        this.roomType = request.getRoomType();
     }
 
 }

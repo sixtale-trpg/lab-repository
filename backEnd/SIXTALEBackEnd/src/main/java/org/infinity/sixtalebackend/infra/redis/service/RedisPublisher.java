@@ -1,7 +1,6 @@
 package org.infinity.sixtalebackend.infra.redis.service;
 
 import lombok.RequiredArgsConstructor;
-import org.infinity.sixtalebackend.domain.chat.domain.ChatMessage;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;

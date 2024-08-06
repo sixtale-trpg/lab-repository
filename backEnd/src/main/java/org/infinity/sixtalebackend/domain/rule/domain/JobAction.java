@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.infinity.sixtalebackend.domain.model.DiceType;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -47,4 +49,7 @@ public class JobAction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
+
+    @OneToMany(mappedBy = "jobAction", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ActionOption> actionOptions;
 }

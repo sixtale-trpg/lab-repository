@@ -30,27 +30,27 @@ module.exports = {
     open: true,
     proxy: {
       '/api/v1': {
-        target: 'http://localhost:8888/', // 백엔드 서버 주소로 변경
+        target: 'http://i11d108.p.ssafy.io:8888/', // 백엔드 서버 주소로 변경
         changeOrigin: true
       }
     },
     historyApiFallback: true,
-    hot: true
+    hot: true,
   },
   css: {
     requireModuleExtension: false,
     loaderOptions: {
       postcss: {
         plugins: [
-          require('cssnano')({
+          require("cssnano")({
             preset: [
-              'default',
+              "default",
               {
                 discardComments: {
                   removeAll: true,
                 },
                 normalizeWhitespace: false,
-                mergeRules: false
+                mergeRules: false,
               },
             ],
           }),
@@ -59,5 +59,5 @@ module.exports = {
     },
   },
   lintOnSave: false,
-  outputDir: '../backEnd/SIXTALEBackEnd/src/main/resources/dist'
+  outputDir: "dist",
 };

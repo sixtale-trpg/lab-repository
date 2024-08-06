@@ -112,4 +112,10 @@ public class MemberSerivceImpl implements MemberService {
                 .build();
     }
 
+    @Override
+    public Member findByAccessToken(String token) {
+        Member member = memberRepository.findByAccessToken(token);
+        return member;
+    }
+
 }

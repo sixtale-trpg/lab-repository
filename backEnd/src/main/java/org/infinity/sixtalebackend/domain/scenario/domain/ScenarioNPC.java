@@ -15,13 +15,14 @@ public class ScenarioNPC {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
 
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -32,5 +33,6 @@ public class ScenarioNPC {
     @ColumnDefault("0")
     private Integer glove;
 
+    @Column(name = "image_url")
     private String imageURL;
 }

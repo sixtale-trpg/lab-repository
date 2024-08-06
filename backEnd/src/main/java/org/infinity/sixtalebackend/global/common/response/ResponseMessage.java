@@ -88,4 +88,10 @@ public class ResponseMessage {
     public static final String READ_CHARACTER_SHEET_FAIL = "작성한 캐릭터 시트 조회 실패";
     public static final String DELETE_CHARACTER_SHEET = "작성한 캐릭터 시트 삭제 성공";
     public static final String DELETE_CHARACTER_SHEET_FAIL = "작성한 캐릭터 시트 삭제 실패";
+    public static final String READ_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 목록 불러오기 성공";
+    public static final String READ_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 목록 불러오기 실패";
+    public static final String ADD_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 추가 성공";
+    public static final String ADD_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 추가 실패";
+    public static final String DELETE_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 삭제 성공";
+    public static final String DELETE_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 삭제 실패";
 }

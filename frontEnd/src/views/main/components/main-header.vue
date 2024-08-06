@@ -2,8 +2,8 @@
   <header class="main-header" :style="{ height: height }">
     <div class="logo" @click="goHome">
       <img src="@/assets/images/SixtaleLogo.png" alt="Site Logo" class="logo-image" />
+      <img src="@/assets/images/SixtaleTitle.png" alt="Site Title" class="title-image" />
     </div>
-    <img src="@/assets/images/SixtaleTitle.png" alt="Site Title" class="title-image" />
     <nav class="nav-menu">
       <ul>
         <li><router-link to="/rulebook">룰북</router-link></li>

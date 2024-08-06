@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.character_sheet.repository;
 
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction;
+import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,5 @@ public interface CharacterActionRepository extends JpaRepository<CharacterAction
     void deleteByPlayMember(PlayMember playMember);
 
     List<CharacterAction> findByPlayMember(PlayMember playMember);
+    List<CharacterAction> findByCharacterSheet(CharacterSheet characterSheet);
 }

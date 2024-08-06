@@ -11,6 +11,7 @@ import org.springframework.core.env.Environment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class AuthServiceImpl implements AuthService {
 
     private final AuthRepository authRepository;
@@ -67,8 +69,10 @@ public class AuthServiceImpl implements AuthService {
                     .isWithdrawn(false)
                     .build();
             authRepository.save(member);
+            return member;
         }
-        findMember = authRepository.findByEmail(authResponse.getEmail());
+
+//        findMember = authRepository.findByEmail(authResponse.getEmail());
 
         return findMember;
     }

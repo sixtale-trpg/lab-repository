@@ -15,7 +15,7 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
-      <span class="token-coordinates">{{ `(${token.x.toFixed(1)}, ${token.y.toFixed(1)})` }}</span>
+      <!-- Removed the token-coordinates span to disable tooltip display -->
     </div>
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
@@ -244,11 +244,15 @@ const onDrop = (event) => {
     const parsedToken = JSON.parse(tokenData);
     if (!placedTokens.value.find((t) => t.id === parsedToken.id)) {
       const mapRect = event.currentTarget.getBoundingClientRect();
+      const tokenX = event.clientX - mapRect.left;
+      const tokenY = event.clientY - mapRect.top;
       placedTokens.value.push({
         ...parsedToken,
-        x: event.clientX - mapRect.left,
-        y: event.clientY - mapRect.top,
+        x: tokenX,
+        y: tokenY,
       });
+
+      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
 
       const removeEvent = new CustomEvent("remove-token-from-list", {
         detail: parsedToken,
@@ -292,10 +296,15 @@ const onDrag = (event) => {
 
     draggingToken.x = newX;
     draggingToken.y = newY;
+
+    console.log(`Dragging token to: (${newX.toFixed(1)}, ${newY.toFixed(1)})`);
   }
 };
 
 const stopDrag = () => {
+  if (draggingToken) {
+    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
+  }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mouseup", stopDrag);
@@ -414,18 +423,7 @@ onUnmounted(() => {
   height: 100%;
 }
 
-.token-coordinates {
-  position: absolute;
-  top: -20px; /* Position above the token */
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  font-size: 12px;
-  padding: 2px 4px;
-  border-radius: 3px;
-  pointer-events: none; /* Ensure it doesn't interfere with drag events */
-  white-space: nowrap; /* Prevent text wrapping */
-}
+/* Removed the token-coordinates style since it's not needed anymore */
 
 .grid-overlay {
   position: absolute;

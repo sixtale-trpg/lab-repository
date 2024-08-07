@@ -320,7 +320,18 @@ public class RoomServiceImpl implements RoomService{
                 .scenarioId(room.getScenario().getId())
                 .ruleId(room.getRule().getId())
                 .gmId(room.getGm().getId())
+                .playMemberList(mapMembersToResponse(room.getPlayMembers()))
                 .build());
+    }
+
+    private List<PlayMemberResponse> mapMembersToResponse(List<PlayMember> playMembers) {
+        return playMembers.stream()
+                .map(pm -> PlayMemberResponse.builder()
+                        .playMemberID(pm.getMember().getId())
+                        .playMemberNickname(pm.getMember().getNickname())
+                        .playMemberImageURL(pm.getMember().getImageURL())
+                .build())
+                .collect(Collectors.toList());
     }
 
     /**

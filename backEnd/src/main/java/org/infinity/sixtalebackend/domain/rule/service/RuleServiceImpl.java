@@ -4,14 +4,14 @@ import lombok.AllArgsConstructor;
 import org.infinity.sixtalebackend.domain.equipment.domain.Equipment;
 import org.infinity.sixtalebackend.domain.equipment.repository.EquipmentRepository;
 import org.infinity.sixtalebackend.domain.rule.domain.*;
-import org.infinity.sixtalebackend.domain.rule.dto.JobListResponse;
-import org.infinity.sixtalebackend.domain.rule.dto.JobOptionListResponse;
-import org.infinity.sixtalebackend.domain.rule.dto.JobRaceResponse;
+import org.infinity.sixtalebackend.domain.rule.dto.*;
 import org.infinity.sixtalebackend.domain.rule.repository.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +24,7 @@ public class RuleServiceImpl implements RuleService {
     private final JobActionRepository jobActionRepository;
     private final ActionOptionRepository actionOptionRepository;
     private final EquipmentRepository equipmentRepository;
+    private final CommonActionRepository commonActionRepository;
 
     @Override
     public JobListResponse readJobList(Long ruleID) {
@@ -63,4 +64,41 @@ public class RuleServiceImpl implements RuleService {
                 .build();
         return response;
     }
+
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public CharacterActionListResponse getCommonActions(Long ruleID) {
+        Rule rule = ruleRepository.findById(ruleID).get();
+        List<CommonAction> commonActions = commonActionRepository.findByRule(rule);
+
+        List<CharacterActionResponse> basicActions = commonActions.stream()
+                .filter(CommonAction::getIsBasic) // isBasic is true
+                .map(this::mapToCharacterActionResponse)
+                .collect(Collectors.toList());
+
+        List<CharacterActionResponse> specialActions = commonActions.stream()
+                .filter(action -> !action.getIsBasic()) // isBasic is false
+                .map(this::mapToCharacterActionResponse)
+                .collect(Collectors.toList());
+
+        return CharacterActionListResponse.builder()
+                .basicActions(basicActions)
+                .specialActions(specialActions)
+                .build();
+    }
+
+    private CharacterActionResponse mapToCharacterActionResponse(CommonAction commonAction) {
+        return CharacterActionResponse.builder()
+                .id(commonAction.getId())
+                .actionID(commonAction.getId())
+                .name(commonAction.getName())
+                .description(commonAction.getDescription())
+                .isDice(commonAction.getIsDice())
+                .diceType(commonAction.getDiceType())
+                .diceCount(commonAction.getDiceCount())
+                .build();
+    }
+
 }

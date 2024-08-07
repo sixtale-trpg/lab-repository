@@ -15,6 +15,7 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
+      <!-- Removed the token-coordinates span to disable tooltip display -->
     </div>
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
@@ -243,11 +244,15 @@ const onDrop = (event) => {
     const parsedToken = JSON.parse(tokenData);
     if (!placedTokens.value.find((t) => t.id === parsedToken.id)) {
       const mapRect = event.currentTarget.getBoundingClientRect();
+      const tokenX = event.clientX - mapRect.left;
+      const tokenY = event.clientY - mapRect.top;
       placedTokens.value.push({
         ...parsedToken,
-        x: event.clientX - mapRect.left,
-        y: event.clientY - mapRect.top,
+        x: tokenX,
+        y: tokenY,
       });
+
+      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
 
       const removeEvent = new CustomEvent("remove-token-from-list", {
         detail: parsedToken,
@@ -291,24 +296,25 @@ const onDrag = (event) => {
 
     draggingToken.x = newX;
     draggingToken.y = newY;
+
+    console.log(`Dragging token to: (${newX.toFixed(1)}, ${newY.toFixed(1)})`);
   }
 };
 
 const stopDrag = () => {
+  if (draggingToken) {
+    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
+  }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
 
-const handleRollDice = (diceTypesToRoll) => {
-  console.log("주사위 굴림 이벤트를 받았습니다:", diceTypesToRoll);
-  if (threeJSManager) {
-    threeJSManager.rollDice(diceTypesToRoll).then((results) => {
-      results.forEach((result) =>
-        console.log(`${result.type}면체 주사위 결과: ${result.value}`)
-      );
-    });
-  }
+const handleDiceRolled = (results) => {
+  console.log("주사위 굴림 결과:", results);
+  results.forEach((result) =>
+    console.log(`${result.type}면체 주사위 결과: ${result.value}`)
+  );
 };
 
 const isLaserActive = (row, col) => {
@@ -352,7 +358,7 @@ const modalStyle = computed(() => ({
 
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
-  eventBus.on("roll-dice", handleRollDice);
+  eventBus.on("dice-rolled", handleDiceRolled);
   window.addEventListener("toggle-grid", (event) => {
     showGrid.value = event.detail;
   });
@@ -366,7 +372,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  eventBus.off("roll-dice", handleRollDice);
+  eventBus.off("dice-rolled", handleDiceRolled);
   window.removeEventListener("toggle-grid", () => {});
   window.removeEventListener("delete-token", () => {});
 });
@@ -412,6 +418,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+
+/* Removed the token-coordinates style since it's not needed anymore */
 
 .grid-overlay {
   position: absolute;

@@ -2,7 +2,7 @@
   <footer class="main-footer">
     <div class="contents">
       <div class="footer-logo">
-        <img src="@/assets/images/sixtale.png" alt="Sixtale Logo" class="logo-image" />
+        <img src="@/assets/images/SixtaleLogo.png" alt="Sixtale Logo" class="logo-image" />
       </div>
       <div class="footer-description">
         <p class="description">{{ description }}</p>

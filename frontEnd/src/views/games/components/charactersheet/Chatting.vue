@@ -53,7 +53,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { getRoomInfo } from '@/common/api/RoomsAPI';
 
 const tabs = [
   { key: 'all', label: '전체' },
@@ -79,6 +80,21 @@ const users = ref([
   { id: 'GM', name: 'Game Master' },
 ]); // 예시 사용자 데이터
 const selectedUser = ref(null);
+const roomInfo = ref(null); // 방 정보를 저장할 변수
+
+// 초기 방 ID 설정
+const initialRoomId = 1; // 실제로 사용하고자 하는 방 ID
+
+// 컴포넌트가 마운트되면 방 정보 가져오기
+onMounted(async () => {
+  try {
+    // 방 정보 가져오기
+    roomInfo.value = await getRoomInfo(initialRoomId);
+    console.log('Room Info:', roomInfo.value);
+  } catch (error) {
+    console.error('Error fetching room info:', error);
+  }
+});
 
 // 이미지 경로 설정
 const backgroundImage = require('@/assets/images/ingame/Border8.png');
@@ -111,14 +127,16 @@ const sendMessage = () => {
   if (message.value.trim() !== '') {
     const messageData = {
       id: Date.now(), // 메시지 ID 생성
-      roomID: 1, // 채팅방 ID, 실제 값으로 설정
-      memberID: 2, // 사용자 ID, 실제 값으로 설정
-      sender: 'Me', // 실제 사용자 이름으로 대체해야 합니다
+      roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
+      memberID: 1, // 사용자 ID, 임시 값으로 설정
+      sender: 'Me', // 사용자 이름, 임시 값으로 설정
       content: message.value, // 메시지 내용
       type: selectedUser.value ? 'whisper' : 'chat', // 메시지 유형
       targetId: selectedUser.value ? selectedUser.value.id : null,
-      roomType: null, // 방 유형, 실제 값으로 설정
+      roomType: roomInfo.value ? roomInfo.value.roomType : null, // 방 정보에서 roomType 사용
     };
+
+    console.log('Sending message:', messageData); // 전송 메시지 확인
 
     // 전체 메시지에 추가
     allMessages.value.push(messageData);
@@ -134,8 +152,8 @@ const sendMessage = () => {
 
     message.value = ''; // 입력 필드 초기화
 
-    // 서버로 메시지 전송 (예시로서 콘솔에 출력)
-    console.log('Sending message:', messageData);
+    // 서버로 메시지 전송
+    // WebSocketService.sendMessage(messageData); // 실제 구현 시 주석 해제
   }
 };
 

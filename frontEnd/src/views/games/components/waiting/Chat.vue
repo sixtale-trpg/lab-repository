@@ -55,6 +55,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
+import { getRoomInfo } from '@/common/api/RoomsAPI';
 
 // 이미지 동적 로드
 const background1 = require('@/assets/images/room/chat/chat_background1.png');
@@ -68,10 +69,22 @@ const sendButtonImage = require('@/assets/images/room/chat/Send_Button.png');
 const selectedTab = ref('all');
 const newMessage = ref('');
 const messages = ref([]); // 모든 메시지를 저장하는 배열
+const roomInfo = ref(null); // 방 정보를 저장할 변수
 
-// 컴포넌트가 마운트되면 WebSocket 연결 설정
-onMounted(() => {
+// 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
+const initialRoomId = 1; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
+
+// 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
+onMounted(async () => {
   WebSocketService.connect();
+
+  try {
+    // API를 통해 방 정보 가져오기
+    roomInfo.value = await getRoomInfo(initialRoomId);
+    console.log('Room Info:', roomInfo.value);
+  } catch (error) {
+    console.error('Error fetching room info:', error);
+  }
 
   // 서버로부터 메시지를 수신할 때마다 콜백 실행
   WebSocketService.onMessageReceived((message) => {
@@ -87,11 +100,11 @@ const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
 
   const messageData = {
-    roomID: 1, // 채팅방 ID, 실제 값으로 설정
-    memberID: 2, // 사용자 ID, 실제 값으로 설정
+    roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
+    memberID: 1, // 사용자 ID, 실제 값으로 설정
     content: newMessage.value, // 메시지 내용
     type: selectedTab.value === 'whisper' ? 'whisper' : 'chat', // 메시지 유형
-    roomType: null, // 방 유형, 실제 값으로 설정
+    roomType: roomInfo.value ? roomInfo.value.type : null, // 방 정보에서 roomType 사용
   };
 
   // 메시지를 화면에 즉시 추가

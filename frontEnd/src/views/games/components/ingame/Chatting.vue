@@ -53,7 +53,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { getRoomInfo } from '@/common/api/RoomsAPI';
 
 // 탭 설정
 const tabs = [
@@ -80,6 +81,21 @@ const users = ref([
   { id: 'GM', name: 'Game Master' },
 ]); // 예시 사용자 데이터
 const selectedUser = ref(null);
+const roomInfo = ref(null); // 방 정보를 저장할 변수
+
+// 초기 방 ID 설정
+const initialRoomId = 1; // 실제로 사용하고자 하는 방 ID
+
+// 컴포넌트가 마운트되면 방 정보 가져오기
+onMounted(async () => {
+  try {
+    // 방 정보 가져오기
+    roomInfo.value = await getRoomInfo(initialRoomId);
+    console.log('Room Info:', roomInfo.value);
+  } catch (error) {
+    console.error('Error fetching room info:', error);
+  }
+});
 
 // 이미지 경로 설정
 const backgroundImage = require('@/assets/images/ingame/Border8.png');
@@ -110,24 +126,27 @@ const sendButtonStyle = {
 // 메시지 전송 함수
 const sendMessage = () => {
   if (message.value.trim() !== '') {
-    const payload = {
-      id: Date.now(), // 메시지 ID 생성
-      sender: 'Me', // 실제 사용자 이름으로 대체해야 합니다
-      text: message.value,
+    const messageData = {
+      roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
+      memberID: 1, // 사용자 ID, 실제 값으로 설정
+      content: message.value, // 메시지 내용
       type: selectedUser.value ? 'whisper' : 'chat', // 선택된 사용자가 있으면 귓속말, 없으면 일반 채팅
       targetId: selectedUser.value ? selectedUser.value.id : null,
+      roomType: roomInfo.value ? roomInfo.value.roomType : null, // 방 정보에서 roomType 사용
     };
 
+    console.log('Sending message:', messageData); // 전송 메시지 확인
+
     // 전체 메시지에 추가
-    allMessages.value.push(payload);
+    allMessages.value.push(messageData);
 
     // 메시지 유형에 따라 적절한 배열에 추가
-    if (payload.type === 'chat') {
-      chatMessages.value.push(payload);
-    } else if (payload.type === 'whisper' && payload.targetId) {
-      const log = whisperMessages.value[payload.targetId] || [];
-      log.push(payload);
-      whisperMessages.value = { ...whisperMessages.value, [payload.targetId]: log };
+    if (messageData.type === 'chat') {
+      chatMessages.value.push(messageData);
+    } else if (messageData.type === 'whisper' && messageData.targetId) {
+      const log = whisperMessages.value[messageData.targetId] || [];
+      log.push(messageData);
+      whisperMessages.value = { ...whisperMessages.value, [messageData.targetId]: log };
     }
 
     message.value = ''; // 입력 필드 초기화

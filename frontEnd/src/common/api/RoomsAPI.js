@@ -1,37 +1,35 @@
+// src/api/RoomsAPI.js
 import axios from 'axios';
 
-const accessToken = 'YOUR_ACCESS_TOKEN'; // 실제 토큰으로 대체하세요
+const BASE_URL = '/api/v1/rooms';
 
-const apiClient = axios.create({
-  baseURL: 'https://i11d108.p.ssafy.io/api/v1', 
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`
+// 토큰을 로컬 스토리지에서 가져오기
+const getAccessToken = () => {
+  return localStorage.getItem('accessToken');
+};
+
+// 공통 헤더 설정
+const getHeaders = () => {
+  const accessToken = getAccessToken();
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
   }
-});
+  return headers;
+};
 
-export const fetchRooms = async (page = 0, size = 15) => {
+// 게임방 정보 조회
+export const getRoomInfo = async (roomId) => {
   try {
-    const statuses = ['WAITING', 'PLAYING', 'UPCOMING'];
-    const response = await apiClient.get('/rooms', {
-      params: { statuses: statuses.join(','), page, size }
+    const response = await axios.get(`${BASE_URL}/${roomId}`, {
+      headers: getHeaders()
     });
-    console.log('Rooms fetched:', response.data.data.content); // 콘솔 로그 추가
-    return response.data.data.content;
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching rooms:', error);
+    console.error('Error fetching room info:', error);
     throw error;
   }
 };
 
-// 참가한 방 목록을 가져오는 함수
-export const fetchJoinedRooms = async () => {
-  try {
-    const response = await apiClient.get('/user/rooms'); // 실제 API 경로로 대체하세요
-    console.log('Joined rooms fetched:', response.data.data); // 콘솔 로그 추가
-    return response.data.data; // 실제 응답 데이터 구조에 맞게 수정하세요
-  } catch (error) {
-    console.error('Error fetching joined rooms:', error);
-    throw error;
-  }
-};

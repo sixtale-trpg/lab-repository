@@ -33,6 +33,10 @@ public class ResponseMessage {
     public static final String CREATE_USER_CALENDAR_ERROR = "회원 일정 생성 시 입력 오류";
     public static final String READ_SCENARIO_LIKE_LIST = "좋아요한 시나리오 목록 조회 성공";
     public static final String READ_SCENARIO_LIKE_LIST_FAIL = "좋아요한 시나리오 목록 조회 실패";
+    public static final String CREATE_SCENARIO_LIKE = "시나리오 좋아요 성공";
+    public static final String CREATE_SCENARIO_LIKE_FAIL = "시나리오 좋아요 실패";
+    public static final String DELETE_SCENARIO_LIKE = "시나리오 좋아요 삭제 성공";
+    public static final String DELETE_SCENARIO_LIKE_FAIL = "시나리오 좋아요 삭제 실패";
 
     public static final String DELETE_USER_CALENDAR = "회원 일정 삭제 성공";
     public static final String DELETE_USER_CALENDAR_FAIL = "회원 일정 삭제 실패";

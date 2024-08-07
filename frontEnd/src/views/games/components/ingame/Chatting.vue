@@ -1,43 +1,73 @@
 <template>
   <div class="chatting-container" :style="backgroundStyle">
     <div class="tabs">
-      <button v-for="tab in tabs" :key="tab.key" @click="selectTab(tab.key)" :class="{ active: activeTab === tab.key, [tab.key]: true }">
+      <button
+        v-for="tab in tabs"
+        :key="tab.key"
+        @click="selectTab(tab.key)"
+        :class="{ active: activeTab === tab.key, [tab.key]: true }"
+      >
         {{ tab.label }}
       </button>
     </div>
     <div class="chat-content">
-      <div v-if="activeTab === 'all'">전체 채팅 기록</div>
-      <div v-else-if="activeTab === 'chat'">채팅 로그</div>
+      <!-- 전체 채팅 로그 출력 -->
+      <div v-if="activeTab === 'all'">
+        <div v-for="msg in allMessages" :key="msg.id">
+          <strong>{{ msg.sender }}:</strong> {{ msg.text }}
+        </div>
+      </div>
+
+      <!-- 채팅 로그 출력 -->
+      <div v-else-if="activeTab === 'chat'">
+        <div v-for="msg in chatMessages" :key="msg.id">
+          <strong>{{ msg.sender }}:</strong> {{ msg.text }}
+        </div>
+      </div>
+
+      <!-- 귓속말 로그 출력 -->
       <div v-else-if="activeTab === 'whisper'">
         <select v-model="selectedUser" class="whisper-dropdown">
           <option v-for="user in users" :key="user.id" :value="user">{{ user.name }}</option>
         </select>
         <div class="whisper-chat" v-if="selectedUser">
-          <div v-for="msg in whisperMessages[selectedUser.id]" :key="msg.id">{{ msg.text }}</div>
+          <div v-for="msg in whisperMessages[selectedUser.id]" :key="msg.id">
+            <strong>{{ msg.sender }}:</strong> {{ msg.text }}
+          </div>
         </div>
       </div>
+
+      <!-- 챗봇 AI -->
       <div v-else-if="activeTab === 'bot'">챗봇 AI</div>
     </div>
     <div class="chat-input">
-      <input type="text" v-model="message" @keydown.enter="sendMessage" placeholder="메시지를 입력하세요" />
+      <input
+        type="text"
+        v-model="message"
+        @keydown.enter="sendMessage"
+        placeholder="메시지를 입력하세요"
+      />
       <button @click="sendMessage" :style="sendButtonStyle"></button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-// import axios from 'axios'; // 필요시 axios 또는 다른 HTTP 클라이언트를 사용
+import { ref, computed } from 'vue';
 
+// 탭 설정
 const tabs = [
   { key: 'all', label: '전체' },
   { key: 'chat', label: '채팅' },
   { key: 'whisper', label: '귓속말' },
-  { key: 'bot', label: '챗봇AI' }
+  { key: 'bot', label: '챗봇AI' },
 ];
 
 const activeTab = ref('all');
 const message = ref('');
+const allMessages = ref([]); // 모든 메시지를 저장하는 배열
+const chatMessages = ref([]); // 채팅 메시지를 저장하는 배열
+const whisperMessages = ref({}); // 귓속말 메시지를 저장하는 객체
 const users = ref([
   { id: 1, name: 'Player1' },
   { id: 2, name: 'Player2' },
@@ -47,10 +77,9 @@ const users = ref([
   { id: 6, name: 'Player6' },
   { id: 7, name: 'Player7' },
   { id: 8, name: 'Player8' },
-  { id: 'GM', name: 'Game Master' }
+  { id: 'GM', name: 'Game Master' },
 ]); // 예시 사용자 데이터
 const selectedUser = ref(null);
-const whisperMessages = ref({});
 
 // 이미지 경로 설정
 const backgroundImage = require('@/assets/images/ingame/Border8.png');
@@ -65,7 +94,7 @@ const backgroundStyle = {
   boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
-  height: '100%'
+  height: '100%',
 };
 
 // 전송 버튼 스타일 설정
@@ -75,43 +104,37 @@ const sendButtonStyle = {
   backgroundImage: `url(${sendButtonImage})`,
   backgroundSize: 'contain',
   border: 'none',
-  cursor: 'pointer'
+  cursor: 'pointer',
 };
 
-// 주석 처리된 실제 데이터 가져오기 로직
-// const fetchRoomData = async (roomID) => {
-//   try {
-//     const response = await axios.get(`/rooms/${roomID}`);
-//     if (response.data.statusCode === 200) {
-//       const { playMemberList, gmNickname } = response.data.data;
-//       // 플레이어와 GM 정보를 통합하여 사용자가 귓속말을 보낼 수 있도록 설정
-//       users.value = playMemberList.map(member => ({
-//         id: member.playMemberID,
-//         name: member.playMemberNickname
-//       }));
-//       // GM 정보를 추가
-//       users.value.push({ id: 'GM', name: gmNickname });
-//     }
-//   } catch (error) {
-//     console.error('Error fetching room data:', error);
-//   }
-// };
-
-// onMounted(() => {
-//   const roomID = 5; // 예시 Room ID, 실제로는 동적으로 받아와야 함
-//   fetchRoomData(roomID);
-// });
-
+// 메시지 전송 함수
 const sendMessage = () => {
   if (message.value.trim() !== '') {
-    const target = selectedUser.value ? selectedUser.value.id : 'all';
-    const log = whisperMessages.value[target] || [];
-    log.push({ id: Date.now(), text: message.value });
-    whisperMessages.value = { ...whisperMessages.value, [target]: log };
-    message.value = '';
+    const payload = {
+      id: Date.now(), // 메시지 ID 생성
+      sender: 'Me', // 실제 사용자 이름으로 대체해야 합니다
+      text: message.value,
+      type: selectedUser.value ? 'whisper' : 'chat', // 선택된 사용자가 있으면 귓속말, 없으면 일반 채팅
+      targetId: selectedUser.value ? selectedUser.value.id : null,
+    };
+
+    // 전체 메시지에 추가
+    allMessages.value.push(payload);
+
+    // 메시지 유형에 따라 적절한 배열에 추가
+    if (payload.type === 'chat') {
+      chatMessages.value.push(payload);
+    } else if (payload.type === 'whisper' && payload.targetId) {
+      const log = whisperMessages.value[payload.targetId] || [];
+      log.push(payload);
+      whisperMessages.value = { ...whisperMessages.value, [payload.targetId]: log };
+    }
+
+    message.value = ''; // 입력 필드 초기화
   }
 };
 
+// 탭 선택 함수
 const selectTab = (key) => {
   activeTab.value = key;
   if (key !== 'whisper') {
@@ -125,7 +148,7 @@ const selectTab = (key) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 2px solid #000; 
+  border: 2px solid #000;
 }
 
 .tabs {
@@ -148,19 +171,19 @@ const selectTab = (key) => {
 }
 
 .tabs button.all {
-  background: linear-gradient(to bottom, #1A4E23, #102F12); 
+  background: linear-gradient(to bottom, #1A4E23, #102F12);
 }
 
 .tabs button.chat {
-  background: linear-gradient(to bottom, #0B3A73, #062048); 
+  background: linear-gradient(to bottom, #0B3A73, #062048);
 }
 
 .tabs button.whisper {
-  background: linear-gradient(to bottom, #8C2A0F, #601A0A); 
+  background: linear-gradient(to bottom, #8C2A0F, #601A0A);
 }
 
 .tabs button.bot {
-  background: linear-gradient(to bottom, #805500, #5A3B00); 
+  background: linear-gradient(to bottom, #805500, #5A3B00);
 }
 
 .chat-content {
@@ -205,7 +228,6 @@ const selectTab = (key) => {
 }
 
 .chat-content > div {
-  color: #000; 
+  color: #fff;
 }
 </style>
-<!-- 주석+ -->

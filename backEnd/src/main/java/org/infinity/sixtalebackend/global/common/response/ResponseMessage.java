@@ -74,6 +74,8 @@ public class ResponseMessage {
     public static final String READ_JOB_OPTION_FAIL = "직업에 따른 선택지 목록 조회 실패";
     public static final String READ_COMMON_ACTION = "공통 액션 조회 성공";
     public static final String READ_COMMON_ACTION_FAIL = "공통 액션 조회 실패";
+    public static final String READ_RULE_EQUIPMENT = "룰 장비 목록 조회 성공";
+    public static final String READ_RULE_EQUIPMENT_FAIL = "룰 장비 목록 조회 실패";
 
     public static final String READ_MAP_LIST = "맵 목록 조회 성공";
     public static final String READ_MAP_LIST_FAIL = "맵 목록 조회 실패";

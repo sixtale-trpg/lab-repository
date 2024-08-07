@@ -2,7 +2,7 @@
   <section class="information">
     <div class="container">
       <div class="header">
-        <img src="@/assets/images/sixtale.png" alt="Site Logo" class="logo-image" />
+        <img src="@/assets/images/SixtaleLogo.png" alt="Site Logo" class="logo-image" />
         <h2>TRPG in Sixtale</h2>
       </div>
       <p class="sub-description">Sixtale은 여러분에게 다양한 지원을 제공합니다</p>

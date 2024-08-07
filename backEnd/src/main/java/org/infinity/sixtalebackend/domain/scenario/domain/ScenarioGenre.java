@@ -13,12 +13,12 @@ public class ScenarioGenre {
     @EmbeddedId
     private ScenarioGenreID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("scenarioID")
     @JoinColumn(name = "scenario_id")
     private Scenario scenario;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("genreID")
     @JoinColumn(name = "genre_id")
     private Genre genre;

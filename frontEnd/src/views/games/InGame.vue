@@ -1,13 +1,14 @@
 <template>
-  <div class="character-sheet">
+  <div class="character-sheet" :style="backgroundStyle">
     <Header class="header" />
     <div class="main-content">
       <div class="left-section">
-        <MainContent class="main-content-inner" />
+        <!-- MainContent에 selectedMap을 prop으로 전달 -->
+        <MainContent class="main-content-inner" :selectedMap="selectedMap" />
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
-        <GMSection class="gm-section" :gm="gm" :isGM="isGM" @start-game="startGame" />
+        <GMSection class="gm-section" :gm="gm" :isGM="isGM"  />
         <div class="log-and-chat">
           <Log class="log-section" />
           <Chatting class="chatting-section" />
@@ -18,8 +19,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, watch, computed } from 'vue';
+import { useMapStore } from '@/store/map/mapStore'; // 맵 상태 관리
 import Header from '@/views/games/components/ingame/Header.vue';
 import MainContent from '@/views/games/components/ingame/MainContent.vue';
 import VideoProfile from '@/views/games/components/ingame/VideoProfiles.vue';
@@ -27,8 +28,19 @@ import GMSection from '@/views/games/components/ingame/GMSection.vue';
 import Chatting from '@/views/games/components/ingame/Chatting.vue';
 import Log from '@/views/games/components/ingame/Log.vue';
 
-const router = useRouter();
-const route = useRoute();
+// Import the background image
+import MainBackground from '@/assets/images/maps/background/MainBackground.png';
+
+// Pinia 스토어 인스턴스
+const mapStore = useMapStore();
+
+// 선택된 맵을 관리하는 로컬 상태
+const selectedMap = ref(mapStore.selectedMap);
+
+// Pinia의 selectedMap이 변경되면 로컬 상태도 업데이트
+watch(() => mapStore.selectedMap, (newMap) => {
+  selectedMap.value = newMap;
+});
 
 const gm = ref({
   name: '미카엘'
@@ -36,6 +48,13 @@ const gm = ref({
 
 const isGM = ref(true);
 
+// Computed property for the background style
+const backgroundStyle = computed(() => ({
+  backgroundImage: `url(${MainBackground})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+}));
 </script>
 
 <style scoped>

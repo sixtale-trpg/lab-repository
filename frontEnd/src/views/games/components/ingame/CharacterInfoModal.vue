@@ -28,8 +28,8 @@
         ></component>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
-        <button class="footer-button" @click="closeModal">닫기</button>
-        <button class="footer-button save-button" @click="saveForm">저장</button>
+        <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
+        <button class="footer-button" :style="saveButtonStyle" @click="saveForm">저장</button>
       </div>
     </div>
   </div>
@@ -161,6 +161,18 @@ const modalFooterStyle = computed(() => ({
   backgroundSize: 'cover',
 }));
 
+// 닫기 버튼 스타일
+const closeButtonStyle = computed(() => ({
+  background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+// 저장 버튼 스타일
+const saveButtonStyle = computed(() => ({
+  background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
 function getTabButtonStyle(tab) {
   const active = activeTab.value === tab;
   const imagePath = active
@@ -270,6 +282,22 @@ function getTabButtonStyle(tab) {
   flex: 1;
   overflow-y: auto;
   margin-top: 10px;
+  scrollbar-color: #855e2fee #201805;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #201805;
+  border-radius: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: #855e2fee;
+  border-radius: 5px;
+  border: 2px solid #201805;
 }
 
 .modal-footer {
@@ -283,21 +311,21 @@ function getTabButtonStyle(tab) {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background: #3a3a3a;
+  background-size: cover;
   color: #fff;
   cursor: pointer;
   margin: 0 10px;
 }
 
-.footer-button.save-button {
-  background: #007bff;
+.footer-button:hover {
+  transform: translateY(-2px); /* 버튼 호버 시 살짝 위로 움직이는 효과 */
 }
 
-.footer-button:hover {
-  background: #555;
+.footer-button.save-button {
+  background-size: cover;
 }
 
 .footer-button.save-button:hover {
-  background: #0056b3;
+  background-size: cover;
 }
 </style>

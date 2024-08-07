@@ -18,7 +18,7 @@ public class NPC {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -29,7 +29,8 @@ public class NPC {
     @ColumnDefault("0")
     private Integer glove;
 
-    private String imageUrl;
+    @Column(name = "image_url")
+    private String imageURL;
 
     @ManyToOne
     @JoinColumn(name = "rule_id", nullable = false)

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +54,11 @@ public class WaitingLogServiceImpl implements WaitingLogService{
         }
         // Websocket에 발행된 메시지를 redis로 발행한다(publish)
         redisPublisher.publish(chatRoomService.getTopic(String.valueOf(chatMessageRequest.getRoomID())), chatMessageRequest);
+    }
+
+    @Override
+    public List<WaitingChatLog> getLogsByRoomID(Long roomID) {
+        return waitingChatLogRepository.findByRoomID(roomID);
     }
 
     /**

@@ -3,13 +3,17 @@ package org.infinity.sixtalebackend.domain.chat.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
 import org.infinity.sixtalebackend.domain.chat.service.WaitingLogService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,10 +28,10 @@ public class WaitingChatController {
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
     }
 
-    @MessageMapping("/game/message")
-    @SendTo("/sub/game/messages")
-    public GameMessageDto handleGameMessage(GameMessageDto message){
-        return message;
+    @GetMapping("/waiting/chat/log/{roomID}")
+    public ResponseEntity<List<WaitingChatLog>> getLogsByRoomID(@PathVariable Long roomID) {
+        List<WaitingChatLog> logs = waitingLogService.getLogsByRoomID(roomID);
+        return ResponseEntity.ok(logs);
     }
 
 //    @MessageMapping("/waiting/whisper/message")

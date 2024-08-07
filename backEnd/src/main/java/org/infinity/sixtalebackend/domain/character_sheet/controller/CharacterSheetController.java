@@ -3,10 +3,7 @@ package org.infinity.sixtalebackend.domain.character_sheet.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetRequest;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetResponse;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetUpdateRequest;
-import org.infinity.sixtalebackend.domain.character_sheet.dto.UpdateCharacterSheetResponse;
+import org.infinity.sixtalebackend.domain.character_sheet.dto.*;
 import org.infinity.sixtalebackend.domain.character_sheet.service.CharacterSheetService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
@@ -101,6 +98,23 @@ public class CharacterSheetController {
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_CHARACTER_SHEET_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 골드 수정
+     */
+    @PutMapping("{playMemberID}/gold")
+    public ResponseEntity updateCharacterGold(@PathVariable Long roomID, @PathVariable Long playMemberID,  @RequestBody @Valid CharacterGoldUpdateRequest characterGoldUpdateRequest) {
+        try {
+            characterSheetService.updateCharacterGold(roomID, playMemberID, characterGoldUpdateRequest);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_CHARACTER_GOLD), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_CHARACTER_GOLD_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

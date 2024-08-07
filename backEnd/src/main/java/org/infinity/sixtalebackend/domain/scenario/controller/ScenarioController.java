@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.scenario.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/scenarios")
+@Slf4j
 public class ScenarioController {
 
     private final ScenarioService scenarioService;

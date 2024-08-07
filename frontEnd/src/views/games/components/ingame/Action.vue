@@ -81,9 +81,11 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { selectedPlayMemberID, selectedUserJob } from '@/store/state';
-import { getJobActions, getCommonActions } from '@/common/api/ActionAPI.js';
+import { getCommonActions, getCharacterActions } from '@/common/api/ActionAPI.js';
+import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import ActionModal from '@/views/games/components/Modal/ActionModal.vue'; // ActionModal 컴포넌트 경로
 
 export default {
@@ -134,11 +136,44 @@ export default {
     const selectedTab = ref('common');
     const selectedSubTab = ref('basic');
     const selectedAction = ref(null);
-
     const currentActions = ref([]);
 
     const isActionModalVisible = ref(false);
     const selectedModalAction = ref(null);
+
+    const route = useRoute();
+    const roomId = ref(route.params.roomId);
+    const ruleID = ref(null);
+
+    const fetchRoomInfo = async () => {
+      try {
+        const roomInfo = await getRoomInfo(roomId.value);
+        ruleID.value = roomInfo.ruleID;
+        await updateCurrentActions(); // 룰 아이디가 설정된 후에 액션을 불러옴
+      } catch (error) {
+        console.error('Error fetching room info:', error);
+      }
+    };
+
+    const updateCurrentActions = async () => {
+      try {
+        if (selectedTab.value === 'job') {
+          const jobActions = await getCharacterActions(roomId.value, selectedPlayMemberID.value);
+          currentActions.value = jobActions[selectedSubTab.value] || [];
+        } else {
+          if (ruleID.value !== null) {
+            const commonActions = await getCommonActions(ruleID.value);
+            if (selectedSubTab.value === 'basic') {
+              currentActions.value = commonActions.basicActions || [];
+            } else if (selectedSubTab.value === 'special') {
+              currentActions.value = commonActions.specialActions || [];
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching actions:', error);
+      }
+    };
 
     const openActionModal = (action) => {
       selectedModalAction.value = {
@@ -148,19 +183,11 @@ export default {
       isActionModalVisible.value = true;
     };
 
-    const updateCurrentActions = () => {
-      if (selectedTab.value === 'job') {
-        const job = getJobActions(selectedUserJob.value);
-        if (job) {
-          currentActions.value = job[selectedSubTab.value] || [];
-        }
-      } else {
-        const common = getCommonActions();
-        currentActions.value = common[selectedSubTab.value] || [];
-      }
-    };
+    onMounted(() => {
+      fetchRoomInfo();
+    });
 
-    watch([selectedUserJob, selectedTab, selectedSubTab], updateCurrentActions, { immediate: true });
+    watch([selectedTab, selectedSubTab], updateCurrentActions);
 
     const tabStyle = (tabName) => {
       return {
@@ -235,6 +262,9 @@ export default {
       if (tooltip) {
         tooltip.style.visibility = 'visible';
         tooltip.style.opacity = 1;
+        tooltip.style.top = `${event.target.offsetHeight}px`;
+        tooltip.style.left = `50%`;
+        tooltip.style.transform = `translateX(-50%)`;
       }
     };
 
@@ -386,28 +416,25 @@ export default {
   position: relative;
 }
 
-.action-item .tooltip {
+.tooltip {
   visibility: hidden;
   width: 150px;
   background-color: rgba(0, 0, 0, 0.8);
   color: #fff;
   text-align: center;
-  border-radius: 5px;
+  border-radius: 3px;
   padding: 5px;
-  position: absolute;
-  z-index: 1;
-  bottom: 150%;
-  left: 50%;
-  margin-left: -100px;
+  position: absolute; /* 고정 위치 */
+  z-index: 10;
   opacity: 0;
   transition: opacity 0.3s;
   font-size: 0.8rem;
 }
 
-.action-item .tooltip::after {
+.tooltip::after {
   content: '';
   position: absolute;
-  top: 100%;
+  top: -5px;
   left: 50%;
   margin-left: -5px;
   border-width: 5px;
@@ -415,10 +442,6 @@ export default {
   border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
 }
 
-.action-item:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
 
 /* Chrome, Edge, Safari 스크롤바 커스터마이징 */
 .action-list::-webkit-scrollbar {

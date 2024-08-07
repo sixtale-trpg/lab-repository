@@ -21,7 +21,7 @@
           </div>
           <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseValue(attribute.key)">
         </div>
-        <div class="stat-weight-controls">
+        <div class="stat-weight-controls" v-if="statsData.attributes[attribute.key].weight !== undefined">
           <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseWeight(attribute.key)">
           <div class="stat-weight-container">
             <div class="stat-weight">{{ statsData.attributes[attribute.key].weight }}</div>
@@ -44,16 +44,17 @@ const emit = defineEmits(['update:statsData']);
 const statsData = ref({
   level: 1,
   attributes: {
-    experience: { value: 5, weight: -1 },
-    hp: { value: 10, weight: 0 },
+    experience: { value: 5 },
+    hp: { value: 10 },
+    armor: { value: 4 },
+    exaltation: { value: 5 },
     strength: { value: 8, weight: 2 },
     intelligence: { value: 7, weight: 1 },
     constitution: { value: 6, weight: 1 },
     wisdom: { value: 9, weight: 0 },
     dexterity: { value: 8, weight: 2 },
     charisma: { value: 7, weight: 1 },
-    armor: { value: 4, weight: 1 },
-    exaltation: { value: 5, weight: 0 }
+    
   }
 });
 
@@ -65,14 +66,15 @@ const descriptionText = `
 const attributes = [
   { name: '경험치', key: 'experience' },
   { name: 'HP', key: 'hp' },
+  { name: '장갑', key: 'armor' },
+  { name: '고양감', key: 'exaltation' },
   { name: '근력', key: 'strength' },
   { name: '지능', key: 'intelligence' },
   { name: '체력', key: 'constitution' },
   { name: '지혜', key: 'wisdom' },
   { name: '민첩성', key: 'dexterity' },
   { name: '매력', key: 'charisma' },
-  { name: '장갑', key: 'armor' },
-  { name: '고양감', key: 'exaltation' }
+  
 ];
 
 const increaseValue = (key) => {

@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.character_sheet.service;
 
+import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterGoldUpdateRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetResponse;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetUpdateRequest;
@@ -10,4 +11,5 @@ public interface CharacterSheetService {
     CharacterSheetResponse getCharacterSheet(Long roomID, Long playMemberID);
     void deleteCharacterSheet(Long roomID, Long playMemberID);
 
+    void updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest);
 }

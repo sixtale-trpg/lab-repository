@@ -6,13 +6,20 @@
         :key="index"
         class="inventory-slot"
         @click="openItemInfoModal(item)"
+        @mouseover="showTooltip"
+        @mouseleave="hideTooltip"
       >
         <template v-if="item">
-          <img :src="item.image" :alt="item.name" class="inventory-item" />
+          <img 
+            :src="item.image" 
+            :alt="item.name" 
+            class="inventory-item"
+          />
           <span class="item-count">{{ item.count }}</span>
           <button @click.stop="confirmDelete(item, index)" class="remove-item-button">
             <img :src="require('@/assets/images/ingame/Trash.png')" alt="Delete" class="delete" />
           </button>
+          <div class="tooltip">클릭시 아이템 상세 정보를 볼 수 있습니다</div>
         </template>
       </div>
       <div v-if="items.length < maxSlots">
@@ -230,6 +237,28 @@ const updateGold = (newGoldAmount) => {
   currentGold.value = newGoldAmount;
 };
 
+const showTooltip = (event) => {
+  const tooltip = event.target.closest('.inventory-slot').querySelector('.tooltip');
+  if (tooltip) {
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+    const slotRect = event.target.closest('.inventory-slot').getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const top = slotRect.top + slotRect.height + 5; // 아이템 슬롯 아래에 5px 간격
+    const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2); // 중앙 정렬
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+  }
+};
+
+const hideTooltip = (event) => {
+  const tooltip = event.target.closest('.inventory-slot').querySelector('.tooltip');
+  if (tooltip) {
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.opacity = '0';
+  }
+};
+
 onMounted(() => {
   if (selectedPlayMemberID.value) {
     fetchUserItems(selectedPlayMemberID.value);
@@ -362,5 +391,31 @@ html, body {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.tooltip {
+  visibility: hidden;
+  width: 150px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+  position: fixed; /* 고정 위치로 변경 */
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.8rem;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
 }
 </style>

@@ -72,7 +72,7 @@ public class Member extends BaseTimeEntity {
         }
     }
 
-    public Member(String email, String nickname, String accessToken, Provider provider, String providerUserID, boolean isWithdrawn) {
+    public Member(String email, String nickname, Provider provider, String providerUserID, boolean isWithdrawn) {
         this.email = email;
         this.nickname = nickname;
         this.provider = provider;

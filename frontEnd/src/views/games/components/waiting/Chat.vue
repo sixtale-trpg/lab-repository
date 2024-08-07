@@ -1,18 +1,36 @@
 <template>
   <div :style="chatSectionStyle" class="chat-section">
     <div class="chat-tabs">
-      <div @click="selectTab('all')" :class="{ tab: true, active: selectedTab.value === 'all' }" :style="tabAllStyle">
+      <!-- 탭 클릭 시 탭 전환 -->
+      <div
+        @click="selectTab('all')"
+        :class="{ tab: true, active: selectedTab.value === 'all' }"
+        :style="tabAllStyle"
+      >
         <span>전체</span>
       </div>
-      <div @click="selectTab('chat')" :class="{ tab: true, active: selectedTab.value === 'chat' }" :style="tabChatStyle">
+      <div
+        @click="selectTab('chat')"
+        :class="{ tab: true, active: selectedTab.value === 'chat' }"
+        :style="tabChatStyle"
+      >
         <span>채팅</span>
       </div>
-      <div @click="selectTab('whisper')" :class="{ tab: true, active: selectedTab.value === 'whisper' }" :style="tabWhisperStyle">
+      <div
+        @click="selectTab('whisper')"
+        :class="{ tab: true, active: selectedTab.value === 'whisper' }"
+        :style="tabWhisperStyle"
+      >
         <span>귓속말</span>
       </div>
     </div>
     <div :style="chatWindowStyle" class="chat-window">
-      <div v-for="message in filteredMessages" :key="message.id" class="chat-message">
+      <!-- 필터링된 메시지 출력 -->
+      <div
+        v-for="message in filteredMessages"
+        :key="message.id"
+        class="chat-message"
+      >
         <span class="sender">{{ message.sender }}:</span>
         <span class="text">{{ message.text }}</span>
       </div>
@@ -25,14 +43,18 @@
         :style="chatInputStyle"
         class="chat-input"
       />
-      <button @click="sendMessage" :style="sendButtonStyle" class="send-button"></button>
+      <button
+        @click="sendMessage"
+        :style="sendButtonStyle"
+        class="send-button"
+      ></button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import WebSocketService from '@/store/WebSocketService'; // WebSocket 서비스 가져오기
+import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
 
 // 이미지 동적 로드
 const background1 = require('@/assets/images/room/chat/chat_background1.png');
@@ -45,7 +67,7 @@ const sendButtonImage = require('@/assets/images/room/chat/Send_Button.png');
 
 const selectedTab = ref('all');
 const newMessage = ref('');
-const messages = ref([]);
+const messages = ref([]); // 모든 메시지를 저장하는 배열
 
 // 컴포넌트가 마운트되면 WebSocket 연결 설정
 onMounted(() => {
@@ -65,18 +87,19 @@ const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
 
   const messageData = {
-    roomID: 1,                 // 채팅방 ID, 실제 값으로 설정
-    memberID: 2,               // 사용자 ID, 실제 값으로 설정
+    roomID: 1, // 채팅방 ID, 실제 값으로 설정
+    memberID: 2, // 사용자 ID, 실제 값으로 설정
     content: newMessage.value, // 메시지 내용
-    type: selectedTab.value === 'whisper' ? 'WHISPER' : 'CHAT', // 메시지 유형
-    roomType: null         // 방 유형, 실제 값으로 설정
+    type: selectedTab.value === 'whisper' ? 'whisper' : 'chat', // 메시지 유형
+    roomType: null, // 방 유형, 실제 값으로 설정
   };
 
   // 메시지를 화면에 즉시 추가
   messages.value.push({
+    id: Date.now(),
     sender: 'Me', // 로컬 사용자의 이름
     text: newMessage.value,
-    type: messageData.type
+    type: messageData.type,
   });
 
   WebSocketService.sendMessage(messageData); // 서버로 메시지 전송

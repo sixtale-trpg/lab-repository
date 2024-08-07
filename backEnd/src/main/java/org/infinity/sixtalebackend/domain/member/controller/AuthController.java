@@ -74,7 +74,7 @@ public class AuthController {
             cookie.setMaxAge(86400); // 1일
 
             response.addCookie(cookie);
-            response.sendRedirect("http://localhost:8083");
+            response.sendRedirect("https://i11d108.p.ssafy.io");
 
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGIN_SUCCESS, accessToken), HttpStatus.OK);
         } catch(Exception e){

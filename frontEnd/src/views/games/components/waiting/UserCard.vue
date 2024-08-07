@@ -1,50 +1,120 @@
+<!-- UserCard.vue -->
 <template>
   <div :style="userCardStyle" class="user-card">
     <div class="user-profile">
       <div class="profile-image-container">
-        <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" />
+        <!-- 사용자 프로필 이미지 -->
+        <img
+          :src="user.profileImage"
+          alt="사용자 프로필"
+          class="profile-image"
+          @click="openUserProfile(user.id)"
+        />
         <img :src="avatarFrameImage" alt="테두리" class="avatar-frame" />
       </div>
     </div>
     <div class="user-actions">
-      <img src="@/assets/images/room/info.png" alt="보기" @click="showUserModal = true" />
-      <img src="@/assets/images/room/add-friend.png" alt="친구 추가" @click="showAddFriendModal = true" />
-      <img v-if="isGM" src="@/assets/images/room/kick.png" alt="강퇴" @click="showKickModal = true" />
+      <img
+        v-if="isGM"
+        src="@/assets/images/room/kick.png"
+        alt="강퇴"
+        @click="showKickModal = true"
+      />
     </div>
-    <div :style="userNameStyle" class="user-name" :title="user.name">{{ truncatedName }}</div>
+    <div :style="userNameStyle" class="user-name" :title="user.name">
+      {{ truncatedName }}
+    </div>
 
-    <Userinfo v-if="showUserModal" :user="fetchedUserData" @close="showUserModal = false" />
-    <AddFriendModal v-if="showAddFriendModal" :user="user" @close="showAddFriendModal = false" />
-    <KickModal v-if="showKickModal" :user="user" @close="showKickModal = false" @kick="kickUser" />
+    <!-- 사용자 정보 모달 -->
+    <Userinfo
+      v-if="showUserModal"
+      :user="fetchedUserData"
+      @close="showUserModal = false"
+    />
+    <AddFriendModal
+      v-if="showAddFriendModal"
+      :user="user"
+      @close="showAddFriendModal = false"
+    />
+    <KickModal
+      v-if="showKickModal"
+      :user="user"
+      @close="showKickModal = false"
+      @kick="kickUser"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { defineProps } from 'vue';
-import axios from 'axios';
+import { ref, computed, defineProps } from 'vue';
 import Userinfo from '@/views/games/components/Modal/UserInfo.vue';
 import AddFriendModal from '@/views/games/components/Modal/AddFriendModal.vue';
 import KickModal from '@/views/games/components/Modal/KickModal.vue';
 
+// props로 전달된 사용자 데이터
 const props = defineProps({
   user: Object,
   isGM: Boolean,
 });
+
+// 더미 데이터 정의
+const dummyUsers = [
+  {
+    id: 1,
+    race: '인간',
+    job: '전사',
+    background: '검투사 출신이며...',
+  },
+  {
+    id: 2,
+    race: '엘프',
+    job: '마법사',
+    background: '숲에서 자라난...',
+  },
+  {
+    id: 3,
+    race: '드워프',
+    job: '기사',
+    background: '산속에서 전투를...',
+  },
+  {
+    id: 4,
+    race: '인간',
+    job: '궁수',
+    background: '활을 잘 다루며...',
+  },
+  {
+    id: 5,
+    race: '오크',
+    job: '도적',
+    background: '몰래 다가가 적을...',
+  },
+  {
+    id: 6,
+    race: '고블린',
+    job: '도적',
+    background: '작고 민첩한...',
+  },
+  {
+    id: 7,
+    race: '하프엘프',
+    job: '음유시인',
+    background: '노래와 시를 사랑하며...',
+  },
+  {
+    id: 8,
+    race: '하프오크',
+    job: '전사',
+    background: '힘과 용맹을 겸비한...',
+  },
+];
 
 const showUserModal = ref(false);
 const showAddFriendModal = ref(false);
 const showKickModal = ref(false);
 const fetchedUserData = ref(null);
 
-const addFriend = (user) => {
-  console.log(`Adding friend ${user.name}`);
-};
-
-const kickUser = (user) => {
-  console.log(`Kicking user ${user.name}`);
-};
-
+// 백그라운드 이미지 경로 설정
 const profileBoxImage = require('@/assets/images/room/profile_box.png');
 const nameBoxImage = require('@/assets/images/room/name_box.png');
 const avatarFrameImage = require('@/assets/images/room/avatar_frame.png');
@@ -74,18 +144,32 @@ const userNameStyle = computed(() => ({
   whiteSpace: 'nowrap',
 }));
 
+// 사용자 이름이 길 경우 잘라서 표시
 const truncatedName = computed(() => {
-  return props.user.name.length > 10 ? props.user.name.slice(0, 10) + '...' : props.user.name;
+  return props.user.name.length > 10
+    ? props.user.name.slice(0, 10) + '...'
+    : props.user.name;
 });
 
-const fetchUserProfile = async (userId) => {
-  try {
-    const response = await axios.get(`/api/users/${userId}`);
-    fetchedUserData.value = response.data;
-    showUserModal.value = true;
-  } catch (error) {
-    console.error('Failed to fetch user profile:', error);
+// 사용자 프로필을 열어 모달에 사용자 정보 표시
+const openUserProfile = (userId) => {
+  // props.user의 ID를 기반으로 추가 정보를 결합
+  const additionalData = dummyUsers.find((user) => user.id === userId);
+  if (additionalData) {
+    // 기존 사용자 데이터에 추가 정보를 결합하여 fetchedUserData에 저장
+    fetchedUserData.value = { ...props.user, ...additionalData };
+    showUserModal.value = true; // 모달 표시
+  } else {
+    console.error('사용자 데이터를 찾을 수 없습니다.');
   }
+};
+
+const kickUser = (user) => {
+  console.log(`사용자 강퇴: ${user.name}`);
+};
+
+const addFriend = (user) => {
+  console.log(`친구 추가: ${user.name}`);
 };
 </script>
 
@@ -131,6 +215,7 @@ const fetchUserProfile = async (userId) => {
   height: 90%;
   object-fit: cover;
   border-radius: 50%;
+  cursor: pointer;
 }
 
 .avatar-frame {
@@ -148,12 +233,12 @@ const fetchUserProfile = async (userId) => {
   gap: 5%;
   position: absolute;
   top: 2%;
-  right: -8%;
+  right: -2%;
   z-index: 1;
 }
 
 .user-actions img {
-  width: 20%;
+  width: 65%;
   height: auto;
   cursor: pointer;
 }

@@ -14,11 +14,10 @@
           <div :style="gmCardStyle" class="gm-section">
             <div class="gm-info">
               <div :style="profileImageContainerStyle" class="profile-image-container">
-                <img :src="gm.profileImage" alt="GM 프로필" class="profile-image" />
+                <img :src="gm.profileImage" alt="GM 프로필" class="profile-image" @click="showGMModal = true"/>
                 <img :src="avatarFrameImagePath" alt="테두리" class="avatar-frame" />
               </div>
               <div :style="gmNameStyle" class="gm-name">{{ gm.name }}</div>
-              <img :src="infoIconPath" alt="Info" @click="showGMModal = true" class="info-icon" />
             </div>
             <button :disabled="!isGM" :style="[startGameButtonStyle, !isGM ? disabledButtonStyle : {}]" class="start-game-button" @click="startGame">게임 시작</button>
           </div>
@@ -362,7 +361,6 @@ const calendarContainerStyle = {
   height: 70%;
   width: 100%;
   justify-content: center;
-  cursor: pointer;
 }
 
 .gm-profile {
@@ -379,6 +377,7 @@ const calendarContainerStyle = {
   height: 90%;
   object-fit: cover; /* 이미지가 컨테이너를 왜곡 없이 덮도록 설정 */
   border-radius: 50%;
+  cursor: pointer;
 }
 
 .avatar-frame {

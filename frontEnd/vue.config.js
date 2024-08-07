@@ -1,26 +1,26 @@
-const webpack = require("webpack");
+const webpack = require('webpack');
 
 module.exports = {
   configureWebpack: {
     resolve: {
       alias: {
-        vue: "vue/dist/vue.runtime.esm-bundler.js",
-      },
+        'vue': 'vue/dist/vue.runtime.esm-bundler.js'
+      }
     },
     plugins: [
       new webpack.DefinePlugin({
         __VUE_OPTIONS_API__: true,
         __VUE_PROD_DEVTOOLS__: false,
-        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
-      }),
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+      })
     ],
     optimization: {
-      minimize: false,
-    },
+      minimize: false
+    }
   },
-  chainWebpack: (config) => {
-    config.plugin("html").tap((args) => {
-      args[0].title = "SixTale"; // 원하는 제목으로 변경
+  chainWebpack: config => {
+    config.plugin('html').tap(args => {
+      args[0].title = 'SixTale'; // 원하는 제목으로 변경
       return args;
     });
   },
@@ -29,9 +29,10 @@ module.exports = {
     port: 8083,
     open: true,
     proxy: {
-      "/api/": {
-        target: "http://i11d108.p.ssafy.io:8888/",
-      },
+      '/api/v1': {
+        target: 'http://i11d108.p.ssafy.io:8888/', // 백엔드 서버 주소로 변경
+        changeOrigin: true
+      }
     },
     historyApiFallback: true,
     hot: true,

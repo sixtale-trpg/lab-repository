@@ -13,15 +13,21 @@
     </div>
     <div class="stats-grid">
       <div class="stat-item" v-for="(attribute, index) in attributes" :key="index">
-        <div :class="{'left-layout': isLeftColumn(index), 'right-layout': !isLeftColumn(index)}">
-          <div class="stat-name">{{ attribute.name }}</div>
-          <div class="stat-controls">
-            <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseValue(attribute.key)">
-            <div class="stat-value-container">
-              <div class="stat-value">{{ statsData.attributes[attribute.key].value }}</div>
-            </div>
-            <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseValue(attribute.key)">
+        <div class="stat-name">{{ attribute.name }}</div>
+        <div class="stat-controls">
+          <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseValue(attribute.key)">
+          <div class="stat-value-container">
+            <div class="stat-value">{{ statsData.attributes[attribute.key].value }}</div>
           </div>
+          <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseValue(attribute.key)">
+        </div>
+        <div class="stat-weight-controls" v-if="statsData.attributes[attribute.key].weight !== undefined">
+          <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseWeight(attribute.key)">
+          <div class="stat-weight-container">
+            <div class="stat-weight">{{ statsData.attributes[attribute.key].weight }}</div>
+            <div class="weight-label">(가중치)</div>
+          </div>
+          <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseWeight(attribute.key)">
         </div>
       </div>
     </div>
@@ -29,13 +35,10 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, defineProps, defineEmits } from 'vue';
 
 const props = defineProps(['statsData']);
 const emit = defineEmits(['update:statsData']);
-
-// 주석 처리된 부분은 부모 컴포넌트에서 데이터를 받을 때 사용합니다。
-// const statsData = ref(props.statsData);
 
 // 임시 데이터 예시 (실제 데이터가 부모 컴포넌트에서 전달될 때 이 부분을 대체합니다)
 const statsData = ref({
@@ -43,14 +46,15 @@ const statsData = ref({
   attributes: {
     experience: { value: 5 },
     hp: { value: 10 },
-    strength: { value: 8 },
-    intelligence: { value: 7 },
-    constitution: { value: 6 },
-    wisdom: { value: 9 },
-    dexterity: { value: 8 },
-    charisma: { value: 7 },
     armor: { value: 4 },
-    exaltation: { value: 5 }
+    exaltation: { value: 5 },
+    strength: { value: 8, weight: 2 },
+    intelligence: { value: 7, weight: 1 },
+    constitution: { value: 6, weight: 1 },
+    wisdom: { value: 9, weight: 0 },
+    dexterity: { value: 8, weight: 2 },
+    charisma: { value: 7, weight: 1 },
+    
   }
 });
 
@@ -62,14 +66,15 @@ const descriptionText = `
 const attributes = [
   { name: '경험치', key: 'experience' },
   { name: 'HP', key: 'hp' },
+  { name: '장갑', key: 'armor' },
+  { name: '고양감', key: 'exaltation' },
   { name: '근력', key: 'strength' },
   { name: '지능', key: 'intelligence' },
   { name: '체력', key: 'constitution' },
   { name: '지혜', key: 'wisdom' },
   { name: '민첩성', key: 'dexterity' },
   { name: '매력', key: 'charisma' },
-  { name: '장갑', key: 'armor' },
-  { name: '고양감', key: 'exaltation' }
+  
 ];
 
 const increaseValue = (key) => {
@@ -84,6 +89,16 @@ const decreaseValue = (key) => {
   }
 };
 
+const increaseWeight = (key) => {
+  statsData.value.attributes[key].weight++;
+  emit('update:statsData', statsData.value);
+};
+
+const decreaseWeight = (key) => {
+  statsData.value.attributes[key].weight--;
+  emit('update:statsData', statsData.value);
+};
+
 const increaseLevel = () => {
   statsData.value.level++;
   emit('update:statsData', statsData.value);
@@ -95,10 +110,7 @@ const decreaseLevel = () => {
     emit('update:statsData', statsData.value);
   }
 };
-
-const isLeftColumn = (index) => index % 2 === 0;
 </script>
-
 
 <style scoped>
 .attributes-content {
@@ -140,7 +152,6 @@ const isLeftColumn = (index) => index % 2 === 0;
   background-color: #1d1707;
   width: 30%;
   padding: 10px;
-  margin-bottom: 10px;
   border-radius: 5px;
   gap: 10px;
   margin: 0 auto 20px;
@@ -155,20 +166,13 @@ const isLeftColumn = (index) => index % 2 === 0;
   width: 20px;
   height: 20px;
   cursor: pointer;
-  margin: 0 10px;
+  margin: 0 5px;
 }
 
 .level-text {
   font-size: 1.5rem;
   color: #fff;
-  margin: 0 20px;
-}
-
-.level-value {
-  font-size: 1.6em;
-  min-width: 40px;
-  text-align: center;
-  color: #fff;
+  margin: 0 10px;
 }
 
 .stats-grid {
@@ -180,8 +184,9 @@ const isLeftColumn = (index) => index % 2 === 0;
 
 .stat-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 85%;
   padding: 10px;
   border-radius: 5px;
@@ -189,21 +194,13 @@ const isLeftColumn = (index) => index % 2 === 0;
   position: relative;
 }
 
-.left-layout, .right-layout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.left-layout .stat-name,
-.right-layout .stat-name {
+.stat-name {
   font-size: 1.2rem;
   color: #fff;
-  margin: 0 20px;
+  margin-bottom: 10px;
 }
 
-.stat-controls {
+.stat-controls, .stat-weight-controls {
   display: flex;
   align-items: center;
   background-color: #1d1707;
@@ -212,8 +209,8 @@ const isLeftColumn = (index) => index % 2 === 0;
   gap: 5px;
 }
 
-.stat-value-container {
-  margin: 0 10px;
+.stat-value-container, .stat-weight-container {
+  margin: 0 5px;
   font-size: 1.2rem;
   min-width: 40px;
   text-align: center;
@@ -222,7 +219,14 @@ const isLeftColumn = (index) => index % 2 === 0;
   border-radius: 5px;
 }
 
-.stat-value {
+.stat-value, .stat-weight {
   color: #fff;
+}
+
+.weight-label {
+  font-size: 0.8rem;
+  color: #fff;
+  margin-top: 5px;
+  text-align: center;
 }
 </style>

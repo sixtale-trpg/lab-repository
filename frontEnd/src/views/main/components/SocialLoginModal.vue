@@ -4,33 +4,45 @@
       <span class="close-btn" @click="closeModal">&times;</span>
       <h2 class="modal-title">소셜 로그인</h2>
       <button class="social-btn" @click="googleLogin">Google 로그인</button>
+      <button class="social-btn" @click="naverLogin">Naver 로그인</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits } from "vue";
 
 const props = defineProps({
-  modelValue: Boolean
+  modelValue: Boolean,
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 const closeModal = () => {
-  emit('update:modelValue', false);
+  emit("update:modelValue", false);
 };
 
-const googleLogin = () => {
-  const clientId = '288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com';
-  const redirectUri = 'https://i11d108.p.ssafy.io/api/v1/members/auth/login/google';
-  const responseType = 'code';
-  const scope = 'email profile';
+const googleLogin = async () => {
+  const clientId =
+    "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
+  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
+  const responseType = "code";
+  const scope = "email profile";
 
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
 
   window.location.href = url;
-  console.log("url = "+ url);
+};
+
+const naverLogin = async () => {
+  const clientId = "jCJ25DM0P7fbySK5L9Fd";
+  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/naver";
+  const responseType = "code";
+  // const scope = 'email profile_image'
+
+  const url = `https://nid.naver.com/oauth2.0/authorize?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}`;
+
+  window.location.href = url;
 };
 </script>
 
@@ -40,13 +52,13 @@ const googleLogin = () => {
   justify-content: center;
   align-items: center;
   position: fixed;
-  z-index: 1;
+  z-index: 1000;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0,0,0,0.7);
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .modal-content {

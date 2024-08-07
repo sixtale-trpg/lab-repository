@@ -18,6 +18,7 @@ import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,10 +65,8 @@ public class AuthController {
             Member member = authService.socialLogin(code, registrationID);
             String accessToken = jwtUtil.generateToken(member.getEmail());
             authService.saveAccessToken(member, accessToken);
-//            HttpSession session = request.getSession();
-//            session.setAttribute("accessToken", accessToken);
             
-            // HTTP-Only 및 Secure 속성 사용해서 보안 강화하기 (예정)
+            // HTTP-Only 및 Secure 속성 사용해서 보안 강화해야함
             Cookie cookie = new Cookie("access-token", accessToken);
             cookie.setHttpOnly(false);
             cookie.setSecure(false); // HTTPS를 사용하는 경우에만 설정
@@ -90,13 +89,13 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         try {
-            Cookie cookie = new Cookie("access-token", null);
+            Cookie cookie = new Cookie("access-token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정
             cookie.setPath("/");
             cookie.setMaxAge(0); // 쿠키 삭제
-
             response.addCookie(cookie);
+
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGOUT_SUCCESS), HttpStatus.OK);
         } catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -107,18 +106,18 @@ public class AuthController {
      * 회원탈퇴
      */
     @PatchMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@CookieValue(value = "access-token", required = false) String token) {
+    public ResponseEntity<?> withdraw(@CookieValue(value = "access-token", required = false) String token, HttpServletResponse response) {
         try {
-            log.info("token = {}", token);
             // 토큰에서 유저 뽑아내기
             Member member = memberSerivceImpl.findByAccessToken(token);
 
             // 로그아웃 처리
-//            Cookie cookie = new Cookie("access-token", null);
-//            cookie.setHttpOnly(true);
-//            cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정
-//            cookie.setPath("/");
-//            cookie.setMaxAge(0); // 쿠키 삭제
+            Cookie cookie = new Cookie("access-token", "");
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정
+            cookie.setPath("/");
+            cookie.setMaxAge(0); // 쿠키 삭제
+            response.addCookie(cookie);
 
             // 탈퇴
             authService.withdraw(member);

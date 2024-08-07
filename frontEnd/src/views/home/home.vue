@@ -24,6 +24,7 @@ import NewScenario from './components/NewScenario.vue';
   min-height: calc(100vh - var(--header-height, 70px)); 
 }
 
+
 .carousel-no-padding {
   padding: 0;
   margin: 0;

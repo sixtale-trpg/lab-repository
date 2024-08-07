@@ -8,7 +8,7 @@
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
-        <GMSection class="gm-section" :gm="gm" :isGM="isGM" @start-game="startGame" />
+        <GMSection class="gm-section" :gm="gm" :isGM="isGM"  />
         <div class="log-and-chat">
           <Log class="log-section" />
           <Chatting class="chatting-section" />

@@ -310,4 +310,16 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         characterSheetRepository.delete(characterSheet);
         log.info("캐릭터 시트 및 관련 데이터 삭제 완료");
     }
+
+    @Override
+    @Transactional
+    public void updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest) {
+        PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMember(playMember)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        characterSheet.setCurrentMoney(characterGoldUpdateRequest.getCurrentMoney());
+        characterSheetRepository.save(characterSheet);
+    }
 }

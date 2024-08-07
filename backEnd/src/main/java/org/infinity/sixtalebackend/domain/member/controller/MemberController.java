@@ -109,4 +109,9 @@ public class MemberController {
         }
     }
 
+    /**
+     * 시나리오 좋아요
+     */
+
+
 }

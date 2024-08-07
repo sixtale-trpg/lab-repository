@@ -7,6 +7,8 @@ import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.GenreDto;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioGenre;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioLike;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioLikeID;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioGenreRepository;
@@ -146,14 +148,15 @@ public class MemberSerivceImpl implements MemberService {
         Member member = findMember(memberID);
 
         // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
+        // 좋아요 한 시나리오
         Page<Scenario> scenarioPage = scenarioRepository.findLikedScenariosByMember(null, scenarioPageable);
 
         // Entity - Dto 변환
         List<ScenarioResponseDto> scenarioResponseDtoList = scenarioPage.getContent().stream()
-                .map(s -> {
-                    List<ScenarioGenre> scenarioGenres = scenarioGenreRepository.findScenarioGenreByScenario(s);
-//                    Boolean isLiked = scenarioLikeRepository.existsByScenarioAndMember(s, member);
-                    return convertToDto(s, scenarioGenres, true);
+                .map(scenario -> {
+                    List<ScenarioGenre> scenarioGenres = scenarioGenreRepository.findScenarioGenreByScenario(scenario);
+//                    Boolean isLiked = scenarioLikeRepository.existsByScenarioAndMember(scenario, member);
+                    return convertToDto(scenario, scenarioGenres, true);
                 }).toList();
 
         return ScenarioListResponseDto.builder()

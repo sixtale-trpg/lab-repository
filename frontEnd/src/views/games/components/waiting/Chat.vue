@@ -18,7 +18,13 @@
       </div>
     </div>
     <div :style="inputContainerStyle" class="input-container">
-      <input v-model="newMessage" @keydown.enter="sendMessage" placeholder="메시지를 입력하세요..." :style="chatInputStyle" class="chat-input" />
+      <input
+        v-model="newMessage"
+        @keydown.enter="sendMessage"
+        placeholder="메시지를 입력하세요..."
+        :style="chatInputStyle"
+        class="chat-input"
+      />
       <button @click="sendMessage" :style="sendButtonStyle" class="send-button"></button>
     </div>
   </div>
@@ -58,13 +64,22 @@ const selectTab = (tab) => {
 const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
 
-  const message = {
-    sender: 'Me', // 메시지 발신자
-    text: newMessage.value, // 메시지 내용
-    type: selectedTab.value, // 메시지 유형 (전체, 채팅, 귓속말)
+  const messageData = {
+    roomID: 1,                 // 채팅방 ID, 실제 값으로 설정
+    memberID: 2,               // 사용자 ID, 실제 값으로 설정
+    content: newMessage.value, // 메시지 내용
+    type: selectedTab.value === 'whisper' ? 'WHISPER' : 'CHAT', // 메시지 유형
+    roomType: null         // 방 유형, 실제 값으로 설정
   };
 
-  WebSocketService.sendMessage(message); // 서버로 메시지 전송
+  // 메시지를 화면에 즉시 추가
+  messages.value.push({
+    sender: 'Me', // 로컬 사용자의 이름
+    text: newMessage.value,
+    type: messageData.type
+  });
+
+  WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
   newMessage.value = ''; // 입력 필드 초기화
 };
 

@@ -10,7 +10,7 @@ class WebSocketService {
 
     // WebSocket 및 STOMP 연결 설정
     connect() {
-        const socket = new SockJS('http://localhost:8080/ws'); // SockJS로 WebSocket 연결 생성
+        const socket = new SockJS('http://localhost:8888/api/v1/ws'); // SockJS로 WebSocket 연결 생성
         this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
 
         this.stompClient.connect({}, () => {
@@ -19,6 +19,7 @@ class WebSocketService {
 
             // 메시지 구독 설정
             this.stompClient.subscribe('/sub/waiting/chat/messages', (message) => {
+                console.log('Message received:', message.body);
                 const parsedMessage = JSON.parse(message.body); // 수신된 메시지 파싱
                 if (this.messageCallback) {
                     this.messageCallback(parsedMessage); // 콜백 함수 호출
@@ -37,6 +38,7 @@ class WebSocketService {
     // 메시지를 서버로 전송
     sendMessage(message) {
         if (this.connected) {
+            console.log('Sending message:', message);
             this.stompClient.send('/pub/waiting/chat/message', {}, JSON.stringify(message)); // 메시지 전송
         } else {
             console.error('WebSocket is not connected');

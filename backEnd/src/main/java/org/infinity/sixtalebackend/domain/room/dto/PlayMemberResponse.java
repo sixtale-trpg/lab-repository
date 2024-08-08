@@ -9,6 +9,7 @@ import lombok.Setter;
 @Builder
 public class PlayMemberResponse {
     private Long playMemberID;
+    private Long memberID;
     private String playMemberNickname;
     private String playMemberImageURL;
 }

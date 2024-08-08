@@ -213,7 +213,8 @@ public class RoomServiceImpl implements RoomService{
 
         List<PlayMemberResponse> playMemberResponses = room.getPlayMembers().stream()
                 .map(pm -> PlayMemberResponse.builder()
-                        .playMemberID(pm.getMember().getId())
+                        .playMemberID(pm.getId())
+                        .memberID(pm.getMember().getId())
                         .playMemberNickname(pm.getMember().getNickname())
                         .playMemberImageURL(pm.getMember().getImageURL())
                         .build())
@@ -328,7 +329,8 @@ public class RoomServiceImpl implements RoomService{
     private List<PlayMemberResponse> mapMembersToResponse(List<PlayMember> playMembers) {
         return playMembers.stream()
                 .map(pm -> PlayMemberResponse.builder()
-                        .playMemberID(pm.getMember().getId())
+                        .playMemberID(pm.getId())
+                        .memberID(pm.getMember().getId())
                         .playMemberNickname(pm.getMember().getNickname())
                         .playMemberImageURL(pm.getMember().getImageURL())
                 .build())

@@ -27,7 +27,7 @@ public class Map {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(length = 512)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

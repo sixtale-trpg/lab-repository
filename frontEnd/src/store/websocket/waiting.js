@@ -10,7 +10,7 @@ class WebSocketService {
 
     // WebSocket 및 STOMP 연결 설정
     connect() {
-        const socket = new SockJS('http://localhost:8888/api/v1/ws'); // SockJS로 WebSocket 연결 생성
+        const socket = new SockJS('http://i11d108.p.ssafy.io:8888/api/v1/ws'); // SockJS로 WebSocket 연결 생성
         this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
 
         this.stompClient.connect({}, () => {

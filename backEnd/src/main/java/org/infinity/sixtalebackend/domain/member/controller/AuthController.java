@@ -55,6 +55,18 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/auth/user")
+    public ResponseEntity<?> login(@CookieValue(value = "access-token") String token) {
+        try {
+            // 토큰에서 유저 뽑아내기
+            Member member = memberSerivceImpl.findByAccessToken(token);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_USER, member), HttpStatus.OK);
+        } catch(Exception e){
+            log.info(e.getMessage());
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * 로그인
      */

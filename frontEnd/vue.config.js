@@ -11,7 +11,10 @@ module.exports = {
       new webpack.DefinePlugin({
         __VUE_OPTIONS_API__: true,
         __VUE_PROD_DEVTOOLS__: false,
-        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+        'process.env': {
+          VUE_APP_DALLE3_API_KEY: JSON.stringify(process.env.VUE_APP_DALLE3_API_KEY)
+        }
       })
     ],
     optimization: {
@@ -31,6 +34,11 @@ module.exports = {
     proxy: {
       '/api/v1': {
         target: 'http://i11d108.p.ssafy.io:8888/', // 백엔드 서버 주소로 변경
+        changeOrigin: true
+      },
+      '/ws': {
+        target: 'http://i11d108.p.ssafy.io:8888/api/v1', // WebSocket 서버 주소
+        ws: true, // WebSocket 프록시 활성화
         changeOrigin: true
       }
     },
@@ -59,5 +67,5 @@ module.exports = {
     },
   },
   lintOnSave: false,
-  outputDir: "dist",
+  outputDir: '../backEnd/SIXTALEBackEnd/src/main/resources/dist'
 };

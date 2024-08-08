@@ -8,6 +8,7 @@ import Main from '@/views/main/main'; // main.vue를 공통 레이아웃으로 �
 import CharacterSheet from '@/views/games/CharacterSheet';
 import InGame from '@/views/games/InGame';
 import Waiting from '@/views/games/Waiting';
+import Mypage from '@/views/menu/Mypage';
 
 const routes = [
   {
@@ -38,6 +39,11 @@ const routes = [
         path: 'lobby',
         name: 'Lobby',
         component: Lobby
+      },
+      {
+        path: 'mypage',
+        name: 'Mypage',
+        component: Mypage
       }
     ]
   },

@@ -1,5 +1,5 @@
 <template>
-  <div class="dice-area" :style="backgroundStyle">
+  <div class="dice-area" :style="backgroundStyle" @mousemove="handleMouseMove">
     <div class="dice-grid">
       <div class="dice-container-wrapper">
         <div v-for="dice in diceList" :key="dice.diceId" class="dice-container">
@@ -8,7 +8,6 @@
                @mouseenter="showHoverText(dice.name)"
                @mouseleave="hideHoverText">
             <img :src="dice.image" :alt="dice.name" class="dice" />
-            <div class="hover-overlay" :style="{ top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px` }">{{ hoverText }}</div>
             <span class="dice-count" :class="{ 'animate': dice.animate, 'animate-on-action': dice.animateOnAction }">{{ dice.count }}</span>
           </div>
           <button @click="decreaseCount(dice.diceId)" :style="decreaseButtonStyle" class="control-button decrease-button"></button>
@@ -19,11 +18,14 @@
         <button @click="handleReset" :style="ResetbackgroundStyle" class="reset-button" :class="{ animateButton: resetAnimate }">Reset</button>
       </div>
     </div>
+    <teleport to="body">
+      <div class="hover-overlay" v-if="hoverText" :style="{ top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px` }">{{ hoverText }}</div>
+    </teleport>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, nextTick } from 'vue';
+import { reactive, ref } from 'vue';
 import eventBus from '@/common/lib/eventBus.js';
 
 const diceList = reactive([
@@ -42,10 +44,22 @@ const rollAnimate = ref(false);
 const resetAnimate = ref(false);
 
 const handleMouseMove = (event) => {
-  hoverPosition.value = {
-    x: event.clientX + 10, // 마우스 커서에서 약간 오른쪽
-    y: event.clientY - 20, // 마우스 커서에서 약간 위쪽
-  };
+  const overlayWidth = 100; // 호버 오버레이의 예상 너비 (px 단위)
+  const overlayHeight = 50; // 호버 오버레이의 예상 높이 (px 단위)
+  const offsetX = 10; // 커서 위치에서 약간 오른쪽으로 오프셋
+  const offsetY = -20; // 커서 위치에서 약간 위쪽으로 오프셋
+  let x = event.clientX + offsetX;
+  let y = event.clientY + offsetY;
+
+  // 화면 경계를 벗어나지 않도록 조정
+  if (x + overlayWidth > window.innerWidth) {
+    x = window.innerWidth - overlayWidth;
+  }
+  if (y + overlayHeight > window.innerHeight) {
+    y = window.innerHeight - overlayHeight;
+  }
+
+  hoverPosition.value = { x, y };
 };
 
 const showHoverText = (text) => {
@@ -80,7 +94,7 @@ const increaseCount = (diceId) => {
     dice.animate = true;
     setTimeout(() => {
       dice.animate = false;
-    }, 150);
+    }, 130);
   }
 };
 
@@ -91,7 +105,7 @@ const decreaseCount = (diceId) => {
     dice.animate = true;
     setTimeout(() => {
       dice.animate = false;
-    }, 150);
+    }, 130);
   }
 };
 
@@ -144,10 +158,8 @@ const buttonStyle = {
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
   width: '100%',
-  fontSize: '1.5vh', // 폰트 크기를 줄임
-  // height: reactive('3vh'),
+  fontSize: '1.5vh',
   cursor: 'pointer',
-  // boxSizing: 'border-box',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -256,6 +268,36 @@ body {
   height: 4vh;
 }
 
+.hover-overlay {
+  display: none;
+  position: fixed; /* position: fixed를 사용하여 마우스 위치에 따라 움직임 */
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 5px;
+  z-index: 1000; /* 높은 z-index 설정 */
+  padding: 5px;
+}
+
+.hover-overlay {
+  display: flex;
+  position: fixed;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 5px;
+  z-index: 1000; /* 높은 z-index 설정 */
+  padding: 5px;
+}
+
 .dice {
   width: 100%;
   height: 100%;
@@ -298,9 +340,9 @@ body {
 
 .roll-button,
 .reset-button {
-  height: 100%; /* 높이를 줄임 */
-  width: 100%; /* 너비를 줄임 */
-  font-size: 0.8vh; /* 폰트 크기를 줄임 */
+  height: 100%;
+  width: 100%;
+  font-size: 0.8vh;
   padding: 0.5vh;
   border: none;
   border-radius: 0.3vh;
@@ -327,8 +369,6 @@ body {
   50% { transform: translate(-50%, -50%) scale(0.2); }
   100% { transform: translate(-50%, -50%) scale(1); }
 }
-
-
 
 .animateButton {
   animation: buttonPulse 0.3s ease;

@@ -2,49 +2,84 @@
   <div :style="userCardStyle" class="user-card">
     <div class="user-profile">
       <div class="profile-image-container">
-        <img :src="user.profileImage" alt="사용자 프로필" class="profile-image" />
+        <!-- 사용자 프로필 이미지 -->
+        <img
+          :src="user.profileImage || defaultImage"
+          alt="사용자 프로필"
+          class="profile-image"
+          @click="openUserProfile"
+        />
         <img :src="avatarFrameImage" alt="테두리" class="avatar-frame" />
       </div>
     </div>
     <div class="user-actions">
-      <img src="@/assets/images/room/info.png" alt="보기" @click="showUserModal = true" />
-      <img src="@/assets/images/room/add-friend.png" alt="친구 추가" @click="showAddFriendModal = true" />
-      <img v-if="isGM" src="@/assets/images/room/kick.png" alt="강퇴" @click="showKickModal = true" />
+      <img
+        v-if="isGM && user.id"
+        src="@/assets/images/room/kick.png"
+        alt="강퇴"
+        @click="showKickModal = true"
+      />
     </div>
-    <div :style="userNameStyle" class="user-name" :title="user.name">{{ truncatedName }}</div>
+    <div :style="userNameStyle" class="user-name" :title="user.name">
+      {{ truncatedName }}
+    </div>
 
-    <Userinfo v-if="showUserModal" :user="fetchedUserData" @close="showUserModal = false" />
-    <AddFriendModal v-if="showAddFriendModal" :user="user" @close="showAddFriendModal = false" />
-    <KickModal v-if="showKickModal" :user="user" @close="showKickModal = false" @kick="kickUser" />
+    <!-- 사용자 정보 모달 -->
+    <Userinfo
+      v-if="showUserModal"
+      :user="user"
+      @close="showUserModal = false"
+    />
+    <AddFriendModal
+      v-if="showAddFriendModal"
+      :user="user"
+      @close="showAddFriendModal = false"
+    />
+    <KickModal
+      v-if="showKickModal"
+      :user="user"
+      :roomId="roomId"
+      :accessToken="accessToken"
+      @close="showKickModal = false"
+      @kick="kickUser"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { defineProps } from 'vue';
-import axios from 'axios';
+import { ref, computed, defineProps } from 'vue';
 import Userinfo from '@/views/games/components/Modal/UserInfo.vue';
 import AddFriendModal from '@/views/games/components/Modal/AddFriendModal.vue';
 import KickModal from '@/views/games/components/Modal/KickModal.vue';
+import defaultImage from '@/assets/images/users/default.png';
+import { kickUserFromRoom } from '@/common/api/RoomsAPI';
 
+// props로 전달된 사용자 데이터
 const props = defineProps({
-  user: Object,
+  user: {
+    type: Object,
+    default: () => ({
+      id: null,
+      name: '',
+      profileImage: ''
+    })
+  },
   isGM: Boolean,
+  roomId: {
+    type: [String, Number],
+    required: true
+  },
+  accessToken: {
+    type: String,
+    required: true
+  }
 });
 
 const showUserModal = ref(false);
 const showAddFriendModal = ref(false);
 const showKickModal = ref(false);
-const fetchedUserData = ref(null);
 
-const addFriend = (user) => {
-  console.log(`Adding friend ${user.name}`);
-};
-
-const kickUser = (user) => {
-  console.log(`Kicking user ${user.name}`);
-};
-
+// 백그라운드 이미지 경로 설정
 const profileBoxImage = require('@/assets/images/room/profile_box.png');
 const nameBoxImage = require('@/assets/images/room/name_box.png');
 const avatarFrameImage = require('@/assets/images/room/avatar_frame.png');
@@ -74,19 +109,32 @@ const userNameStyle = computed(() => ({
   whiteSpace: 'nowrap',
 }));
 
+// 사용자 이름이 길 경우 잘라서 표시
 const truncatedName = computed(() => {
-  return props.user.name.length > 10 ? props.user.name.slice(0, 10) + '...' : props.user.name;
+  return props.user.name.length > 10
+    ? props.user.name.slice(0, 10) + '...'
+    : props.user.name;
 });
 
-const fetchUserProfile = async (userId) => {
-  try {
-    const response = await axios.get(`/api/users/${userId}`);
-    fetchedUserData.value = response.data;
+// 사용자 프로필을 열어 모달에 사용자 정보 표시
+const openUserProfile = () => {
+  if (props.user.id) {
     showUserModal.value = true;
-  } catch (error) {
-    console.error('Failed to fetch user profile:', error);
   }
 };
+
+const kickUser = async () => {
+  try {
+    const response = await kickUserFromRoom(props.roomId, props.user.id, props.accessToken);
+    if (response.statusCode === 200) {
+      console.log(`사용자 강퇴: ${props.user.name}`);
+      // 강퇴 성공 시, 추가적인 동작을 여기에 작성 (예: UI 업데이트)
+    }
+  } catch (error) {
+    console.error('Error kicking user:', error);
+  }
+};
+
 </script>
 
 <style scoped>
@@ -127,10 +175,11 @@ const fetchUserProfile = async (userId) => {
 }
 
 .profile-image {
-  width: 90%;
-  height: 90%;
+  width: 100%; /* 이미지를 컨테이너에 맞게 조절 */
+  height: 100%; /* 이미지를 컨테이너에 맞게 조절 */
   object-fit: cover;
   border-radius: 50%;
+  cursor: pointer;
 }
 
 .avatar-frame {
@@ -148,12 +197,12 @@ const fetchUserProfile = async (userId) => {
   gap: 5%;
   position: absolute;
   top: 2%;
-  right: -8%;
+  right: -2%;
   z-index: 1;
 }
 
 .user-actions img {
-  width: 20%;
+  width: 65%;
   height: auto;
   cursor: pointer;
 }

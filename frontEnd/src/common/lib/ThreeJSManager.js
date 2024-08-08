@@ -357,7 +357,7 @@ clearSingleDice(diceMesh, body) {
     ];
     switch (type) {
       case 4:
-        const radius = scale * 1.5 * Math.sqrt(6) / 4;
+        const radius = scale * 2 * Math.sqrt(6) / 4;
         geometry = new THREE.TetrahedronGeometry(radius, 0);
         geometry.addGroup(0, 3, 0);
         geometry.addGroup(3, 3, 1);

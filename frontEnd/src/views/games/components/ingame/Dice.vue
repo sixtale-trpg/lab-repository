@@ -4,13 +4,13 @@
       <div v-for="dice in diceList" :key="dice.id" class="dice-container">
         <img :src="dice.image" :alt="dice.name" class="dice" />
         <div class="dice-controls">
-          <button @click="decreaseCount(dice.id)" class="control-button">-</button>
+          <button @click="decreaseCount(dice)" class="control-button">-</button>
           <span class="dice-count">{{ dice.count }}</span>
-          <button @click="increaseCount(dice.id)" class="control-button">+</button>
+          <button @click="increaseCount(dice)" class="control-button">+</button>
         </div>
       </div>
       <div class="roll-container">
-        <button @click="emitRollDice" class="roll-dice-button">Roll</button>
+        <button class="roll-dice-button">Roll</button>
       </div>
     </div>
   </div>
@@ -18,7 +18,6 @@
 
 <script setup>
 import { reactive } from 'vue';
-import eventBus from '@/common/lib/eventBus.js';
 
 const diceList = reactive([
   { id: 4, name: 'D4', image: require('@/assets/images/ingame/Dice4.png'), count: 0 },
@@ -30,36 +29,13 @@ const diceList = reactive([
   { id: 100, name: 'D100', image: require('@/assets/images/ingame/Dice100.png'), count: 0 },
 ]);
 
-const emitRollDice = () => {
-  const diceTypesToRoll = [];
-  diceList.forEach(dice => {
-    if (dice.id === 100) {
-      for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push(10);
-        diceTypesToRoll.push(10);
-      }
-    } else {
-      for (let i = 0; i < dice.count; i++) {
-        diceTypesToRoll.push(dice.id);
-      }
-    }
-  });
-  console.log('Emitting roll-dice event with:', diceTypesToRoll);
-  eventBus.emit('roll-dice', diceTypesToRoll);
-  eventBus.emit('change-camera');
+const increaseCount = (dice) => {
+  dice.count += 1;
 };
 
-const increaseCount = (id) => {
-  const dice = diceList.find(dice => dice.id === id);
-  if (dice) {
-    dice.count++;
-  }
-};
-
-const decreaseCount = (id) => {
-  const dice = diceList.find(dice => dice.id === id);
-  if (dice && dice.count > 0) {
-    dice.count--;
+const decreaseCount = (dice) => {
+  if (dice.count > 0) {
+    dice.count -= 1;
   }
 };
 
@@ -87,10 +63,10 @@ const backgroundStyle = {
 
 .dice-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) auto;
-  gap: 5px;
+  grid-template-columns: repeat(7, 1fr) auto; 
+  gap: 5px; 
   width: 100%;
-  align-items: center;
+  align-items: center; 
 }
 
 .dice-container {

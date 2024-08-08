@@ -108,10 +108,7 @@ const stopDrag = () => {
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
   eventBus.on('roll-dice', handleRollDice);
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
 
-  // 'toggle-grid' 이벤트 리스너 추가
   window.addEventListener('toggle-grid', (event) => {
     showGrid.value = event.detail;
   });
@@ -133,9 +130,6 @@ onUnmounted(() => {
 .map-section-container {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   margin: 5px;
   position: relative;
   overflow: hidden;

@@ -2,16 +2,19 @@
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
     <img :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
+
     <div
-      v-for="token in placedTokens" 
-      :key="token.id" 
-      class="token" 
+      v-for="token in placedTokens"
+      :key="token.id"
+      class="token"
       :style="{ left: token.x + 'px', top: token.y + 'px' }"
       @mousedown="startDrag(token, $event)"
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
     </div>
+
+    <!-- Grid Overlay: Visible based on the showGrid state -->
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
         <div
@@ -21,10 +24,25 @@
           @mouseenter="showDescription(row, col)"
           @mouseleave="hideDescription"
         >
+          <!-- Placeholder for grid cells -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Laser Effects: Always visible -->
+    <div class="laser-overlay">
+      <div v-for="row in gridRows" :key="'laser-' + row" class="laser-row">
+        <div
+          v-for="col in gridCols"
+          :key="'laser-' + col"
+          class="laser-cell"
+        >
           <div v-if="isLaserActive(row, col)" class="laser-effect"></div>
         </div>
       </div>
     </div>
+
+    <!-- Info Panel: Shows description when a grid cell is hovered -->
     <div class="info-panel" v-if="hoveredDescription.title">
       <img class="info-background" :src="infoBackground" alt="Information Background" />
       <div class="info-content">
@@ -158,6 +176,7 @@ const handleRollDice = (diceTypesToRoll) => {
   }
 };
 
+// Function to determine if a laser effect is active at a given grid cell
 const isLaserActive = (row, col) => {
   return activeLasers.value.has(`${row}-${col}`);
 };
@@ -165,6 +184,8 @@ const isLaserActive = (row, col) => {
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
   eventBus.on('roll-dice', handleRollDice);
+
+  // Event listener for toggling grid visibility
 
   window.addEventListener('toggle-grid', (event) => {
     showGrid.value = event.detail;

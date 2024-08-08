@@ -22,9 +22,9 @@
   </div>
 
   <!-- Modals -->
-  <RuleBookModal :isOpen="showRulebookModal" @close="showRulebookModal = false" />
+  <RuleBookModal :isOpen="showRulebookModal" @close="closeRulebookModal" />
   <ScenarioModal v-if="showScenarioModal" @close="closeScenarioModal" />
-  <MapModal v-if="showMapModal" @close="closeMapModal" />
+  <MapModal v-if="showMapModal" @close="closeMapModal" :showGrid="showGrid" />
   <GameEndModal v-if="showGameEndModal" @close="closeGameEndModal" />
 </template>
 
@@ -43,6 +43,7 @@ const showRulebookModal = ref(false);
 const showScenarioModal = ref(false);
 const showMapModal = ref(false);
 const showGameEndModal = ref(false);
+const showGrid = ref(true);
 
 const openRulebookModal = () => {
   console.log("Opening Rulebook Modal");
@@ -78,7 +79,8 @@ const closeGameEndModal = () => {
 };
 
 const toggleGrid = () => {
-  // 그리드 토글 로직이 필요하다면 추가
+  showGrid.value = !showGrid.value;
+  window.dispatchEvent(new CustomEvent('toggle-grid', { detail: showGrid.value }));
 };
 </script>
 
@@ -123,6 +125,4 @@ const toggleGrid = () => {
   height: 30px;
   cursor: pointer;
 }
-
-
 </style>

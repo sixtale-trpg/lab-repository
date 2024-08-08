@@ -61,8 +61,6 @@ const backgroundStyle = {
 const newTokenName = ref('');
 const newTokenInfo = ref('');
 const inputVisible = ref(false);
-const hoveredToken = ref(null);
-const tooltipStyle = ref({ top: '0px', left: '0px' });
 const modalVisible = ref(false);
 const selectedToken = ref({});
 let nextTokenId = ref(5); // 고유 ID를 추적하기 위해 사용
@@ -99,23 +97,13 @@ const deleteToken = (event) => {
   try {
     const parsedToken = JSON.parse(tokenData);
     tokens.value = tokens.value.filter(t => t.id !== parsedToken.id);
-    console.log(parsedToken.id)
-    console.log(parsedToken)
+    console.log(parsedToken.id);
+    console.log(parsedToken);
+    // 토큰 삭제 이벤트 발생
+    window.dispatchEvent(new CustomEvent('delete-token', { detail: parsedToken }));
   } catch (error) {
     console.error("Invalid JSON data:", tokenData);
   }
-};
-
-const showTooltip = (token, event) => {
-  hoveredToken.value = token.id;
-  tooltipStyle.value = {
-    top: `${event.clientY + 10}px`,
-    left: `${event.clientX + 10}px`
-  };
-};
-
-const hideTooltip = () => {
-  hoveredToken.value = null;
 };
 
 const showModal = (token) => {
@@ -144,6 +132,13 @@ onMounted(async () => {
     const token = event.detail;
     tokens.value = tokens.value.filter(t => t.id !== token.id);
   });
+
+  window.addEventListener('add-token-to-list', (event) => {
+    const token = event.detail;
+    if (!tokens.value.find(t => t.id === token.id)) {
+      tokens.value.push(token);
+    }
+  });
 });
 </script>
 
@@ -159,7 +154,6 @@ onMounted(async () => {
   position: relative;
   height: 100%;
 }
-
 
 .token {
   width: 60%;

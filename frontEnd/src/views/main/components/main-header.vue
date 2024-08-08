@@ -51,6 +51,14 @@
               >회원탈퇴</a
             >
           </li>
+          <li><hr class="dropdown-divider custom-divider" /></li>
+          <li>
+            <router-link to="/mypage"><a
+              class="dropdown-item custom-dropdown-item"
+              >마이페이지</a
+            ></router-link>
+            
+          </li>
         </ul>
       </div>
       <div v-else class="account" @click="openLoginModal">로그인</div>

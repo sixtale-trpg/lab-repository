@@ -53,10 +53,11 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import ThreeJSManager from '@/common/lib/ThreeJSManager';
-import eventBus from '@/common/lib/eventBus.js';
+import eventBus from '@/common/lib/eventBus.js'; // Ensure this path is correct
 
 const rendererContainer = ref(null);
 let threeJSManager = null;
@@ -68,25 +69,25 @@ const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
 
-// Calculate grid rows and columns based on window size and grid size.
+// 창 크기와 그리드 크기를 기반으로 그리드 행과 열을 계산합니다.
 const gridRows = computed(() => Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i));
 
-// Set active lasers with hardcoded dump data.
+// 하드코딩된 덤프 데이터로 활성 레이저를 설정합니다.
 const activeLasers = ref(new Set(['2-3', '4-5', '1-1', '6-7']));
-const hoveredDescription = ref({ title: '', details: '' }); // Store description of the currently hovered grid cell.
+const hoveredDescription = ref({ title: '', details: '' }); // 현재 마우스가 올려진 그리드 셀의 설명을 저장합니다.
 
-// Display description for hovered grid cell.
+// 마우스를 올린 그리드 셀에 대한 설명을 표시합니다.
 const showDescription = (row, col) => {
   hoveredDescription.value = getDescription(row, col);
 };
 
-// Hide description when mouse leaves the grid cell.
+// 그리드 셀에서 마우스가 벗어나면 설명을 숨깁니다.
 const hideDescription = () => {
   hoveredDescription.value = { title: '', details: '' };
 };
 
-// Provide description details for each grid cell based on row and column.
+// 행과 열에 따라 각 그리드 셀에 대한 설명 세부정보를 제공합니다.
 const getDescription = (row, col) => {
   const descriptions = {
     '2-3': {
@@ -97,7 +98,7 @@ const getDescription = (row, col) => {
       title: '다른 이벤트',
       details: '이 이벤트에 대한 설명입니다.'
     }
-    // Add additional descriptions as needed.
+    // 필요한 설명을 추가로 넣습니다.
   };
 
   return descriptions[`${row}-${col}`] || { title: '', details: '' };
@@ -153,6 +154,8 @@ const onDrag = (event) => {
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
 
+    // 토큰이 맵 밖으로 드래그되었을 때 위치 업데이트
+
     draggingToken.x = newX;
     draggingToken.y = newY;
   }
@@ -183,6 +186,7 @@ onMounted(() => {
   eventBus.on('roll-dice', handleRollDice);
 
   // Event listener for toggling grid visibility
+
   window.addEventListener('toggle-grid', (event) => {
     showGrid.value = event.detail;
   });
@@ -192,7 +196,7 @@ onMounted(() => {
   });
 
   // 초기 이벤트 좌표 설정
-  // activeLasers.value = new Set(['2-3', '4-5', '1-1', '6-7']);
+  activeLasers.value = new Set(['2-3', '4-5', '1-1', '6-7']);
 });
 
 onUnmounted(() => {
@@ -200,6 +204,7 @@ onUnmounted(() => {
   window.removeEventListener('toggle-grid', () => {});
   window.removeEventListener('delete-token', () => {});
 });
+
 </script>
 
 <style scoped>
@@ -232,7 +237,7 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   cursor: move;
-  z-index: 3; /* Ensure tokens are at the top layer */
+  z-index: 3; /* 토큰이 맵의 최상위에 위치하도록 설정 */
 }
 
 .token img {
@@ -258,37 +263,14 @@ onUnmounted(() => {
 .grid-cell {
   width: 50px;
   height: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
   position: relative;
-  overflow: visible; /* Allow tooltip visibility */
-  border: 1px solid rgba(0, 0, 0, 0.5); /* Grid cell border */
-}
-
-.laser-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  pointer-events: none;
-  z-index: 3; /* Ensure laser effects are visible */
-}
-
-.laser-row {
-  display: flex;
-}
-
-.laser-cell {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: visible; /* Allow laser effect visibility */
+  overflow: visible; /* 툴팁이 보이도록 설정 */
 }
 
 .laser-effect {
@@ -298,7 +280,6 @@ onUnmounted(() => {
   background-color: red;
   box-shadow: 0 0 10px 5px red;
   animation: pulse 1s infinite;
-  position: absolute;
 }
 
 .info-panel {

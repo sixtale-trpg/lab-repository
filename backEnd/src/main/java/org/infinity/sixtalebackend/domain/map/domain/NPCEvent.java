@@ -22,11 +22,11 @@ public class NPCEvent {
     @JoinColumn(name = "map_id", nullable = false)
     private Map map;
 
-    @Column(length = 100)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "npc_id", nullable = false)
+    @JoinColumn(name = "npc_id")
     private ScenarioNPC scenarioNPC;
 
     private Integer currentHp;

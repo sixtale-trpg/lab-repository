@@ -9,22 +9,22 @@
       </button>
     </div>
     <div class="profile-cards">
-      <div class="profile-card" v-for="user in users" :key="user.id">
+      <div class="profile-card" v-for="user in users" :key="user.playMemberID">
         <div class="profile-image">
           <img
             v-if="showAIImages"
-            :src="getAIImage(user.id)"
+            :src="user.imageURL"
             :alt="'User ' + user.name + ' AI 프로필 사진'"
-            @click="fetchUserJob(user.id)"
+            @click="fetchUserJob(user.playMemberID)"
           />
           <CharacterStats
             v-else-if="showStats"
-            :playMemberID="user.id"
-            @click="fetchUserJob(user.id)"
+            :playMemberID="user.playMemberID"
+            @click="fetchUserJob(user.playMemberID)"
           />
           <video
             v-show="!showAIImages && !showStats"
-            :id="'video-' + user.id"
+            :id="'video-' + user.playMemberID"
             autoplay
             playsinline
             ref="videoElements"
@@ -39,114 +39,98 @@
               src="@/assets/images/ingame/Info.png"
               alt="정보"
               class="info-icon"
-              @click="showUserInfo(user.id)"
+              @click="showUserInfo(user.playMemberID)"
             />
           </div>
-          <!-- VoiceChatButton 컴포넌트를 사용합니다 -->
-          <VoiceChatButton :userId="user.id" />
+          <VoiceChatButton :userId="user.playMemberID" />
         </div>
       </div>
     </div>
-
     <CharacterInfo v-if="showCharacterInfo" @close="closeCharacterInfo" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useSessionStore } from '@/store/session';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
+import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import CharacterStats from './CharacterStats.vue';
 import CharacterInfo from '@/views/games/components/ingame/CharacterInfoModal.vue';
 import VoiceChatButton from '../../VoiceChatButton.vue';
 import { selectedPlayMemberID, selectedUserJob } from '@/store/state.js'; // 전역 상태 가져오기
 
-const sessionStore = useSessionStore();
-
+const route = useRoute();
 const showStats = ref(false);
 const showAIImages = ref(true);
 const showCharacterInfo = ref(false);
 const isGM = ref(true);
-const videoElements = ref([]); // 비디오 요소를 참조할 배열
+const users = ref([]);
+const videoElements = ref([]);
 
-// 더미 데이터: 8명의 유저 정보
-const users = ref([
-  { id: 1, name: 'Player1', aiImage: '@/assets/images/ingame/user1.png' },
-  { id: 2, name: 'Player2', aiImage: '@/assets/images/ingame/user2.png' },
-  { id: 3, name: 'Player3', aiImage: '@/assets/images/ingame/user3.png' },
-  { id: 4, name: 'Player4', aiImage: '@/assets/images/ingame/user4.png' },
-  { id: 5, name: 'Player5', aiImage: '@/assets/images/ingame/user5.png' },
-  { id: 6, name: 'Player6', aiImage: '@/assets/images/ingame/user6.png' },
-  { id: 7, name: 'Player7', aiImage: '@/assets/images/ingame/user7.png' },
-  { id: 8, name: 'Player8', aiImage: '@/assets/images/ingame/user8.png' },
-]);
+const fetchCharacterSheets = async () => {
+  const roomId = route.params.roomId;
 
-// AI 이미지 경로 가져오기
-const getAIImage = (userId) => {
-  return require(`@/assets/images/ingame/user${userId}.png`);
+  if (!roomId) {
+    console.error('Room ID가 설정되지 않았습니다.');
+    return;
+  }
+
+  try {
+    const roomInfo = await getRoomInfo(roomId);
+    const currentCount = roomInfo.currentCount;
+
+    for (let playMember of roomInfo.playMemberList) {
+      console.log(`Fetching character sheet for playMemberID: ${playMember.playMemberID}`);
+      const characterSheet = await getCharacterSheet(roomId, playMember.playMemberID);
+      if (characterSheet) {
+        users.value.push({ ...characterSheet, playMemberID: playMember.playMemberID });
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching character sheets:', error);
+  }
 };
 
-// 스탯 창을 토글하는 함수
 const toggleStats = () => {
   showAIImages.value = false;
   showStats.value = true;
 };
 
-// AI 이미지 토글 함수
 const toggleAIImages = () => {
   showAIImages.value = true;
   showStats.value = false;
 };
 
-// 플레이어 ID와 직업 정보를 설정하는 함수
 const fetchUserJob = async (playMemberID) => {
-  // 전역 상태에 선택된 플레이어 ID 저장
   console.log('선택된 플레이어 ID 설정:', playMemberID);
   selectedPlayMemberID.value = playMemberID;
 
-  // 실제 API 요청을 보내는 로직 (주석 처리)
-  /*
   try {
-    const response = await axios.get(`/rooms/${roomID}/sheets/${playMemberID}`);
-    if (response.data.statusCode === 200) {
-      // 전역 상태에 플레이어의 직업 정보를 저장하는 로직
-      selectedUserJob.value = response.data.data.jobName;
-      console.log("플레이어 직업 설정:", response.data.data.jobName);
-    }
+    const roomId = route.params.roomId;
+    const characterSheet = await getCharacterSheet(roomId, playMemberID);
+    selectedUserJob.value = characterSheet.jobName;
+    console.log('선택된 사용자 직업 설정:', selectedUserJob.value);
   } catch (error) {
     console.error('사용자 직업 정보를 가져오는 중 오류 발생:', error);
   }
-  */
-
-  // 임시 데이터 설정 (테스트용)
-  const userJobs = [
-    '전사',
-    '마법사',
-    '도적',
-    '성직자',
-    '레인저',
-    '성기사',
-    '드루이드',
-    '음유시인',
-  ];
-  selectedUserJob.value = userJobs[playMemberID - 1] || '알 수 없음';
-  console.log('선택된 사용자 직업 설정 (더미 데이터):', selectedUserJob.value);
 };
 
-// 사용자 정보를 보여주는 함수
-const showUserInfo = (userId) => {
+const showUserInfo = (playMemberID) => {
   showCharacterInfo.value = true;
 };
 
-// 사용자 정보 창을 닫는 함수
 const closeCharacterInfo = () => {
   showCharacterInfo.value = false;
 };
 
+onMounted(() => {
+  fetchCharacterSheets();
+});
 </script>
 
 <style scoped>
 .video-profile {
-  /* background-color: #555; */
   color: white;
   padding: 0;
   display: flex;

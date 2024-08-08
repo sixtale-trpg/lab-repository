@@ -1,189 +1,402 @@
 <template>
-  <div class="image-generator-container">
-    <div class="header">
-      <img :src="nicknameLightImage" alt="이미지 생성" class="header-image">
-      <span class="header-text">이미지 생성</span>
-    </div>
-    <div class="content">
-      <div class="input-container">
-        <img :src="promptImage" alt="설명 입력 배경" class="input-image">
-        <textarea v-model="formData.appearanceDescription" class="input-textarea" placeholder="예시: 검은색 두건, 푸른 눈, 오뚝한 코, 구릿빛 피부, 야비한 생김새"></textarea>
-        <div class="hover-description">
-          <img :src="imgDescriptionImage" alt="이미지 설명" class="description-image">
-          <div class="description-text-container">
-            <p class="description-text">입력한 텍스트를 기반으로 초상화를 그려드립니다. 창의력을 발휘하여 당신의 의도를 드러나게 해 보세요. 생성 기능은 임시입니다. 다시 생성 시 지정되지 않은 신청서가 리셋됩니다.</p>
+  <div class="appearance-container">
+    <div class="content-wrapper">
+      <div class="left-section">
+        <div class="title-container">
+          <img src="@/assets/images/character_sheet/avatar/Title.png" alt="Title" class="title-image">
+          <span class="title-text">AI 캐릭터 만들기</span>
+        </div>
+        <div class="input-box">
+          <textarea
+            v-model="formData.appearanceDescription"
+            placeholder="예시: 착한 눈, 붉은 머리, 강인한 입술, 금발 곱슬머리"
+            class="appearance-input"
+          ></textarea>
+        </div>
+        <div class="button-container">
+          <div class="button-wrapper">
+            <button @click="generateImage" class="create-button">
+              <img src="@/assets/images/character_sheet/avatar/Create_Button.png" alt="이미지 생성" />
+              <span class="button-text">이미지 생성</span>
+            </button>
+            <div class="help-icon-container" 
+              @mouseenter="showTooltip = true"
+              @mouseleave="hideTooltip">
+              <img
+                src="@/assets/images/character_sheet/avatar/Help_Icon.png"
+                alt="도움말"
+                class="help-icon"
+              />
+            </div>
+            <Teleport to="body">
+              <div ref="tooltipRef" class="tooltip" :style="tooltipStyle" v-if="showTooltip">
+                입력한 텍스트를 기반으로 초상화를 그려드립니다. 창의력을 발휘하여 당신의 의도를 드러나게 해 보세요. 생성 기능은 임시입니다. 다시 생성 시 지정되지 않은 신청서가 리셋됩니다.
+              </div>
+            </Teleport>
           </div>
         </div>
       </div>
-      <div class="circle-container">
-        <img :src="circleImage" alt="이미지 프레임" class="circle-image"> 
+      <div class="right-section">
+        <div class="image-and-candidates">
+          <div class="image-frame">
+            <img src="@/assets/images/character_sheet/avatar/Create_Avatar_Frame.png" alt="Avatar Frame" class="frame-image">
+            <div class="image-container">
+              <img
+                v-if="generatedImageUrl"
+                :src="generatedImageUrl"
+                alt="생성된 캐릭터 이미지"
+                class="generated-image"
+              />
+            </div>
+          </div>
+          <div class="candidate-frames">
+            <img v-for="n in 3" :key="n" src="@/assets/images/character_sheet/avatar/Candidate_Frame.png" alt="Candidate Frame" class="candidate-frame">
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="button-container">
-      <button class="create-button" :style="{ backgroundImage: 'url(' + createButtonImage + ')' }">이미지 생성</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, toRefs } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { handleGenerateImage } from '@/api';
 
 const props = defineProps(['formData']);
-const { formData } = toRefs(props);
+const generatedImageUrl = ref('');
+const previousImages = ref([]);
 
-const nicknameLightImage = ref(require('@/assets/images/character_sheet/nickname_light.png'));
-const promptImage = ref(require('@/assets/images/character_sheet/prompt.png'));
-const imgDescriptionImage = ref(require('@/assets/images/character_sheet/img_description.png'));
-const createButtonImage = ref(require('@/assets/images/character_sheet/create_button.png'));
-const circleImage = ref(require('@/assets/images/character_sheet/create_avatar.png'));
+const showTooltip = ref(false);
+const tooltipStyle = reactive({
+  top: '0px',
+  left: '0px'
+});
+
+const tooltipRef = ref(null);
+
+const updateTooltipPosition = (event) => {
+  if (!tooltipRef.value) return;
+  
+  const rect = tooltipRef.value.getBoundingClientRect();
+  const x = event.clientX + 20;
+  const y = event.clientY + 20;
+
+  // 화면 경계 확인
+  const maxX = window.innerWidth - rect.width;
+  const maxY = window.innerHeight - rect.height;
+
+  tooltipStyle.left = `${Math.min(x, maxX)}px`;
+  tooltipStyle.top = `${Math.min(y, maxY)}px`;
+  showTooltip.value = true;
+};
+
+const hideTooltip = () => {
+  showTooltip.value = false;
+};
+
+const generateImage = async () => {
+  try {
+    const imageUrl = await handleGenerateImage(props.formData.appearanceDescription);
+    generatedImageUrl.value = imageUrl;
+    previousImages.value.push(imageUrl);
+  } catch (error) {
+    console.error('이미지 생성 중 오류 발생:', error);
+    // 오류 처리 로직 추가
+  }
+};
+
+const selectImage = (image) => {
+  generatedImageUrl.value = image;
+};
+
+onMounted(() => {
+  document.addEventListener('mousemove', updateTooltipPosition);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', updateTooltipPosition);
+});
 </script>
 
 <style scoped>
-.image-generator-container {
+.appearance-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  color: #fff;
-  border-radius: 10px;
-  width: 80%;
-  margin: auto;
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.header-image {
-  width: 300px;
-  height: 50px;
-}
-
-.header-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #fff;
-}
-
-.content {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.input-container {
-  position: relative;
-  width: 60%;
-}
-
-.input-image {
-  width: 100%;
-  height: 400px;
-  border-radius: 10px;
-}
-
-.input-textarea {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
   height: 100%;
-  padding: 20px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
   color: #fff;
-  font-size: 1rem;
-  resize: none;
+  padding: 2vh 2vw;
+  overflow: hidden;
 }
 
-.hover-description {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  transform: translate(100%, 100%);
-  width: 300px;
-  height: 200px;
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  gap: 2vw;
+  height: 100%;
+}
+
+.left-section, .right-section {
+  display: flex;
   flex-direction: column;
+  justify-content: center;
+  gap: 3vh;
+}
+
+.left-section {
+  flex: 1;
+  align-items: center;
+}
+
+.right-section {
+  flex: 1;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
 }
 
-.input-container:hover .hover-description {
-  opacity: 1;
-  visibility: visible;
+.image-and-candidates {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2vh;
 }
 
-.description-image {
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
+.title-container {
   position: relative;
-}
-
-.description-text-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-}
-
-.description-text {
-  font-size: 0.8rem;
-  color: #fff;
-  text-align: center;
-  padding: 0 10px;
-}
-
-.circle-container {
-  position: relative;
-  width: 35%;
+  width: 70%;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-bottom: 5%;
 }
 
-.circle-image {
-  width: 100%;
+.title-image {
+  width: 70%;
   height: auto;
+  display: block;
+}
+
+.title-text {
+  position: absolute;
+  font-size: 1.2vw;
+  color: #fff;
+}
+
+.input-box {
+  width: 80%;
+  background-color: #1A130E;
+  border: 1px solid #4A3A2E;
+  border-radius: 10px;
+  padding: 0.8vw;
+}
+
+.appearance-input {
+  width: 100%;
+  height: 12vh;
+  background: transparent;
+  border: none;
+  color: #fff;
+  resize: none;
+  font-size: 0.9vw;
 }
 
 .button-container {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  width: 100%;
+}
+.button-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.create-button, .help-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .create-button {
-  width: 150px;
-  height: 50px;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  color: #fff;
-  text-align: center;
-  line-height: 50px;
-  border-radius: 5px;
 }
 
-.create-button:hover {
-  transform: scale(1.05);
+.create-button img {
+  width: 10vw;
+  height: auto;
+}
+
+.button-text {
+  position: absolute;
+  color: #fff;
+  font-size: 1vw;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.help-icon-container {
+  position: absolute;
+  right: -3vw;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.help-icon {
+  width: 2.5vw;
+  height: 2.5vw;
+  cursor: default;
+}
+
+.tooltip {
+  position: fixed;
+  width: 18vw;
+  background-color: #1A130E;
+  border: 1px solid #4A3A2E;
+  border-radius: 5px;
+  padding: 0.8vw;
+  z-index: 9999;
+  font-size: 0.7vw;
+  pointer-events: none;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* .help-icon-container:hover .tooltip {
+  display: block;
+} */
+
+.image-frame {
+  position: relative;
+  width: 60%;
+  padding-bottom: 60%;
+}
+
+.frame-image, .generated-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.frame-image {
+  z-index: 2;
+}
+.image-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* border-radius: 50%; */
+}
+
+.generated-image {
+  object-fit: cover;
+  border-radius: 50%;
+  width: 100%; /* 이미지를 부모 컨테이너에 맞게 조정 */
+  height: 100%; /* 이미지를 부모 컨테이너에 맞게 조정 */
+}
+
+.candidate-frames {
+  display: flex;
+  justify-content: center;
+  gap: 0.8vw;
+}
+
+.candidate-frame {
+  width: 5vw;
+  height: 5vw;
+  object-fit: contain;
+}
+
+@media (max-width: 1024px) {
+  .title-text {
+    font-size: 1.8vw;
+  }
+
+  .appearance-input {
+    font-size: 1.3vw;
+  }
+
+  .button-text {
+    font-size: 1.5vw;
+  }
+
+  .create-button img {
+    width: 15vw;
+  }
+
+  .help-icon {
+    width: 4vw;
+    height: 4vw;
+  }
+
+  .image-frame {
+    width: 70%;
+    padding-bottom: 70%;
+  }
+
+  .candidate-frame {
+    width: 7vw;
+    height: 7vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .title-container {
+    width: 90%;
+  }
+
+  .title-text {
+    font-size: 2.5vw;
+  }
+
+  .appearance-input {
+    height: 15vh;
+    font-size: 1.8vw;
+  }
+
+  .button-text {
+    font-size: 2.2vw;
+  }
+
+  .create-button img {
+    width: 22vw;
+  }
+
+  .help-icon-container {
+    right: -4vw;
+  }
+
+  .help-icon {
+    width: 5vw;
+    height: 5vw;
+  }
+
+  .tooltip {
+    width: 40vw;
+    font-size: 1.8vw;
+  }
+
+  .image-frame {
+    width: 80%;
+    padding-bottom: 80%;
+  }
+
+  .candidate-frame {
+    width: 12vw;
+    height: 12vw;
+  }
 }
 </style>

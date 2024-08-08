@@ -1,10 +1,13 @@
+<!-- UserInfo.vue -->
 <template>
   <div class="modal-overlay" v-if="isVisible">
     <div class="modal-content" :style="modalContentStyle">
-      <button class="close-button" @click="closeModal" aria-label="닫기">&times;</button>
+      <button class="close-button" @click="closeModal" aria-label="닫기">
+        &times;
+      </button>
       <div class="modal-header">
         <div class="modal-title-container">
-          <img :src="titleImage" alt="제목" class="modal-title-image">
+          <img :src="titleImage" alt="제목" class="modal-title-image" />
           <h2 class="modal-title-text">프로필</h2>
         </div>
       </div>
@@ -14,22 +17,34 @@
             <div class="left-section">
               <div class="image-container">
                 <div class="image-wrapper">
-                  <img :src="characterData.image || defaultImage" alt="캐릭터 이미지" class="character-image">
-                  <img :src="avatarFrame" alt="프레임" class="frame-image">
+                  <img
+                    :src="characterData.image || defaultImage"
+                    alt="캐릭터 이미지"
+                    class="character-image"
+                  />
+                  <img :src="avatarFrame" alt="프레임" class="frame-image" />
                 </div>
               </div>
             </div>
             <div class="middle-section">
               <div class="title-container">
                 <div class="image-with-text">
-                  <img :src="nicknameLight" alt="닉네임" class="title-image">
+                  <img
+                    :src="nicknameLight"
+                    alt="닉네임"
+                    class="title-image"
+                  />
                   <span class="title-text-overlay">닉네임</span>
                 </div>
               </div>
             </div>
             <div class="right-section">
               <div class="nickname-box">
-                <img :src="nameBox" alt="닉네임 박스" class="nickname-box-image">
+                <img
+                  :src="nameBox"
+                  alt="닉네임 박스"
+                  class="nickname-box-image"
+                />
                 <span class="nickname-text">{{ characterData.name }}</span>
               </div>
               <!-- 추가 정보 항목은 여기 추가 -->
@@ -37,7 +52,11 @@
           </div>
           <div class="tendency-section">
             <div class="tendency-title-container">
-              <img :src="tendencyVector" alt="성향 배경" class="tendency-title-image">
+              <img
+                :src="tendencyVector"
+                alt="성향 배경"
+                class="tendency-title-image"
+              />
               <span class="tendency-title-text">성향</span>
             </div>
             <div class="tendency-content" :style="tendencyContentStyle">
@@ -54,9 +73,8 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, onMounted } from 'vue';
-import axios from 'axios';
-import defaultImage from '@/assets/images/ingame/user1.png';
+import { ref, computed, defineProps, defineEmits, watch } from 'vue';
+import defaultImage from '@/assets/images/users/default.png'; // 기본 이미지 경로 확인
 import titleImage from '@/assets/images/character_sheet/title.png';
 import nicknameLight from '@/assets/images/character_sheet/nickname_light.png';
 import avatarFrame from '@/assets/images/room/profile_modal/avatar_frame.png';
@@ -66,15 +84,19 @@ import tendencyBox from '@/assets/images/room/profile_modal/tendency_box.png';
 import mainBackground from '@/assets/images/character_sheet/main_background.png';
 import tabBackground from '@/assets/images/character_sheet/tab_background.png';
 
-const characterData = ref({
-  image: '', // 캐릭터 이미지 URL
-  name: '오소리 탈춤 사냥꾼',
-  race: '인간',
-  job: '전사',
-  background: '1. 본문이 100자이면 긴 장문을 선호합니다.<br>2. 클라이맥스나 전투, 감정 표현이 필요한 부분에서는 짧은 단문을 선호합니다.<br>3. 갑작스럽게 길어질 경우, 쉼표 등을 이용하여 한 문단에 길게 작성<br>4. 채팅 스타일 - 대사(지문)<br>5. 진지한 분위기일 때 사담도 적당히 진지했으면 함'
+const props = defineProps({
+  user: Object, // 이 부분이 정확하게 전달되고 있는지 확인
 });
 
 const emit = defineEmits(['close']);
+
+const characterData = ref({
+  image: '',
+  name: '',
+  race: '',
+  job: '',
+  background: '',
+});
 
 const isVisible = ref(true);
 
@@ -108,28 +130,25 @@ const tendencyContentStyle = computed(() => ({
   width: '100%',
   height: '250px',
   boxSizing: 'border-box',
-  textAlign: 'left'
+  textAlign: 'left',
 }));
 
-const fetchProfileData = async (userId) => {
-  try {
-    const response = await axios.get(`/api/profile/${userId}`);
-    characterData.value = {
-      image: response.data.img_URL,
-      name: response.data.nickname,
-      race: response.data.race,
-      job: response.data.job,
-      background: response.data.background
-    };
-  } catch (error) {
-    console.error('프로필 데이터를 가져오는 중 오류 발생:', error);
-  }
-};
-
-onMounted(() => {
-  const userId = 1; // 이 값을 실제 회원 ID로 변경하세요
-  fetchProfileData(userId);
-});
+// 사용자 정보가 변경될 때마다 characterData를 업데이트합니다.
+watch(
+  () => props.user, // props.user의 변경을 감지
+  (newUser) => {
+    if (newUser) {
+      characterData.value = {
+        image: newUser.profileImage || defaultImage, // props.user.profileImage 경로 확인
+        name: newUser.name || '오소리 탈춤 사냥꾼',
+        race: newUser.race || '인간',
+        job: newUser.job || '전사',
+        background: newUser.background || '기본 배경 설명',
+      };
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

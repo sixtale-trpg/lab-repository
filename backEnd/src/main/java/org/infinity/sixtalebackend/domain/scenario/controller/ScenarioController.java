@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.scenario.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/scenarios")
+@Slf4j
 public class ScenarioController {
 
     private final ScenarioService scenarioService;
@@ -59,6 +61,42 @@ public class ScenarioController {
             ScenarioResponseDto scenarioResponseDto = scenarioService.getScenarioInfo(scenarioID,null);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.CREATED_MEMBER_INFO,scenarioResponseDto), HttpStatus.OK);
         }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 시나리오 좋아요
+     */
+    @PostMapping("/{scenarioID}/like")
+    public ResponseEntity<?> likeScenario(@PathVariable Long scenarioID) {
+        try {
+            Long memberID = 1L;
+            boolean success = scenarioService.likeScenario(scenarioID, memberID);
+            if (success) {
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_SCENARIO_LIKE), HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_SCENARIO_LIKE_FAIL), HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 시나리오 좋아요 취소
+     */
+    @DeleteMapping("/{scenarioID}/like")
+    public ResponseEntity<?> unlikeScenario(@PathVariable Long scenarioID) {
+        try {
+            Long memberID = 1L;
+            boolean success = scenarioService.unlikeScenario(scenarioID, memberID);
+            if (success) {
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.DELETE_SCENARIO_LIKE), HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_SCENARIO_LIKE_FAIL), HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception e) {
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

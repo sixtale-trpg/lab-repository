@@ -32,8 +32,9 @@
       <div class="info-box weight-info" :style="infoBoxStyle">
         <img :src="require('@/assets/images/ingame/weight.png')" alt="weight-icon" class="gold-icon"> WEIGHT: {{ currentWeight }}/{{ limitWeight }}
       </div>
-      <div class="info-box gold-info" :style="infoBoxStyle" @click="openGoldModal">
+      <div class="info-box gold-info" :style="infoBoxStyle" @click="openGoldModal" @mouseover="showGoldTooltip" @mouseleave="hideGoldTooltip">
         <img :src="require('@/assets/images/ingame/Gold.png')" alt="Gold" class="gold-icon"> GOLD: {{ currentGold }}
+        <div v-if="isGM" class="tooltip">클릭시 골드 변경이 가능합니다</div>
       </div>
     </div>
     <AddItemModal 
@@ -72,12 +73,15 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { selectedPlayMemberID } from '@/store/state.js';
+import { getInventory } from '@/common/api/InventoryAPI.js';
 import AddItemModal from '@/views/games/components/Modal/AddItemModal.vue';
 import ItemInfoModal from '@/views/games/components/Modal/ItemInfoModal.vue';
 import GoldModal from '@/views/games/components/Modal/GoldModal.vue';
 import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModal.vue';
 
+const route = useRoute();
 const items = reactive([]);
 const maxSlots = 18;
 const currentWeight = ref(5);
@@ -85,7 +89,7 @@ const limitWeight = ref(11);
 const currentGold = ref(7);
 const selectedItem = ref(null);
 const selectedIndex = ref(null);
-const isGM = ref(true);
+const isGM = ref(true); // GM 여부 확인
 
 const isAddItemModalVisible = ref(false);
 const isItemInfoModalVisible = ref(false);
@@ -120,44 +124,15 @@ const infoBoxStyle = {
 };
 
 const fetchUserItems = async (playMemberID) => {
-  const dummyItems = [
-    [
-      { id: 1, name: 'Sword', image: require('@/assets/images/ingame/Sword.png'), count: 1, weight: 2 },
-      { id: 2, name: 'Shield', image: require('@/assets/images/ingame/Shield.png'), count: 1, weight: 5 },
-    ],
-    [
-      { id: 3, name: 'Potion', image: require('@/assets/images/ingame/Potion.png'), count: 1, weight: 1 },
-      { id: 4, name: 'Bow', image: require('@/assets/images/ingame/Bow.png'), count: 1, weight: 3 },
-    ],
-    [
-      { id: 5, name: 'Arrow', image: require('@/assets/images/ingame/Arrow.png'), count: 1, weight: 0.5 },
-      { id: 6, name: 'Magic Staff', image: require('@/assets/images/ingame/MagicStaff.png'), count: 1, weight: 4 },
-    ],
-    [
-      { id: 7, name: 'Armor', image: require('@/assets/images/ingame/Armor.png'), count: 1, weight: 7 },
-      { id: 8, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png'), count: 1, weight: 2 },
-    ],
-    [
-      { id: 9, name: 'Ring', image: require('@/assets/images/ingame/Ring.png'), count: 1, weight: 0.2 },
-      { id: 10, name: 'Amulet', image: require('@/assets/images/ingame/Amulet.png'), count: 1, weight: 0.3 },
-    ],
-    [
-      { id: 11, name: 'Boots', image: require('@/assets/images/ingame/Boots.png'), count: 1, weight: 1.5 },
-      { id: 12, name: 'Gloves', image: require('@/assets/images/ingame/Gloves.png'), count: 1, weight: 0.5 },
-    ],
-    [
-      { id: 13, name: 'Torch', image: require('@/assets/images/ingame/Torch.png'), count: 1, weight: 1 },
-      { id: 14, name: 'Map', image: require('@/assets/images/ingame/Maps.png'), count: 1, weight: 0.1 },
-    ],
-    [
-      { id: 15, name: 'Rope', image: require('@/assets/images/ingame/Rope.png'), count: 1, weight: 3 },
-      { id: 16, name: 'Lantern', image: require('@/assets/images/ingame/Lantern.png'), count: 1, weight: 2 },
-    ],
-  ];
-
-  const userIndex = (playMemberID - 1) % dummyItems.length;
-  items.splice(0, items.length, ...dummyItems[userIndex]);
-  updateCurrentWeight();
+  try {
+    const roomId = route.params.roomId;
+    console.log(`Fetching inventory for roomID: ${roomId} and playMemberID: ${playMemberID}`);
+    const inventory = await getInventory(roomId, playMemberID);
+    items.splice(0, items.length, ...inventory);
+    updateCurrentWeight();
+  } catch (error) {
+    console.error('Error fetching user items:', error);
+  }
 };
 
 const updateCurrentWeight = () => {
@@ -259,6 +234,32 @@ const hideTooltip = (event) => {
   }
 };
 
+const showGoldTooltip = (event) => {
+  if (isGM.value) {
+    const tooltip = event.target.closest('.info-box').querySelector('.tooltip');
+    if (tooltip) {
+      tooltip.style.visibility = 'visible';
+      tooltip.style.opacity = '1';
+      const slotRect = event.target.closest('.info-box').getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const top = slotRect.top + slotRect.height + 5; // 골드 박스 아래에 5px 간격
+      const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2); // 중앙 정렬
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+    }
+  }
+};
+
+const hideGoldTooltip = (event) => {
+  if (isGM.value) {
+    const tooltip = event.target.closest('.info-box').querySelector('.tooltip');
+    if (tooltip) {
+      tooltip.style.visibility = 'hidden';
+      tooltip.style.opacity = '0';
+    }
+  }
+};
+
 onMounted(() => {
   if (selectedPlayMemberID.value) {
     fetchUserItems(selectedPlayMemberID.value);
@@ -330,6 +331,7 @@ html, body {
   color: white;
   box-sizing: border-box;
   flex: 1;
+  position: relative;
 }
 
 .gold-icon, .weight-icon {
@@ -399,10 +401,10 @@ html, body {
   background-color: rgba(0, 0, 0, 0.8);
   color: #fff;
   text-align: center;
-  border-radius: 5px;
+  border-radius: 3px;
   padding: 5px;
-  position: fixed; /* 고정 위치로 변경 */
-  z-index: 1;
+  position: fixed; /* 고정 위치 */
+  z-index: 10;
   opacity: 0;
   transition: opacity 0.3s;
   font-size: 0.8rem;

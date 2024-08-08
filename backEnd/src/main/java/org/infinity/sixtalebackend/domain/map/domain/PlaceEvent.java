@@ -27,7 +27,7 @@ public class PlaceEvent {
     @Column(nullable = false)
     private Integer col;
 
-    @Column(length = 100)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

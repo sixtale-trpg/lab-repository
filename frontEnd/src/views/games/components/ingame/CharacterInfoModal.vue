@@ -24,12 +24,16 @@
           :character-data="characterData" 
           :equipment-data="equipmentData" 
           :stats-data="statsData"
+          :action-data="actionData"
+          @update-character="updateCharacterData"
+          @update-equipment="updateEquipmentData"
           @update-stats="updateStatsData"
+          @update-action="updateActionData"
         ></component>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
-        <button class="footer-button" @click="closeModal">닫기</button>
-        <button class="footer-button save-button" @click="saveForm">저장</button>
+        <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
+        <button class="footer-button" :style="saveButtonStyle" @click="saveForm">저장</button>
       </div>
     </div>
   </div>
@@ -37,94 +41,132 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
-import axios from 'axios';
+import { getCharacterSheet, updateCharacterSheet } from '@/common/api/CharacterSheetAPI';
 import CharacterInfo from './CharacterInfo.vue';
 import Equipment from './Equipment.vue';
 import Stats from './CharacterStats2.vue';
+import ActionTab from './ActionTab.vue';  // 추가된 컴포넌트
 
 const props = defineProps(['roomID', 'playMemberID']);
 const emit = defineEmits(['close']);
 
 const isVisible = ref(true);
 const activeTab = ref('character');
-const tabs = ['character', 'equipment', 'stats'];
+const tabs = ['character', 'equipment', 'stats', 'action'];  // 액션 탭 추가
 const tabLabels = {
   character: '캐릭터 정보',
   equipment: '장비',
-  stats: '능력치'
+  stats: '능력치',
+  action: '액션',  // 액션 탭 라벨 추가
 };
 
 const characterData = ref({});
 const equipmentData = ref([]);
 const statsData = ref({});
+const actionData = ref([]);  // 액션 데이터 추가
 
-// 모달이 열릴 때 데이터 요청
 onMounted(async () => {
   try {
-    // const response = await axios.get(`/rooms/${props.roomID}/sheets/${props.playMemberID}`);
-    // const data = response.data.data;
+    const data = await getCharacterSheet(props.roomID, props.playMemberID);
+
     // 캐릭터 정보 데이터
-    // characterData.value = {
-    //   image: data.imageURL,
-    //   name: data.name,
-    //   race: data.raceName,
-    //   job: data.jobName,
-    //   background: data.background,
-    // };
+    characterData.value = {
+      jobId: data.jobId,
+      raceId: data.raceId,
+      beliefId: data.beliefId,
+      name: data.name,
+      appearance: data.appearance,
+      background: data.background,
+      imageURL: data.imageURL
+    };
+
     // 장비 데이터
-    // equipmentData.value = data.characterEquipment.map(equip => ({
-    //   name: equip.name,
-    //   description: equip.description,
-    //   currentCount: equip.currentCount
-    // }));
-    // statsData.value = {
-    //   currentHp: data.currentHp,
-    //   glove: data.glove,
-    //   inspirationScore: data.inspirationScore,
-    //   level: data.level,
-    //   exp: data.exp,
-    //   attributes: data.stat.reduce((acc, stat) => {
-    //     acc[stat.statID] = {
-    //       value: stat.statValue,
-    //       weight: stat.statWeight
-    //     };
-    //     return acc;
-    //   }, {})
-    // };
+    equipmentData.value = data.characterEquipment.map(equip => ({
+      id: equip.id,
+      equipmentID: equip.equipmentID,
+      name: equip.name,
+      description: equip.description,
+      currentCount: equip.currentCount,
+      imageURL: equip.imageURL
+    }));
+
+    // 능력치 데이터
+    statsData.value = {
+      currentHp: data.currentHp,
+      glove: data.glove,
+      inspirationScore: data.inspirationScore,
+      level: data.level,
+      exp: data.exp,
+      attributes: data.stat.reduce((acc, stat) => {
+        acc[stat.statID] = {
+          value: stat.statValue,
+          weight: stat.statWeight
+        };
+        return acc;
+      }, {})
+    };
+
+    // 액션 데이터
+    actionData.value = data.characterAction.map(action => ({
+      id: action.id,
+      actionID: action.actionID,
+      name: action.name,
+      isCore: action.isCore,
+      description: action.description,
+      isDice: action.isDice,
+      diceType: action.diceType,
+      diceCount: action.diceCount,
+      level: action.level,
+      actionOption: action.actionOption
+    }));
   } catch (error) {
     console.error('Error fetching character sheet:', error);
   }
 });
 
-// 자식 컴포넌트에서 업데이트된 능력치 데이터를 부모로 전달받기 위한 함수
+// 자식 컴포넌트에서 업데이트된 데이터를 부모로 전달받기 위한 함수
+const updateCharacterData = (updatedData) => {
+  characterData.value = updatedData;
+};
+
+const updateEquipmentData = (updatedData) => {
+  equipmentData.value = updatedData;
+};
+
 const updateStatsData = (updatedData) => {
   statsData.value = updatedData;
 };
 
+const updateActionData = (updatedData) => {
+  actionData.value = updatedData;
+};
+
 const saveForm = async () => {
   try {
-    // const response = await axios.put(`/rooms/${props.roomID}/sheets/${props.playMemberID}`, {
-    //   jobId: characterData.value.jobId,
-    //   raceId: characterData.value.raceId,
-    //   beliefId: characterData.value.beliefId,
-    //   name: characterData.value.name,
-    //   appearance: characterData.value.appearance,
-    //   background: characterData.value.background,
-    //   stat: Object.entries(statsData.value.attributes).map(([key, value]) => ({ statID: key, ...value })),
-    //   characterAction: characterData.value.characterAction,
-    //   characterEquipment: equipmentData.value,
-    //   currentWeight: statsData.value.currentWeight,
-    //   currentHp: statsData.value.currentHp,
-    //   currentMoney: statsData.value.currentMoney,
-    //   limitWeight: statsData.value.limitWeight,
-    //   limitHp: statsData.value.limitHp,
-    //   glove: statsData.value.glove,
-    //   inspirationScore: statsData.value.inspirationScore,
-    //   level: statsData.value.level,
-    //   exp: statsData.value.exp,
-    //   imageURL: characterData.value.imageURL
-    // });
-    // console.log('Save successful:', response.data);
+    const updatedData = {
+      jobId: characterData.value.jobId,
+      raceId: characterData.value.raceId,
+      beliefId: characterData.value.beliefId,
+      name: characterData.value.name,
+      appearance: characterData.value.appearance,
+      background: characterData.value.background,
+      stat: Object.entries(statsData.value.attributes).map(([key, value]) => ({ statID: key, ...value })),
+      characterAction: actionData.value,
+      characterEquipment: equipmentData.value,
+      currentWeight: statsData.value.currentWeight,
+      currentHp: statsData.value.currentHp,
+      currentMoney: statsData.value.currentMoney,
+      limitWeight: statsData.value.limitWeight,
+      limitHp: statsData.value.limitHp,
+      glove: statsData.value.glove,
+      inspirationScore: statsData.value.inspirationScore,
+      level: statsData.value.level,
+      exp: statsData.value.exp,
+      imageURL: characterData.value.imageURL
+    };
+
+    const response = await updateCharacterSheet(props.roomID, props.playMemberID, updatedData);
+    console.log('Save successful:', response);
   } catch (error) {
     console.error('Error saving form data:', error);
   }
@@ -135,12 +177,12 @@ const closeModal = () => {
   emit('close');
 };
 
-// activeComponent를 정의합니다.
 const activeComponent = computed(() => {
   switch (activeTab.value) {
     case 'character': return CharacterInfo;
     case 'equipment': return Equipment;
     case 'stats': return Stats;
+    case 'action': return ActionTab;  // 액션 탭 컴포넌트 추가
     default: return CharacterInfo;
   }
 });
@@ -158,6 +200,16 @@ const modalBodyStyle = computed(() => ({
 
 const modalFooterStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+const closeButtonStyle = computed(() => ({
+  background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+const saveButtonStyle = computed(() => ({
+  background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
   backgroundSize: 'cover',
 }));
 
@@ -270,6 +322,22 @@ function getTabButtonStyle(tab) {
   flex: 1;
   overflow-y: auto;
   margin-top: 10px;
+  scrollbar-color: #855e2fee #201805;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #201805;
+  border-radius: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: #855e2fee;
+  border-radius: 5px;
+  border: 2px solid #201805;
 }
 
 .modal-footer {
@@ -283,21 +351,21 @@ function getTabButtonStyle(tab) {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background: #3a3a3a;
+  background-size: cover;
   color: #fff;
   cursor: pointer;
   margin: 0 10px;
 }
 
-.footer-button.save-button {
-  background: #007bff;
+.footer-button:hover {
+  transform: translateY(-2px); /* 버튼 호버 시 살짝 위로 움직이는 효과 */
 }
 
-.footer-button:hover {
-  background: #555;
+.footer-button.save-button {
+  background-size: cover;
 }
 
 .footer-button.save-button:hover {
-  background: #0056b3;
+  background-size: cover;
 }
 </style>

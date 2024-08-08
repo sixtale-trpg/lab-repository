@@ -6,8 +6,11 @@
       :key="token.id" 
       draggable="true"
       @dragstart="dragStart(token, $event)"
+      @mouseover="showTooltip"
+      @mouseleave="hideTooltip"
     >
       <img :src="tokenImage" :alt="token.name" class="token" />
+      <div class="tooltip">맵의 그리드로 자유롭게 이동해보세요</div>
     </div>
     <div class="token-slot add-token" @click="showInput">
       <img :src="plusIcon" alt="Add Token" class="add-icon" />
@@ -106,6 +109,28 @@ const deleteToken = (event) => {
   }
 };
 
+const showTooltip = (event) => {
+  const tooltip = event.target.closest('.token-slot').querySelector('.tooltip');
+  if (tooltip) {
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+    const slotRect = event.target.closest('.token-slot').getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const top = slotRect.top + slotRect.height + 5; // 토큰 슬롯 아래에 5px 간격
+    const left = slotRect.left + slotRect.width - tooltipRect.width; // 오른쪽 하단에 정렬
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+  }
+};
+
+const hideTooltip = (event) => {
+  const tooltip = event.target.closest('.token-slot').querySelector('.tooltip');
+  if (tooltip) {
+    tooltip.style.visibility = 'hidden';
+    tooltip.style.opacity = '0';
+  }
+};
+
 const showModal = (token) => {
   selectedToken.value = token;
   modalVisible.value = true;
@@ -190,14 +215,29 @@ onMounted(async () => {
 }
 
 .tooltip {
-  position: fixed;
+  visibility: hidden;
+  width: 150px;
   background-color: rgba(0, 0, 0, 0.8);
-  color: rgb(186, 17, 17);
-  padding: 5px;
+  color: #fff;
+  text-align: center;
   border-radius: 3px;
+  padding: 5px;
+  position: fixed; /* 고정 위치 */
   z-index: 10;
-  max-width: 200px;
-  word-wrap: break-word;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.8rem;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
 }
 
 .modal {

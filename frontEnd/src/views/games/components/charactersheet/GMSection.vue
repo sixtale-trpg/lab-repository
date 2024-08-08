@@ -7,6 +7,8 @@
         <div class="gm-details">
           <img :src="gmMarkImage" alt="GM Mark" class="gm-mark-image" />
           <p class="gm-name">{{ gm.name }}</p>
+          <!-- GM 음성 채팅 버튼 추가 (닉네임 옆에) -->
+          <VoiceChatButton :userId="gm.id" />
         </div>
       </div>
       <button class="start-game-button" :disabled="!isGM" @click="startGame">
@@ -21,15 +23,17 @@
 </template>
 
 <script setup>
+import VoiceChatButton from '../../VoiceChatButton.vue'; // VoiceChatButton 컴포넌트 임포트
+
 const props = defineProps({
   gm: {
     type: Object,
-    required: true
+    required: true,
   },
   isGM: {
     type: Boolean,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const emit = defineEmits(['start-game']);
@@ -38,10 +42,20 @@ const startGame = () => {
   emit('start-game');
 };
 
+// 더미 데이터로 GM 정보 설정
 const gmBoxImage = require('@/assets/images/character_sheet/gm_box.png');
 const gmMarkImage = require('@/assets/images/character_sheet/gm_mark.png');
 const startButtonImagePath = require('@/assets/images/room/start_button.png');
-const gmMaster = require('@/assets/images/character_sheet/Game_Master.png')
+const gmMaster = require('@/assets/images/character_sheet/Game_Master.png');
+
+// 테스트 용도의 더미 데이터
+const gm = {
+  id: 9, // GM의 고유 ID를 하드코딩으로 설정
+  name: '미카엘', // GM의 닉네임
+  profileImage: require('@/assets/images/users/gm.png'), // GM 프로필 이미지
+};
+
+console.log('GM ID:', gm.id); // GM ID 로그 출력
 </script>
 
 <style scoped>
@@ -100,6 +114,7 @@ const gmMaster = require('@/assets/images/character_sheet/Game_Master.png')
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px; /* 닉네임과 음성 버튼 사이의 간격 설정 */
 }
 
 .gm-mark-image {

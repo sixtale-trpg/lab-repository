@@ -30,9 +30,13 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
-            :style="actionItemStyle"
+            @dblclick="openActionModal(action)"
+            :style="getActionItemStyle(action.id)"
+            @mouseover="showTooltip"
+            @mouseleave="hideTooltip"
           >
             {{ action.name }}
+            <div class="tooltip">더블 클릭시 해당 액션 정보를 볼 수 있습니다</div>
           </div>
         </div>
       </div>
@@ -56,29 +60,49 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
-            :style="actionItemStyle"
+            @dblclick="openActionModal(action)"
+            :style="getActionItemStyle(action.id)"
+            @mouseover="showTooltip"
+            @mouseleave="hideTooltip"
           >
             {{ action.name }}
+            <div class="tooltip">더블 클릭시 해당 액션 정보를 볼 수 있습니다</div>
           </div>
         </div>
       </div>
     </div>
+    <ActionModal
+      v-if="isActionModalVisible"
+      :action="selectedModalAction"
+      @close="isActionModalVisible = false"
+      @select="handleSelectAction"
+    />
   </div>
 </template>
 
-
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { selectedPlayMemberID, selectedUserJob } from '@/store/state';
+import { getCommonActions, getCharacterActions } from '@/common/api/ActionAPI.js';
+import { getRoomInfo } from '@/common/api/RoomsAPI.js';
+import ActionModal from '@/views/games/components/Modal/ActionModal.vue'; // ActionModal 컴포넌트 경로
 
 export default {
+  components: {
+    ActionModal
+  },
   setup() {
     const actionAreaBackground = require('@/assets/images/ingame/Border5.png');
     const coreActionImage = require('@/assets/images/ingame/CoreAction.png');
     const advancedActionImage = require('@/assets/images/ingame/AdvancedAction.png');
+    const coreActionSelectImage = require('@/assets/images/ingame/CoreActionSelect.png');
+    const advancedActionSelectImage = require('@/assets/images/ingame/AdvancedActionSelect.png');
     const actionListImage = require('@/assets/images/ingame/ActionList.png');
+    const actionListHoverImage = require('@/assets/images/ingame/ActionListHover.png');
+    const actionListSelectImage = require('@/assets/images/ingame/ActionListSelect.png');
     const tabImage = require('@/assets/images/ingame/Tab.png');
-    
+
     const backgroundStyle = {
       backgroundImage: `url(${actionAreaBackground})`,
       backgroundSize: '100% 100%',
@@ -93,12 +117,12 @@ export default {
       height: '100%',
       position: 'relative',
     };
-    
+
     const tabs = ref([
       { name: 'common', label: '공통' },
       { name: 'job', label: selectedUserJob.value || '직업' }
     ]);
-    
+
     const commonSubTabs = ref([
       { name: 'basic', label: '기본액션' },
       { name: 'special', label: '특수액션' }
@@ -112,212 +136,59 @@ export default {
     const selectedTab = ref('common');
     const selectedSubTab = ref('basic');
     const selectedAction = ref(null);
+    const currentActions = ref([]);
 
-    const actions = ref({
-      basic: [
-        { id: 1, name: '기본 액션 1' }, { id: 2, name: '기본 액션 2' },
-        { id: 3, name: '기본 액션 3' }, { id: 4, name: '기본 액션 4' },
-        { id: 5, name: '기본 액션 5' }, { id: 6, name: '기본 액션 6' },
-        { id: 7, name: '기본 액션 7' }, { id: 8, name: '기본 액션 8' },
-        { id: 9, name: '기본 액션 9' }, { id: 10, name: '기본 액션 10' },
-        { id: 11, name: '기본 액션 11' }, { id: 12, name: '기본 액션 12' }
-      ],
-      special: [
-        { id: 13, name: '특수 액션 1' }, { id: 14, name: '특수 액션 2' },
-        { id: 15, name: '특수 액션 3' }, { id: 16, name: '특수 액션 4' },
-        { id: 17, name: '특수 액션 5' }, { id: 18, name: '특수 액션 6' }
-      ],
-      core: [
-        { id: 19, name: '핵심 액션 1' }, { id: 20, name: '핵심 액션 2' },
-        { id: 21, name: '핵심 액션 3' }, { id: 22, name: '핵심 액션 4' }
-      ],
-      advanced: [
-        { id: 23, name: '고급 액션 1' }, { id: 24, name: '고급 액션 2' },
-        { id: 25, name: '고급 액션 3' }, { id: 26, name: '고급 액션 4' }
-      ]
-    });
+    const isActionModalVisible = ref(false);
+    const selectedModalAction = ref(null);
 
-    const jobActions = ref({
-      Warrior: {
-        core: [
-          { id: 1, name: '강타' },
-          { id: 2, name: '방패 돌진' },
-          { id: 3, name: '전투의 함성' },
-          { id: 4, name: '방어 태세' },
-          { id: 5, name: '무적' },
-          { id: 6, name: '분노의 격노' },
-          { id: 7, name: '철벽 방어' },
-          { id: 8, name: '결의' }
-        ],
-        advanced: [
-          { id: 9, name: '전투의 절정' },
-          { id: 10, name: '광전사의 격노' },
-          { id: 11, name: '강철의 의지' },
-          { id: 12, name: '대지의 힘' }
-        ]
-      },
-      Mage: {
-        core: [
-          { id: 13, name: '파이어볼' },
-          { id: 14, name: '아이스 스피어' },
-          { id: 15, name: '라이트닝 볼트' },
-          { id: 16, name: '아케인 미사일' },
-          { id: 17, name: '소환: 고대 정령' },
-          { id: 18, name: '블리자드' },
-          { id: 19, name: '매혹의 눈' },
-          { id: 20, name: '타임 스톱' }
-        ],
-        advanced: [
-          { id: 21, name: '마법 방어' },
-          { id: 22, name: '무한한 지식' },
-          { id: 23, name: '엘리멘탈 마스터리' },
-          { id: 24, name: '현자의 통찰' }
-        ]
-      },
-  Rogue: {
-    core: [
-      { id: 25, name: '은신' },
-      { id: 26, name: '치명적인 공격' },
-      { id: 27, name: '독의 칼날' },
-      { id: 28, name: '섀도우 스텝' },
-      { id: 29, name: '어둠의 달인' },
-      { id: 30, name: '비열한 기습' },
-      { id: 31, name: '은신의 달인' },
-      { id: 32, name: '서펜트의 이빨' }
-    ],
-    advanced: [
-      { id: 33, name: '맹독 칼날' },
-      { id: 34, name: '섀도우 댄스' },
-      { id: 35, name: '그림자의 속삭임' },
-      { id: 36, name: '치명타 전문가' }
-    ]
-  },
-  Cleric: {
-    core: [
-      { id: 37, name: '치유' },
-      { id: 38, name: '신성한 방어' },
-      { id: 39, name: '축복의 빛' },
-      { id: 40, name: '희망의 기도' },
-      { id: 41, name: '정화' },
-      { id: 42, name: '수호자의 방패' },
-      { id: 43, name: '강화의 기도' },
-      { id: 44, name: '신성한 반격' }
-    ],
-    advanced: [
-      { id: 45, name: '천사의 날개' },
-      { id: 46, name: '생명의 기원' },
-      { id: 47, name: '신성한 돌진' },
-      { id: 48, name: '영원의 보호막' }
-    ]
-  },
-  Ranger: {
-    core: [
-      { id: 49, name: '정밀 사격' },
-      { id: 50, name: '속사' },
-      { id: 51, name: '짐승의 우두머리' },
-      { id: 52, name: '자연의 조화' },
-      { id: 53, name: '함정 설치' },
-      { id: 54, name: '은밀한 사냥꾼' },
-      { id: 55, name: '독화살' },
-      { id: 56, name: '정밀 타격' }
-    ],
-    advanced: [
-      { id: 57, name: '폭풍의 화살' },
-      { id: 58, name: '자연의 힘' },
-      { id: 59, name: '자연의 보호' },
-      { id: 60, name: '야수의 마음' }
-    ]
-  },
-  Paladin: {
-    core: [
-      { id: 61, name: '성스러운 심판' },
-      { id: 62, name: '신성한 방어' },
-      { id: 63, name: '성역' },
-      { id: 64, name: '구원의 손길' },
-      { id: 65, name: '빛의 보호막' },
-      { id: 66, name: '정의의 심판' },
-      { id: 67, name: '천상의 빛' },
-      { id: 68, name: '불굴의 의지' }
-    ],
-    advanced: [
-      { id: 69, name: '성역의 수호자' },
-      { id: 70, name: '성기사의 결의' },
-      { id: 71, name: '빛의 용사' },
-      { id: 72, name: '천상의 희생' }
-    ]
-  },
-  Druid: {
-    core: [
-      { id: 73, name: '자연의 부름' },
-      { id: 74, name: '변신' },
-      { id: 75, name: '대지의 노래' },
-      { id: 76, name: '야수의 친구' },
-      { id: 77, name: '자연의 분노' },
-      { id: 78, name: '바람의 춤' },
-      { id: 79, name: '대지의 수호자' },
-      { id: 80, name: '자연의 회복' }
-    ],
-    advanced: [
-      { id: 81, name: '대지의 영혼' },
-      { id: 82, name: '천변' },
-      { id: 83, name: '자연의 분노' },
-      { id: 84, name: '자연의 소환' }
-    ]
-  },
-  Bard: {
-    core: [
-      { id: 85, name: '매혹의 노래' },
-      { id: 86, name: '위대한 연주' },
-      { id: 87, name: '모험가의 노래' },
-      { id: 88, name: '용기의 송가' },
-      { id: 89, name: '희망의 연주' },
-      { id: 90, name: '유혹의 리듬' },
-      { id: 91, name: '서정시' },
-      { id: 92, name: '용맹의 노래' }
-    ],
-    advanced: [
-      { id: 93, name: '환상곡' },
-      { id: 94, name: '전설의 이야기' },
-      { id: 95, name: '신비의 멜로디' },
-      { id: 96, name: '심연의 노래' }
-    ]
-  }
-});
+    const route = useRoute();
+    const roomId = ref(route.params.roomId);
+    const ruleID = ref(null);
 
-    // 실제 백엔드 연동 시 사용할 함수 (주석 처리)
-    /*
-    const fetchRuleData = async (ruleID) => {
+    const fetchRoomInfo = async () => {
       try {
-        const response = await axios.get(`/rules/${ruleID}`);
-        if (response.data.statusCode === 200) {
-          const commonActions = response.data.data.commonAction;
-
-          // commonActions에서 기본/특수 액션 구분하여 저장
-          actions.value.basic = commonActions.filter(action => action.isBasic);
-          actions.value.special = commonActions.filter(action => !action.isBasic);
-        } else {
-          console.error('Failed to fetch rule data:', response.data.responseMessage);
-        }
+        const roomInfo = await getRoomInfo(roomId.value);
+        ruleID.value = roomInfo.ruleID;
+        await updateCurrentActions(); // 룰 아이디가 설정된 후에 액션을 불러옴
       } catch (error) {
-        console.error('Error fetching rule data:', error);
+        console.error('Error fetching room info:', error);
       }
     };
-    */
 
-    // 현재 액션 목록을 선택된 탭과 전역 상태의 직업에 따라 필터링
-    const currentActions = computed(() => {
-      if (selectedTab.value === 'job') {
-        const job = jobActions.value[selectedUserJob.value];
-        if (job) {
-          return job[selectedSubTab.value] || [];
+    const updateCurrentActions = async () => {
+      try {
+        if (selectedTab.value === 'job') {
+          const jobActions = await getCharacterActions(roomId.value, selectedPlayMemberID.value);
+          currentActions.value = jobActions[selectedSubTab.value] || [];
+        } else {
+          if (ruleID.value !== null) {
+            const commonActions = await getCommonActions(ruleID.value);
+            if (selectedSubTab.value === 'basic') {
+              currentActions.value = commonActions.basicActions || [];
+            } else if (selectedSubTab.value === 'special') {
+              currentActions.value = commonActions.specialActions || [];
+            }
+          }
         }
-      } else {
-        return actions.value[selectedSubTab.value] || [];
+      } catch (error) {
+        console.error('Error fetching actions:', error);
       }
-      return [];
+    };
+
+    const openActionModal = (action) => {
+      selectedModalAction.value = {
+        category: selectedTab.value === 'common' ? commonSubTabs.value.find(subTab => subTab.name === selectedSubTab.value).label : jobSubTabs.value.find(subTab => subTab.name === selectedSubTab.value).label,
+        ...action
+      };
+      isActionModalVisible.value = true;
+    };
+
+    onMounted(() => {
+      fetchRoomInfo();
     });
 
-  
+    watch([selectedTab, selectedSubTab], updateCurrentActions);
+
     const tabStyle = (tabName) => {
       return {
         background: selectedTab.value === tabName
@@ -335,11 +206,13 @@ export default {
       selectedTab.value = tabName;
       selectedSubTab.value = tabName === 'common' ? 'basic' : 'core';
       selectedAction.value = null;
+      updateCurrentActions();
     };
 
     const selectSubTab = (subTabName) => {
       selectedSubTab.value = subTabName;
       selectedAction.value = null;
+      updateCurrentActions();
     };
 
     const selectAction = (actionId) => {
@@ -348,25 +221,65 @@ export default {
 
     const subTabStyle = (subTabName) => {
       const isCoreOrBasic = subTabName === 'core' || subTabName === 'basic';
+      const isSelected = selectedSubTab.value === subTabName;
+      const imagePath = isSelected
+        ? (isCoreOrBasic ? coreActionSelectImage : advancedActionSelectImage)
+        : (isCoreOrBasic ? coreActionImage : advancedActionImage);
       return {
-        backgroundImage: `url(${isCoreOrBasic ? coreActionImage : advancedActionImage})`,
+        backgroundImage: `url(${imagePath})`,
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
       };
     };
 
-    const actionItemStyle = {
-      backgroundImage: `url(${require('@/assets/images/ingame/ActionList.png')})`,
-      backgroundSize: '100% 100%',
-      backgroundPosition: 'center',
-      width: '45%',
-      backgroundRepeat: 'no-repeat',
+    const getActionItemStyle = (actionId) => {
+      const isSelected = selectedAction.value === actionId;
+      const baseStyle = {
+        backgroundSize: '100% 100%',
+        backgroundPosition: 'center',
+        width: '45%',
+        backgroundRepeat: 'no-repeat',
+      };
+
+      if (isSelected) {
+        return {
+          ...baseStyle,
+          backgroundImage: `url(${actionListSelectImage})`,
+        };
+      }
+
+      return {
+        ...baseStyle,
+        backgroundImage: `url(${actionListImage})`,
+        ':hover': {
+          backgroundImage: `url(${actionListHoverImage})`,
+        },
+      };
     };
 
-    watch(selectedPlayMemberID, async (newID) => {
-      console.log('Selected play member ID changed to:', newID);
-      // 필요한 추가 로직 작성...
-    });
+    const showTooltip = (event) => {
+      const tooltip = event.target.querySelector('.tooltip');
+      if (tooltip) {
+        tooltip.style.visibility = 'visible';
+        tooltip.style.opacity = 1;
+        tooltip.style.top = `${event.target.offsetHeight}px`;
+        tooltip.style.left = `50%`;
+        tooltip.style.transform = `translateX(-50%)`;
+      }
+    };
+
+    const hideTooltip = (event) => {
+      const tooltip = event.target.querySelector('.tooltip');
+      if (tooltip) {
+        tooltip.style.visibility = 'hidden';
+        tooltip.style.opacity = 0;
+      }
+    };
+
+    const handleSelectAction = (action) => {
+      console.log('Selected action:', action);
+      // 추가 로직 작성...
+    };
 
     return {
       backgroundStyle,
@@ -382,7 +295,13 @@ export default {
       selectAction,
       subTabStyle,
       tabStyle,
-      actionItemStyle
+      getActionItemStyle,
+      isActionModalVisible,
+      selectedModalAction,
+      openActionModal,
+      handleSelectAction,
+      showTooltip,
+      hideTooltip,
     };
   }
 };
@@ -405,23 +324,23 @@ export default {
 
 .tabs button {
   flex: 1;
-  padding: 0; /* 여백 제거 */
+  padding: 0; 
   border: none;
   background-color: transparent;
-  background-size: cover; /* 이미지가 버튼을 완전히 덮도록 */
-  background-position: center; /* 이미지를 중앙에 배치 */
+  background-size: cover; 
+  background-position: center; 
   color: white;
   cursor: pointer;
-  font-size: 1.2rem; /* 글자 크기 */
+  font-size: 1.2rem; 
   display: flex;
-  align-items: center; /* 세로 중앙 정렬 */
-  justify-content: center; /* 가로 중앙 정렬 */
+  align-items: center; 
+  justify-content: center; 
   height: 100%;
-  box-sizing: border-box; /* 패딩과 테두리를 포함한 크기 계산 */
+  box-sizing: border-box; 
 }
 
 .tabs button.active {
-  background-color: #000000; /* 선택된 탭의 배경색 */
+  background-color: #000000; 
 }
 
 .tabs button:not(.active) {
@@ -438,13 +357,11 @@ export default {
 
 .sub-tabs {
   display: flex;
-
   justify-content: space-between;
   margin-top: 15px;
-  margin-bottom: 15px; /* 서브탭과 액션 리스트 사이 간격 */
-  padding: 0 10px; /* 좌우 여백 */
+  margin-bottom: 15px; 
+  padding: 0 10px; 
 }
-
 
 .sub-tabs button {
   flex: 1;
@@ -457,14 +374,8 @@ export default {
   width: 45%;
   height: 35px;
   transition: border 0.3s;
-  font-size: 1rem; /* 글자 크기 조정 */
+  font-size: 1rem; 
 }
-
-
-.sub-tabs button.active {
-  border: 1px solid #ffffff;
-}
-
 
 .action-list-container {
   flex-grow: 1;
@@ -492,7 +403,7 @@ export default {
   text-align: center;
   cursor: pointer;
   border: 1px solid #444;
-  height: 35px; /* 적절한 높이 설정 */
+  height: 35px; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -502,16 +413,35 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
   box-sizing: border-box;
+  position: relative;
 }
 
-.action-item:hover {
-  transform: scale(1.05);
-  border-color: #ffffff;
+.tooltip {
+  visibility: hidden;
+  width: 150px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-align: center;
+  border-radius: 3px;
+  padding: 5px;
+  position: absolute; /* 고정 위치 */
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.8rem;
 }
 
-.action-item.selected {
-  border: 1px solid #ffffff;
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
 }
+
 
 /* Chrome, Edge, Safari 스크롤바 커스터마이징 */
 .action-list::-webkit-scrollbar {
@@ -520,13 +450,12 @@ export default {
 
 .action-list::-webkit-scrollbar-track {
   background: #a56722;
-  border-radius: 30px; /* 트랙 둥글게 */
+  border-radius: 30px; 
 }
 
 .action-list::-webkit-scrollbar-thumb {
   background-color: #6b3d01;
-  border-radius: 30px; /* 스크롤바 둥글게 */
+  border-radius: 30px; 
   border: 1px solid #5e3b13;
 }
 </style>
-

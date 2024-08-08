@@ -61,10 +61,9 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { useAccountApi } from "@/common/api/accountAPI.js"; // 경로가 올바른지 확인
 import Cookies from "js-cookie";
-
 import SocialLoginModal from "./SocialLoginModal.vue";
 
 onMounted(() => {

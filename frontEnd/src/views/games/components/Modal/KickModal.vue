@@ -24,7 +24,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import exile from '@/store/waiting/exile'; // 글로벌 Axios 인스턴스 가져오기
+import { kickUserFromRoom } from '@/common/api/RoomsAPI'; // API 호출 함수 가져오기
 import scheduleModal from '@/assets/images/room/calendar_modal/background.png';
 import titleImage from '@/assets/images/room/calendar_modal/title.png';
 import okImage from '@/assets/images/room/calendar_modal/ok.png';
@@ -32,9 +32,14 @@ import cancelImage from '@/assets/images/room/calendar_modal/cancel.png';
 
 // props 정의
 const props = defineProps({
-  user: Object,
-  accessToken: String, // 액세스 토큰 전달
-  roomId: String // 방 ID 전달
+  user: {
+    type: Object,
+    required: true,
+  },
+  roomId: {
+    type: [String, Number],
+    required: true,
+  }
 });
 
 // emits 정의
@@ -49,17 +54,13 @@ const closeModal = () => {
 const confirmKick = async () => {
   try {
     // 방 ID와 액세스 토큰을 사용하여 DELETE 요청
-    const response = await exile.delete(`/rooms/${props.roomId}/players`, {
-      headers: {
-        Authorization: `Bearer ${props.accessToken}`,
-      },
-    });
+    const response = await kickUserFromRoom(props.roomId, props.user.id);
 
-    if (response.status === 200) {
-      console.log('게임 방 유저 퇴장 성공:', response.data);
+    if (response.statusCode === 200) {
+      console.log('게임 방 유저 퇴장 성공:', response);
       emit('kick', props.user);
     } else {
-      console.error('유저 퇴장 실패:', response.data);
+      console.error('유저 퇴장 실패:', response);
     }
   } catch (error) {
     console.error('DELETE 요청 중 오류 발생:', error);
@@ -76,7 +77,6 @@ const modalStyle = computed(() => ({
   backgroundRepeat: 'no-repeat',
 }));
 </script>
-
 
 <style scoped>
 .modal {

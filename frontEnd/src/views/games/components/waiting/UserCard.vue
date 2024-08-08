@@ -1,21 +1,20 @@
-<!-- UserCard.vue -->
 <template>
   <div :style="userCardStyle" class="user-card">
     <div class="user-profile">
       <div class="profile-image-container">
         <!-- 사용자 프로필 이미지 -->
         <img
-          :src="user.profileImage"
+          :src="user.profileImage || defaultImage"
           alt="사용자 프로필"
           class="profile-image"
-          @click="openUserProfile(user.id)"
+          @click="openUserProfile"
         />
         <img :src="avatarFrameImage" alt="테두리" class="avatar-frame" />
       </div>
     </div>
     <div class="user-actions">
       <img
-        v-if="isGM"
+        v-if="isGM && user.id"
         src="@/assets/images/room/kick.png"
         alt="강퇴"
         @click="showKickModal = true"
@@ -28,7 +27,7 @@
     <!-- 사용자 정보 모달 -->
     <Userinfo
       v-if="showUserModal"
-      :user="fetchedUserData"
+      :user="user"
       @close="showUserModal = false"
     />
     <AddFriendModal
@@ -39,6 +38,8 @@
     <KickModal
       v-if="showKickModal"
       :user="user"
+      :roomId="roomId"
+      :accessToken="accessToken"
       @close="showKickModal = false"
       @kick="kickUser"
     />
@@ -50,69 +51,33 @@ import { ref, computed, defineProps } from 'vue';
 import Userinfo from '@/views/games/components/Modal/UserInfo.vue';
 import AddFriendModal from '@/views/games/components/Modal/AddFriendModal.vue';
 import KickModal from '@/views/games/components/Modal/KickModal.vue';
+import defaultImage from '@/assets/images/users/default.png';
+import { kickUserFromRoom } from '@/common/api/RoomsAPI';
 
 // props로 전달된 사용자 데이터
 const props = defineProps({
-  user: Object,
+  user: {
+    type: Object,
+    default: () => ({
+      id: null,
+      name: '',
+      profileImage: ''
+    })
+  },
   isGM: Boolean,
+  roomId: {
+    type: [String, Number],
+    required: true
+  },
+  accessToken: {
+    type: String,
+    required: true
+  }
 });
-
-// 더미 데이터 정의
-const dummyUsers = [
-  {
-    id: 1,
-    race: '인간',
-    job: '전사',
-    background: '검투사 출신이며...',
-  },
-  {
-    id: 2,
-    race: '엘프',
-    job: '마법사',
-    background: '숲에서 자라난...',
-  },
-  {
-    id: 3,
-    race: '드워프',
-    job: '기사',
-    background: '산속에서 전투를...',
-  },
-  {
-    id: 4,
-    race: '인간',
-    job: '궁수',
-    background: '활을 잘 다루며...',
-  },
-  {
-    id: 5,
-    race: '오크',
-    job: '도적',
-    background: '몰래 다가가 적을...',
-  },
-  {
-    id: 6,
-    race: '고블린',
-    job: '도적',
-    background: '작고 민첩한...',
-  },
-  {
-    id: 7,
-    race: '하프엘프',
-    job: '음유시인',
-    background: '노래와 시를 사랑하며...',
-  },
-  {
-    id: 8,
-    race: '하프오크',
-    job: '전사',
-    background: '힘과 용맹을 겸비한...',
-  },
-];
 
 const showUserModal = ref(false);
 const showAddFriendModal = ref(false);
 const showKickModal = ref(false);
-const fetchedUserData = ref(null);
 
 // 백그라운드 이미지 경로 설정
 const profileBoxImage = require('@/assets/images/room/profile_box.png');
@@ -152,25 +117,24 @@ const truncatedName = computed(() => {
 });
 
 // 사용자 프로필을 열어 모달에 사용자 정보 표시
-const openUserProfile = (userId) => {
-  // props.user의 ID를 기반으로 추가 정보를 결합
-  const additionalData = dummyUsers.find((user) => user.id === userId);
-  if (additionalData) {
-    // 기존 사용자 데이터에 추가 정보를 결합하여 fetchedUserData에 저장
-    fetchedUserData.value = { ...props.user, ...additionalData };
-    showUserModal.value = true; // 모달 표시
-  } else {
-    console.error('사용자 데이터를 찾을 수 없습니다.');
+const openUserProfile = () => {
+  if (props.user.id) {
+    showUserModal.value = true;
   }
 };
 
-const kickUser = (user) => {
-  console.log(`사용자 강퇴: ${user.name}`);
+const kickUser = async () => {
+  try {
+    const response = await kickUserFromRoom(props.roomId, props.user.id, props.accessToken);
+    if (response.statusCode === 200) {
+      console.log(`사용자 강퇴: ${props.user.name}`);
+      // 강퇴 성공 시, 추가적인 동작을 여기에 작성 (예: UI 업데이트)
+    }
+  } catch (error) {
+    console.error('Error kicking user:', error);
+  }
 };
 
-const addFriend = (user) => {
-  console.log(`친구 추가: ${user.name}`);
-};
 </script>
 
 <style scoped>
@@ -211,8 +175,8 @@ const addFriend = (user) => {
 }
 
 .profile-image {
-  width: 90%;
-  height: 90%;
+  width: 100%; /* 이미지를 컨테이너에 맞게 조절 */
+  height: 100%; /* 이미지를 컨테이너에 맞게 조절 */
   object-fit: cover;
   border-radius: 50%;
   cursor: pointer;

@@ -113,7 +113,7 @@ export const useSessionStore = defineStore('session', () => {
   // 토큰을 가져오는 함수
   const getToken = async () => {
     try {
-      const response = await fetch('http://localhost:4443/api/sessions', {
+      const response = await fetch('https://i11d108.p.ssafy.io/api/v1/sessions', {
         method: 'POST',
         headers: {
           Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
@@ -128,7 +128,7 @@ export const useSessionStore = defineStore('session', () => {
         throw new Error(`Failed to create session: ${response.statusText}`);
       }
 
-      const tokenResponse = await fetch('http://localhost:4443/api/tokens', {
+      const tokenResponse = await fetch('https://i11d108.p.ssafy.io/api/v1/tokens', {
         method: 'POST',
         headers: {
           Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,

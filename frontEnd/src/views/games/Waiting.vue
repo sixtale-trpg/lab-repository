@@ -4,7 +4,7 @@
     <div class="content">
       <div class="left-section">
         <div class="user-cards">
-          <UserCard v-for="user in users" :key="user.id" :user="user" :isGM="isGM" />
+          <UserCard v-for="user in allUsers" :key="user.id || user.placeholder" :user="user" :isGM="isGM" />
         </div>
         <Chat class="chat-section" />
       </div>
@@ -14,7 +14,7 @@
           <div :style="gmCardStyle" class="gm-section">
             <div class="gm-info">
               <div :style="profileImageContainerStyle" class="profile-image-container">
-                <img :src="gm.profileImage" alt="GM 프로필" class="profile-image" @click="showGMModal = true"/>
+                <img :src="gm.profileImage || defaultImage" alt="GM 프로필" class="profile-image" @click="showGMModal = true"/>
                 <img :src="avatarFrameImagePath" alt="테두리" class="avatar-frame" />
               </div>
               <div :style="gmNameStyle" class="gm-name">{{ gm.name }}</div>
@@ -38,7 +38,7 @@
               <div class="title">
                 <div :style="vectorImage">시나리오</div>
               </div>
-              <div :class="[isGM ? 'content scenario-content cursor' : 'content scenario-content disabled']" @click="isGM ? fetchScenarioDetails() : null">
+              <div class="content scenario-content cursor" @click="openScenarioModal">
                 <img :src="scenarioImagePath" alt="시나리오 이미지" class="scenario-image" />
                 <div class="scenario-text">{{ scenario }}</div>
               </div>
@@ -67,36 +67,28 @@ import Calendar from './components/Calendar.vue';
 import RulebookModal from './components/Modal/RulebookModal.vue';
 import ScenarioModal from './components/Modal/ScenarioModal.vue';
 import Userinfo from './components/Modal/UserInfo.vue';
+import { getRoomInfo } from '@/common/api/RoomsAPI';
+import defaultImage from '@/assets/images/users/default.png';
 
 const store = useStore();
 
 const roomDetails = ref({
-  title: '더미 방제목',
-  currentPlayers: 4,
-  totalPlayers: 8,
-  status: '대기중',
+  title: '',
+  currentPlayers: 0,
+  totalPlayers: 0,
+  status: '',
 });
 
-const users = ref([
-  { id: 1, name: '오소리 탈춤꾼입니다', profileImage: require('@/assets/images/users/user1.png') },
-  { id: 2, name: 'HybridObjectClass', profileImage: require('@/assets/images/users/user2.png') },
-  { id: 3, name: 'User3', profileImage: require('@/assets/images/users/user3.png') },
-  { id: 4, name: 'User4', profileImage: require('@/assets/images/users/user4.png') },
-  { id: 5, name: 'User5', profileImage: require('@/assets/images/users/user5.png') },
-  { id: 6, name: 'User6', profileImage: require('@/assets/images/users/user6.png') },
-  { id: 7, name: 'User7', profileImage: require('@/assets/images/users/user7.png') },
-  { id: 8, name: 'User8', profileImage: require('@/assets/images/users/user8.png') },
-]);
-
+const users = ref([]);
 const gm = ref({
-  name: 'Game Master',
-  profileImage: require('@/assets/images/users/gm.png'),
+  name: '',
+  profileImage: '',
 });
 
 const isGM = ref(true); // 현재 접속한 사용자가 GM인지 여부 설정
-const nextSchedule = ref('2024. 07. 21');
-const gameRule = ref('던전 월드');
-const scenario = ref('왕자와 죽음의 개');
+const nextSchedule = ref('');
+const gameRule = ref('');
+const scenario = ref('');
 const scenarioDetails = ref({});
 const showScenarioDetails = ref(false);
 
@@ -108,6 +100,33 @@ const selectedUser = ref(null);
 
 const router = useRouter();
 const route = useRoute();
+
+const fetchRoomDetails = async () => {
+  try {
+    const roomId = route.params.roomId;
+    const roomInfo = await getRoomInfo(roomId);
+    roomDetails.value.title = roomInfo.title;
+    roomDetails.value.currentPlayers = roomInfo.currentCount;
+    roomDetails.value.totalPlayers = roomInfo.maxCount;
+    roomDetails.value.status = roomInfo.status;
+    nextSchedule.value = roomInfo.nextPlay;
+    gameRule.value = roomInfo.ruleTitle;
+    scenario.value = roomInfo.scenarioTitle;
+    gm.value.name = roomInfo.gmNickname;
+    gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
+    users.value = roomInfo.playMemberList.map(member => ({
+      id: member.playMemberID,
+      name: member.playMemberNickname,
+      profileImage: member.playMemberImageURL || defaultImage,
+    }));
+  } catch (error) {
+    console.error('Error fetching room details:', error);
+  }
+};
+
+onMounted(() => {
+  fetchRoomDetails();
+});
 
 const selectDate = (date) => {
   nextSchedule.value = date;
@@ -122,6 +141,7 @@ const closeRulebookModal = () => {
 };
 
 const openScenarioModal = () => {
+  fetchScenarioDetails();
   isScenarioModalOpen.value = true;
 };
 
@@ -150,6 +170,13 @@ const toggleScenarioDetails = () => {
     showScenarioDetails.value = !showScenarioDetails.value;
   }
 };
+
+// 사용자 카드가 8개 되도록 빈 사용자 카드 추가
+const allUsers = computed(() => {
+  const placeholders = 8 - users.value.length;
+  const placeholderCards = Array.from({ length: placeholders }, (_, index) => ({ id: `placeholder-${index + 1}`, name: '', profileImage: '' }));
+  return [...users.value, ...placeholderCards];
+});
 
 // 배경 이미지 경로 설정
 const backgroundImagePath = require('@/assets/images/room/main_background.png');

@@ -74,7 +74,7 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, watch } from 'vue';
-import defaultImage from '@/assets/images/ingame/user1.png'; // 기본 이미지 경로 확인
+import defaultImage from '@/assets/images/users/default.png'; // 기본 이미지 경로 확인
 import titleImage from '@/assets/images/character_sheet/title.png';
 import nicknameLight from '@/assets/images/character_sheet/nickname_light.png';
 import avatarFrame from '@/assets/images/room/profile_modal/avatar_frame.png';
@@ -92,10 +92,10 @@ const emit = defineEmits(['close']);
 
 const characterData = ref({
   image: '',
-  name: '오소리 탈춤 사냥꾼',
-  race: '인간',
-  job: '전사',
-  background: '기본 배경 설명',
+  name: '',
+  race: '',
+  job: '',
+  background: '',
 });
 
 const isVisible = ref(true);

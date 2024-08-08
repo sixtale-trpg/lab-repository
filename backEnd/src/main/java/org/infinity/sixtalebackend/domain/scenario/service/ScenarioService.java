@@ -13,4 +13,7 @@ public interface ScenarioService {
     ScenarioListResponseDto getScenarioList(Long memberID, Long genreID, String title, Pageable diaryPageable);
 
     ScenarioResponseDto getScenarioInfo(Long scenarioID, Long memberID);
+
+    boolean likeScenario(Long scenarioID, Long memberID);
+    boolean unlikeScenario(Long scenarioID, Long memberID);
 }

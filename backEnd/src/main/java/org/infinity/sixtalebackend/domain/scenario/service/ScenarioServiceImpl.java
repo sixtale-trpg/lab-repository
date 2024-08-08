@@ -6,6 +6,8 @@ import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.GenreDto;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioGenre;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioLike;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioLikeID;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioGenreRepository;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -112,4 +115,48 @@ public class ScenarioServiceImpl implements ScenarioService{
         return memberRepository.getReferenceById(id);
     }
 
+    /**
+     * 시나리오 좋아요 하기
+     */
+    @Transactional
+    public boolean likeScenario(Long scenarioID, Long memberID) {
+        Scenario scenario = scenarioRepository.findById(scenarioID)
+                .orElseThrow(() -> new IllegalArgumentException("Scenario not found with id " + scenarioID));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with id " + memberID));
+
+        // 이미 좋아요가 되어있는지 확인
+        if (scenarioLikeRepository.existsByScenarioAndMember(scenario, member)) {
+            return false;
+        }
+
+        // 좋아요 추가
+        ScenarioLike scenarioLike = ScenarioLike.builder()
+                .id(new ScenarioLikeID(scenarioID, memberID))
+                .scenario(scenario)
+                .member(member)
+                .build();
+
+        scenarioLikeRepository.save(scenarioLike);
+        return true;
+    }
+
+    /**
+     * 시나리오 좋아요 취소
+     */
+    @Transactional
+    public boolean unlikeScenario(Long scenarioID, Long memberID) {
+        Scenario scenario = scenarioRepository.findById(scenarioID)
+                .orElseThrow(() -> new IllegalArgumentException("Scenario not found with id " + scenarioID));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with id " + memberID));
+
+        // 이미 좋아요 취소가 되어있는지 확인
+        if (!scenarioLikeRepository.existsByScenarioAndMember(scenario, member)) {
+            return false;
+        }
+
+        scenarioLikeRepository.deleteByScenarioAndMember(scenario, member);
+        return true;
+    }
 }

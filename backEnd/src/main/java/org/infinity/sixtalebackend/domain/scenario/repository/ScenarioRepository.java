@@ -1,7 +1,9 @@
 package org.infinity.sixtalebackend.domain.scenario.repository;
 
 
+import io.lettuce.core.dynamic.annotation.Param;
 import org.infinity.sixtalebackend.domain.genre.domain.Genre;
+import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
-
 import java.util.List;
 import java.util.Set;
 
@@ -42,4 +43,8 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
 
     @Query("SELECT s FROM Scenario s JOIN FETCH s.rule WHERE s.id = :id")
     Optional<Scenario> findByIdWithRule(Long id);
+
+    @Query("SELECT s FROM Scenario s WHERE EXISTS (" +
+            "SELECT 1 FROM ScenarioLike sl WHERE sl.scenario = s AND sl.member = :member)")
+    Page<Scenario> findLikedScenariosByMember(@Param("member") Member member, Pageable scenarioPageable);
 }

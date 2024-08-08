@@ -4,7 +4,10 @@ import jakarta.persistence.LockModeType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.chat.service.ChatRoomService;
+import org.infinity.sixtalebackend.domain.member.domain.Calender;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
+import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
+import org.infinity.sixtalebackend.domain.member.repository.CalendarRepository;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.domain.Room;
@@ -33,6 +36,7 @@ public class RoomServiceImpl implements RoomService{
     private final MemberRepository memberRepository;
     private final PlayMemberRepository playMemberRepository;
     private final ScenarioRepository scenarioRepository;
+    private final CalendarRepository calendarRepository;
     private final PasswordEncoder passwordEncoder;
     private final ChatRoomService chatRoomService;
 
@@ -315,4 +319,60 @@ public class RoomServiceImpl implements RoomService{
                 .playTime(room.getPlayTime())
                 .build());
     }
+
+    /**
+     * 게임 방 멤버 전체 일정 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<GameMemberCalendarResponse> getRoomMemberCalendars(Long roomID) {
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+
+        List<PlayMember> playMembers = playMemberRepository.findByRoom(room);
+
+        List<Long> memberIds = playMembers.stream()
+                .map(playMember -> playMember.getMember().getId())
+                .collect(Collectors.toList());
+
+        List<Calender> calenders = calendarRepository.findByMemberIds(memberIds);
+        return playMembers.stream()
+                .map(playMember -> {
+                    Long memberId = playMember.getMember().getId();
+                    List<CalendarEventResponse> events = calenders.stream()
+                            .filter(calendar -> calendar.getMember().getId().equals(memberId))
+                            .map(calendar -> new CalendarEventResponse(calendar.getStartAt(), calendar.getEndAt(), calendar.getTitle()))
+                            .collect(Collectors.toList());
+                    return new GameMemberCalendarResponse(memberId, events);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 게임 방 멤버 전체 일정 생성
+     */
+    @Override
+    @Transactional
+    public void addEventToRoomMembers(Long roomID, CalendarRequest calendarRequest) {
+        Room room = roomRepository.findById(roomID)
+                .orElseThrow(() -> new IllegalArgumentException("게임 방을 찾을 수 없습니다."));
+
+        List<PlayMember> playMembers = playMemberRepository.findByRoom(room);
+
+        if (calendarRequest.getStartAt().isAfter(calendarRequest.getEndAt())) {
+            throw new InvalidDateException("시작 시간이 종료 시간보다 나중일 수 없습니다.");
+        }
+
+        for (PlayMember playMember : playMembers) {
+            Member member = playMember.getMember();
+            Calender calender = Calender.builder()
+                    .member(member)
+                    .startAt(calendarRequest.getStartAt())
+                    .endAt(calendarRequest.getEndAt())
+                    .title(calendarRequest.getTitle())
+                    .build();
+            calendarRepository.save(calender);
+        }
+    }
+
 }

@@ -3,21 +3,24 @@
     <div class="container">
       <h1 class="menu-title">시나리오</h1>
       <div style="background-color: gray; height: 90vh">
-        <ScenarioCard />
+        <ScenarioCard v-for="(item, index) in scenarios" :key="index"/>
+        
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import component from "element-plus/es/components/tree-select/src/tree-select-option.mjs";
+import { ref, onMounted } from "vue";
 import ScenarioCard from "./components/ScenarioCard.vue";
+
+onMounted();
 
 export default {
   name: "Scenarios",
   components: {
     ScenarioCard,
-  },
+  }
 };
 </script>
 

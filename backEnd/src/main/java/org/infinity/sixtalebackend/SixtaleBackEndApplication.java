@@ -11,5 +11,4 @@ public class SixtaleBackEndApplication {
     public static void main(String[] args) {
         SpringApplication.run(SixtaleBackEndApplication.class, args);
     }
-
 }

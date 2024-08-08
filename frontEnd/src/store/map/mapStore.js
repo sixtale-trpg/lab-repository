@@ -158,7 +158,7 @@ export const useMapStore = defineStore("map", {
       this.isLoading = true;
       try {
         const response = await axios.get(
-          `http://localhost:8888/api/v1/rooms/${roomID}/maps/${mapID}`
+          `http://i11d108.p.ssafy.io:8888/api/v1/rooms/${roomID}/maps/${mapID}`
         );
         // API 응답 구조에 맞춰 데이터를 저장
         this.mapData = response.data.map((map) => ({

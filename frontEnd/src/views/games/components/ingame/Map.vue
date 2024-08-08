@@ -15,8 +15,9 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
-      <!-- Removed the token-coordinates span to disable tooltip display -->
     </div>
+
+    <!-- Grid Overlay: Visible based on the showGrid state -->
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
         <div
@@ -36,6 +37,8 @@
         </div>
       </div>
     </div>
+
+    <!-- Info Panel: Shows description when a grid cell is hovered -->
     <div class="info-panel" v-if="hoveredDescription.title">
       <img
         class="info-background"
@@ -180,6 +183,7 @@ const hoveredLaserDescription = ref(null);
 const tooltipPosition = ref({ x: 0, y: 0 });
 let tooltipTimeout = null; // 툴팁 타임아웃 변수
 
+// 마우스를 올린 그리드 셀에 대한 설명을 표시합니다.
 // 레이저 효과 위에 마우스를 올렸을 때
 const onLaserMouseEnter = (row, col) => {
   if (tooltipTimeout) clearTimeout(tooltipTimeout); // 이전 타임아웃 클리어
@@ -293,6 +297,8 @@ const onDrag = (event) => {
       .getBoundingClientRect();
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
+
+    // 토큰이 맵 밖으로 드래그되었을 때 위치 업데이트
 
     draggingToken.x = newX;
     draggingToken.y = newY;
@@ -418,8 +424,6 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
-
-/* Removed the token-coordinates style since it's not needed anymore */
 
 .grid-overlay {
   position: absolute;

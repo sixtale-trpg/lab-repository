@@ -38,7 +38,7 @@
             <span class="title-text-large">설명</span>
           </div>
           <div class="description-box">
-            <p>{{ actionDescription }}</p>
+            <div v-html="formattedDescription"></div>
           </div>
         </div>
       </div>
@@ -79,9 +79,7 @@ const modalBodyStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
   backgroundSize: 'cover',
   marginTop: '10px',
-  padding: '20px',
-  overflowY: 'auto',
-  scrollbarColor: '#855e2fee #201805'
+  padding: '20px'
 }));
 
 const modalFooterStyle = computed(() => ({
@@ -108,6 +106,7 @@ const selectButtonStyle = computed(() => ({
 const actionCategory = computed(() => props.action.category);
 const actionName = computed(() => props.action.name);
 const actionDescription = computed(() => props.action.description);
+const formattedDescription = computed(() => props.action.description.replace(/<br>/g, '<br/>'));
 </script>
 
 <style scoped>
@@ -176,9 +175,8 @@ const actionDescription = computed(() => props.action.description);
   padding: 20px;
   border-radius: 0 0 10px 10px;
   flex: 1;
-  overflow-y: auto;
   margin-top: 10px;
-  scrollbar-color: #855e2fee #201805;
+  overflow: hidden; /* 외부 스크롤바 제거 */
 }
 
 .modal-body::-webkit-scrollbar {
@@ -290,6 +288,21 @@ const actionDescription = computed(() => props.action.description);
 .description-box p {
   color: white;
   margin: 0;
+}
+
+.description-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.description-box::-webkit-scrollbar-track {
+  background: #201805;
+  border-radius: 5px;
+}
+
+.description-box::-webkit-scrollbar-thumb {
+  background-color: #855e2fee;
+  border-radius: 5px;
+  border: 2px solid #201805;
 }
 
 .modal-footer {

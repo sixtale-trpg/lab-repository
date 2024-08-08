@@ -67,5 +67,5 @@ module.exports = {
     },
   },
   lintOnSave: false,
-  outputDir: '../backEnd/src/main/resources/dist'
+  outputDir: 'dist'
 };

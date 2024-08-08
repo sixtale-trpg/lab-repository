@@ -24,21 +24,18 @@
     </div>
     <div class="carousel-inner">
       <div class="carousel-item active">
-        <img src="@/assets/images/carousel/slide1.jpg" class="d-block w-100" alt="" />
+        <img src="@/assets/images/carousel/slide4.png" class="d-block w-100" alt="" />
         <div class="carousel-caption" @click="navigateToLobby">
-          <h5>친구들과 TRPG를 온라인으로 즐겨보세요</h5>
-        </div>
+      </div>
       </div>
       <div class="carousel-item">
-        <img src="@/assets/images/carousel/slide2.jpg" class="d-block w-100" alt="" />
+        <img src="@/assets/images/carousel/slide4.png" class="d-block w-100" alt="" />
         <div class="carousel-caption" @click="navigateToScenarios">
-          <h5>내가 만들어가는 나만의 이야기</h5>
         </div>
       </div>
       <div class="carousel-item">
-        <img src="@/assets/images/carousel/slide3.jpg" class="d-block w-100" alt="" />
+        <img src="@/assets/images/carousel/slide4.png" class="d-block w-100" alt="" />
         <div class="carousel-caption" @click="navigateToFindPlayers">
-          <h5>새로운 동료를 찾아 보세요</h5>
         </div>
       </div>
     </div>
@@ -87,19 +84,34 @@ const navigateToScenarios = () => {
   margin: 0 !important;
 }
 
+.carousel-indicators{
+  margin-bottom: 0px;
+  transform: translateY(-90%); 
+}
+
+.carousel-indicators button {
+  width: 110px; /* Adjust width */
+  height: 12px; /* Adjust height */
+  /* border-radius: 11px !important; */
+  margin-right: 1%;
+}
+
 .carousel-item {
-  height: 480px;
-  background-color: #ababab;
+  height: 550px;
+  /* background-color: #ffffff; */
+  background: linear-gradient(270deg, rgba(38, 38, 38, 0.45) 65%, #0e0e15 100%), linear-gradient(89.84deg, rgba(56, 56, 56, 0.9) 65.72%, #0e0e15 100%);
 }
 
 .carousel-item img {
-  object-fit: cover;
+  /* object-fit: cover; */
+  object-fit: fill;
   height: 100%;
   width: 100%;
+  border-radius: 30px;
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 }
 
 .carousel-caption {
-  background: rgba(0, 0, 0, 0.7);
   padding: 10px;
   border-radius: 10px;
   max-width: 400px;

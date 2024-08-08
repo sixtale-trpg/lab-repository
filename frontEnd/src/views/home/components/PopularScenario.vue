@@ -1,8 +1,9 @@
 <template>
   <section class="popular-scenario">
     <div class="container">
+      
       <div class="header">
-        <h2>인기 시나리오</h2>
+        <h3>인기 시나리오</h3>
       </div>
       <div class="scenarios-grid">
         <div class="scenario-card" v-for="(scenario, index) in scenarios" :key="index">
@@ -59,13 +60,12 @@ const scenarios = ref([
 
 <style scoped>
 .popular-scenario {
-  background-color: #091d31; 
+  background: linear-gradient(270deg, rgba(38, 38, 38, 0.45) 65%, #0e0e15 100%), linear-gradient(89.84deg, rgba(56, 56, 56, 0.9) 65.72%, #0e0e15 100%);
   color: white;
-  padding: 0; 
+  padding:2%; 
 }
 
 .container {
-  background-color: #031527;
   padding: 40px 20px; 
   border-radius: 0; 
   max-width: 1200px; 
@@ -76,6 +76,7 @@ const scenarios = ref([
 .header {
   margin-top: 20px;
   margin-bottom: 20px;
+  display: flex;
 }
 
 .header h2 {
@@ -90,7 +91,6 @@ const scenarios = ref([
 }
 
 .scenario-card {
-  background-color: #112942;
   padding: 20px;
   border-radius: 10px;
   overflow: hidden;

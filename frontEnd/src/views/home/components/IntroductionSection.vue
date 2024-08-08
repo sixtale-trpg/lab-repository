@@ -51,7 +51,7 @@
   
   <style scoped>
   .introduction {
-  background-color: #091d31; 
+    background: linear-gradient(270deg, rgba(38, 38, 38, 0.45) 65%, #0e0e15 100%), linear-gradient(89.84deg, rgba(56, 56, 56, 0.9) 65.72%, #0e0e15 100%);
   color: white;
   padding-top: 80px; 
   padding-right: 0;
@@ -60,7 +60,6 @@
 }
 
   .container {
-    background-color: #031527; 
     padding: 40px 20px; 
     border-radius: 0; 
     max-width: 1200px; 

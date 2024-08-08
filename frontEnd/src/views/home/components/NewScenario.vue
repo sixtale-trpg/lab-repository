@@ -59,13 +59,13 @@ const scenarios = ref([
 
 <style scoped>
 .popular-scenario {
-  background-color: #091d31; 
+  background: linear-gradient(270deg, rgba(38, 38, 38, 0.45) 65%, #0e0e15 100%), linear-gradient(89.84deg, rgba(56, 56, 56, 0.9) 65.72%, #0e0e15 100%);
+  /* background: radial-gradient(50% 50% at 50% 50%, rgba(38, 38, 38, 0.87) 0%, #232428 100%); */
   color: white;
   padding: 0; 
 }
 
 .container {
-  background-color: #031527;
   padding: 40px 20px; 
   border-radius: 0; 
   max-width: 1200px; 
@@ -90,13 +90,15 @@ const scenarios = ref([
 }
 
 .scenario-card {
-  background-color: #112942;
   padding: 20px;
   border-radius: 10px;
   overflow: hidden;
   transition: transform 0.3s;
   text-align: center;
 }
+
+/* Rectangle 5314 */
+
 
 .scenario-card:hover {
   transform: scale(1.05);

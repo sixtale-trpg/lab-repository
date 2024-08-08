@@ -1,10 +1,10 @@
 <template>
   <div class="home">
     <CarouselSection class="carousel-no-padding"/>
-    <IntroductionSection />
-    <InformationSection />
     <PopularScenario />
     <NewScenario />
+    <IntroductionSection />
+    <InformationSection />
   </div>
 </template>
 
@@ -21,7 +21,7 @@ import NewScenario from './components/NewScenario.vue';
   padding: 0;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--header-height, 70px)); 
+  min-height: calc(100vh - var(--header-height, 70px));
 }
 
 

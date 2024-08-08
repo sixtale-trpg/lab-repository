@@ -73,13 +73,13 @@ const features = ref([
 
 <style scoped>
 .information {
-  background-color: #091d31; 
+  /* backgroun d: radial-gradient(50% 50% at 50% 50%, rgba(38, 38, 38, 0.87) 0%, #232428 100%); */
+  background: linear-gradient(270deg, rgba(38, 38, 38, 0.45) 65%, #0e0e15 100%), linear-gradient(89.84deg, rgba(56, 56, 56, 0.9) 65.72%, #0e0e15 100%);
   color: white;
   padding: 0; 
 }
 
 .container {
-  background-color:  #031527;
   padding: 40px 20px; 
   border-radius: 0; 
   max-width: 1200px; 
@@ -117,7 +117,6 @@ const features = ref([
 }
 
 .feature-item {
-  background-color: #112942;
   padding: 20px;
   border-radius: 10px;
   text-align: center;

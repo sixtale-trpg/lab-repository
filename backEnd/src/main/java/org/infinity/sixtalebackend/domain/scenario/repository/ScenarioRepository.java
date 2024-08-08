@@ -1,7 +1,6 @@
 package org.infinity.sixtalebackend.domain.scenario.repository;
 
 
-import io.lettuce.core.dynamic.annotation.Param;
 import org.infinity.sixtalebackend.domain.genre.domain.Genre;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;

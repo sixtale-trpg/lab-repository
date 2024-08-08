@@ -23,7 +23,7 @@ module.exports = {
   },
   chainWebpack: config => {
     config.plugin('html').tap(args => {
-      args[0].title = 'SixTale';
+      args[0].title = 'SixTale'; // 원하는 제목으로 변경
       return args;
     });
   },
@@ -43,22 +43,22 @@ module.exports = {
       }
     },
     historyApiFallback: true,
-    hot: true
+    hot: true,
   },
   css: {
     requireModuleExtension: false,
     loaderOptions: {
       postcss: {
         plugins: [
-          require('cssnano')({
+          require("cssnano")({
             preset: [
-              'default',
+              "default",
               {
                 discardComments: {
                   removeAll: true,
                 },
                 normalizeWhitespace: false,
-                mergeRules: false
+                mergeRules: false,
               },
             ],
           }),

@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.domain.rule.service;
 
 import lombok.AllArgsConstructor;
 import org.infinity.sixtalebackend.domain.equipment.domain.Equipment;
+import org.infinity.sixtalebackend.domain.equipment.dto.EquipmentResponse;
 import org.infinity.sixtalebackend.domain.equipment.repository.EquipmentRepository;
 import org.infinity.sixtalebackend.domain.rule.domain.*;
 import org.infinity.sixtalebackend.domain.rule.dto.*;
@@ -9,7 +10,6 @@ import org.infinity.sixtalebackend.domain.rule.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,32 +40,68 @@ public class RuleServiceImpl implements RuleService {
     public JobOptionListResponse readJobOptionList(Long ruleID, Long jobID) {
         Rule rule = ruleRepository.findById(ruleID).get();
         Job job = jobRepository.findById(jobID).get();
-        List<Job> jobs = jobRepository.findByRule(rule);
         // 직업 액션
-        List<JobAction> jobActions = jobActionRepository.findByRule(rule);
-        // 액션 옵션
-        List<List<ActionOption>> actionOptions = new ArrayList<>();
-        for (JobAction jobAction : jobActions) {
-            actionOptions.add(actionOptionRepository.findByJobAction(jobAction));
-        }
+        List<JobAction> jobActionList = jobActionRepository.findByRule(rule);
+        List<JobActionResponse> jobActions = jobActionList.stream()
+                .map(m -> JobActionResponse.builder()
+                        .id(m.getId())
+                        .name(m.getName())
+                        .isCore(m.getIsCore())
+                        .description(m.getDescription())
+                        .isDice(m.getIsDice())
+                        .diceType(m.getDiceType())
+                        .diceCount(m.getDiceCount())
+                        .level(m.getLevel())
+                        .actionOptions(m.getActionOptions().stream() // 액션 옵션
+                                .map(e -> ActionOptionResponse.builder()
+                                        .id(e.getId())
+                                        .content(e.getContent())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build())
+                .collect(Collectors.toList());
         // 종족
-        List<JobRace> jobRaces = jobRaceRepository.findByJob(job);
+        List<JobRace> jobRaceList = jobRaceRepository.findByJob(job);
+        List<JobRaceResponse> jobRaces = jobRaceList.stream()
+                .map(m -> JobRaceResponse.builder()
+                        .raceID(m.getRace().getId())
+                        .raceName(m.getRace().getName())
+                        .description(m.getDescription())
+                        .build())
+                .collect(Collectors.toList());
         // 가치관
-        List<JobBelief> jobBeliefs = jobBeliefRepository.findByJob(job);
+        List<JobBelief> jobBeliefList = jobBeliefRepository.findByJob(job);
+        List<JobBeliefResponse> jobBeliefs = jobBeliefList.stream()
+                .map(m -> JobBeliefResponse.builder()
+                        .beliefID(m.getBelief().getId())
+                        .beliefName(m.getBelief().getName())
+                        .description(m.getDescription())
+                        .build())
+                .collect(Collectors.toList());
         // 장비
-        List<Equipment> equipments = equipmentRepository.findByJob(job);
+        List<Equipment> equipmentList = equipmentRepository.findByJob(job);
+        List<EquipmentResponse> equipments = equipmentList.stream()
+                .map(m -> EquipmentResponse.builder()
+                        .id(m.getId())
+                        .name(m.getName())
+                        .description(m.getDescription())
+                        .equipmentType(m.getEquipmentType())
+                        .weight(m.getWeight())
+                        .count(m.getCount())
+                        .ruleId(m.getRule().getId())
+                        .jobId(m.getJob().getId())
+                        .imageUrl(m.getImageUrl())
+                        .build())
+                .collect(Collectors.toList());
 
         JobOptionListResponse response = JobOptionListResponse.builder()
                 .jobActionList(jobActions)
-                .actionOptionList(actionOptions)
                 .jobRaceList(jobRaces)
                 .jobBeliefList(jobBeliefs)
                 .jobEquipmentList(equipments)
                 .build();
         return response;
     }
-
-
 
     @Transactional(readOnly = true)
     @Override

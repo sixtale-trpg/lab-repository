@@ -42,11 +42,11 @@ const decreaseCount = (dice) => {
 const backgroundStyle = {
   backgroundImage: `url(${require('@/assets/images/ingame/Border4.png')})`,
   backgroundSize: 'cover',
-  borderRadius: '5px',
   width: '100%',
   height: '100%',
   padding: '10px',
   boxSizing: 'border-box',
+  overflow: 'hidden',  // 부모 요소의 넘치는 콘텐츠를 숨김
 };
 </script>
 
@@ -59,6 +59,7 @@ const backgroundStyle = {
   height: 100%;
   box-sizing: border-box;
   padding: 5px;
+  overflow: hidden;  /* 스크롤바가 나타나는 것을 방지 */
 }
 
 .dice-grid {

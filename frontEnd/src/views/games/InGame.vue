@@ -75,6 +75,8 @@ const isGM = ref(true);
   width: 20%;
   display: flex;
   flex-direction: column;
+  margin-left: 10px;
+  padding: 3px;
   justify-content: flex-start;
 }
 

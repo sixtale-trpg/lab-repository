@@ -16,7 +16,7 @@
         </div>
       </div>
       <div class="circle-container">
-        <img :src="circleImage" alt="이미지 프레임" class="circle-image">
+        <img :src="circleImage" alt="이미지 프레임" class="circle-image"> 
       </div>
     </div>
     <div class="button-container">
@@ -114,14 +114,17 @@ const circleImage = ref(require('@/assets/images/character_sheet/create_avatar.p
   transform: translate(100%, 100%);
   width: 300px;
   height: 200px;
-  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
 }
 
 .input-container:hover .hover-description {
-  display: flex;
+  opacity: 1;
+  visibility: visible;
 }
 
 .description-image {

@@ -11,7 +11,10 @@ module.exports = {
       new webpack.DefinePlugin({
         __VUE_OPTIONS_API__: true,
         __VUE_PROD_DEVTOOLS__: false,
-        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+        'process.env': {
+          VUE_APP_DALLE3_API_KEY: JSON.stringify(process.env.VUE_APP_DALLE3_API_KEY)
+        }
       })
     ],
     optimization: {
@@ -20,7 +23,7 @@ module.exports = {
   },
   chainWebpack: config => {
     config.plugin('html').tap(args => {
-      args[0].title = 'SixTale'; // 원하는 제목으로 변경
+      args[0].title = 'SixTale';
       return args;
     });
   },

@@ -54,7 +54,7 @@ public class RedisSubscriber implements MessageListener {
             }
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error occurred: {}", e.getMessage());
         }
     }
 }

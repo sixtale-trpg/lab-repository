@@ -8,6 +8,7 @@ public class ResponseMessage {
     public static final String READ_MEMBER_INFO = "회원 정보 조회 성공";
     public static final String UPDATED_MEMBER_DETAIL = "회원 상세정보 수정 성공";
     public static final String READ_MEMBER_DETAIL = "회원 상세정보 조회 성공";
+    public static final String READ_SCENARIO_LIST = "시나리오 목록 조회 성공";
     public static final String BAD_REQUEST_TERMS = "회원약관 요청 에러";
     public static final String DUPLICATE_EMAIL = "이메일 중복 에러";
     public static final String VALIDATION_ERROR = "이메일 유효성 에러";

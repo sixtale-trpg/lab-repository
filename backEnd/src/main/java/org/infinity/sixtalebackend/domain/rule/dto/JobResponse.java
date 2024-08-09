@@ -23,6 +23,6 @@ public class JobResponse {
     private DiceType diceType;
     private String imageURL;
     private Long ruleId;
-//    private Set<JobBelief> jobBeliefs;
-//    private Set<JobRace> jobRaces;
+    private Set<JobBeliefResponse> jobBeliefs;
+    private Set<JobRaceResponse> jobRaces;
 }

@@ -59,18 +59,11 @@ public class MapServiceImpl implements Mapservice {
 
     @Override
     public MapResponse readMap(Long roomID, Long mapID) {
-
-        System.out.println("roomID = "+ roomID+" mapID="+ mapID);
-
         Map map = mapRepository.findById(mapID).get();
-
-        System.out.println("***************map************");
-        System.out.println("id="+map.getId());
-        System.out.println("scenario="+map.getScenario());
-        System.out.println("description="+map.getDescription());
 
         MapResponse response = MapResponse.builder()
                 .id(map.getId())
+                .name(map.getName())
                 .scenarioID(map.getScenario().getId())
                 .description(map.getDescription())
                 .isNpc(map.isNpc())

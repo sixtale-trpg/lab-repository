@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class MapServiceImpl implements Mapservice {
+public class MapServiceImpl implements MapService {
 
     private final RoomRepository roomRepository;
     private final ScenarioRepository scenarioRepository;
@@ -97,12 +97,19 @@ public class MapServiceImpl implements Mapservice {
     @Override
     public NPCEventListResponse getNPCEventList(Long roomID, Long mapID) {
         Map map = mapRepository.findById(mapID).get();
-        List<NPCEvent> npcEvents = npcEventRepository.findByMap(map);
+        List<NPCEvent> npcEventList = npcEventRepository.findByMap(map);
 
-        NPCEventListResponse response = new NPCEventListResponse();
-        response.setNpcEvents(npcEvents);
+        List<NPCEventResponse> npcEvents = npcEventList.stream()
+                .map(m -> NPCEventResponse.builder()
+                        .id(m.getId())
+                        .mapId(m.getMap().getId())
+                        .description(m.getDescription())
+                        .scenarioNPCId(m.getScenarioNPC().getId())
+                        .currentHp(m.getCurrentHp())
+                        .build())
+                .collect(Collectors.toList());
 
-        return response;
+        return NPCEventListResponse.builder().npcEvents(npcEvents).build();
     }
 
     @Override
@@ -127,9 +134,9 @@ public class MapServiceImpl implements Mapservice {
 
         NPCEventResponse response = NPCEventResponse.builder()
                 .id(npcEvent.getId())
-                .map(npcEvent.getMap())
+                .mapId(npcEvent.getMap().getId())
                 .description(npcEvent.getDescription())
-                .scenarioNPC(npcEvent.getScenarioNPC())
+                .scenarioNPCId(npcEvent.getScenarioNPC().getId())
                 .currentHp(npcEvent.getCurrentHp())
                 .build();
 

@@ -138,11 +138,11 @@ const { logout, deleteAccount } = useAccountApi(router);
   height: 60px; /* 로고 이미지 높이 설정 */
   max-width: 100px; /* 로고 이미지 최대 너비 설정 */
   object-fit: contain;
-  margin-right: 15px;
+  margin-right: 5px;
 }
 
 .title-image {
-  height: 50px; /* 타이틀 이미지 높이 설정 */
+  height: 65px; /* 타이틀 이미지 높이 설정 */
   max-width: 200px; /* 타이틀 이미지 최대 너비 설정 */
   object-fit: contain;
 }
@@ -152,7 +152,6 @@ const { logout, deleteAccount } = useAccountApi(router);
   list-style: none;
   padding: 0;
   margin: 0;
-  margin-left: 20px;
 }
 
 .nav-menu li {

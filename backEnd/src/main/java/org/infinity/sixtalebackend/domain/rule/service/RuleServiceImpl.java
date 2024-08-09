@@ -10,6 +10,7 @@ import org.infinity.sixtalebackend.domain.rule.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,62 @@ public class RuleServiceImpl implements RuleService {
     private final JobActionRepository jobActionRepository;
     private final EquipmentRepository equipmentRepository;
     private final CommonActionRepository commonActionRepository;
+    private final StatRepository statRepository;
+
+    @Override
+    public RuleInfoResponse readRule(Long ruleID) {
+        // 룰
+        Rule rule = ruleRepository.findById(ruleID).get();
+
+        // 직업
+        List<Job> jobList = jobRepository.findByRule(rule);
+        List<JobResponse> jobs = jobList.stream()
+                .map(m -> JobResponse.builder()
+                        .id(m.getId())
+                        .name(m.getName())
+                        .description(m.getDescription())
+                        .hp(m.getHp())
+                        .weight(m.getWeight())
+                        .diceType(m.getDiceType())
+                        .imageURL(m.getImageURL())
+                        .ruleId(m.getRule().getId())
+                        .jobRaces(new HashSet<>(m.getJobRaces().stream()
+                                .map(e -> JobRaceResponse.builder()
+                                        .raceID(e.getRace().getId())
+                                        .raceName(e.getRace().getName())
+                                        .description(e.getDescription())
+                                        .build())
+                                .collect(Collectors.toList())))
+                        .jobBeliefs(new HashSet<>(m.getJobBeliefs().stream()
+                                .map(e -> JobBeliefResponse.builder()
+                                        .beliefID(e.getBelief().getId())
+                                        .beliefName(e.getBelief().getName())
+                                        .description(e.getDescription())
+                                        .build())
+                                .collect(Collectors.toList())))
+                        .build())
+                .collect(Collectors.toList());
+
+        // 능력치
+        List<Stat> statList = statRepository.findByRule(rule);
+        List<StatResponse> stats = statList.stream()
+                .map(m -> StatResponse.builder()
+                        .id(m.getId())
+                        .name(m.getName())
+                        .ruleId(m.getRule().getId())
+                        .build())
+                .collect(Collectors.toList());
+
+        RuleInfoResponse response = RuleInfoResponse.builder()
+                .id(rule.getId())
+                .title(rule.getTitle())
+                .description(rule.getDescription())
+                .jobs(JobListResponse.builder().jobList(jobs).build())
+                .stats(StatListResponse.builder().statList(stats).build())
+                .build();
+
+        return response;
+    }
 
     @Override
     public JobListResponse readJobList(Long ruleID) {

@@ -7,6 +7,6 @@ import java.util.List;
 
 @Getter
 @Builder
-public class JobListResponse {
-    private List<JobResponse> jobList;
+public class StatListResponse {
+    List<StatResponse> statList;
 }

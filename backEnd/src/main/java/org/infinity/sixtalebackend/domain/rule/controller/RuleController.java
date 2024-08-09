@@ -2,9 +2,7 @@ package org.infinity.sixtalebackend.domain.rule.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.infinity.sixtalebackend.domain.rule.dto.CharacterActionListResponse;
-import org.infinity.sixtalebackend.domain.rule.dto.JobListResponse;
-import org.infinity.sixtalebackend.domain.rule.dto.JobOptionListResponse;
+import org.infinity.sixtalebackend.domain.rule.dto.*;
 import org.infinity.sixtalebackend.domain.rule.service.RuleService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
@@ -26,8 +24,8 @@ public class RuleController {
     @GetMapping("/{ruleID}")
     public ResponseEntity readRule(@PathVariable Long ruleID) {
         try {
-
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_RULE), HttpStatus.CREATED);
+            RuleInfoResponse response = ruleServiceImpl.readRule(ruleID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_RULE, response), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_RULE_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

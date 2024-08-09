@@ -41,9 +41,9 @@ export const getInventory = async (roomID, playMemberID) => {
 };
 
 // 룰에서 장비 목록 조회
-export const getEquipmentList = async () => {
+export const getEquipmentList = async (ruleID) => {
   const headers = getHeaders();
-  const url = `/api/v1/rules/equipment`;
+  const url = `/api/v1/rules/${ruleID}/equipments`;
   console.log('Fetching equipment list:', url, headers);
 
   try {
@@ -51,7 +51,7 @@ export const getEquipmentList = async () => {
       headers
     });
     console.log('Response:', response);
-    return response.data.data;
+    return response.data.data.equipments;
   } catch (error) {
     console.error('Error fetching equipment list:', error);
     if (error.response) {

@@ -8,20 +8,25 @@
           <h2 class="modal-title-text">아이템 선택</h2>
         </div>
       </div>
+      <div class="modal-tabs">
+        <button :class="{ active: activeTab === 'job' }" @click="activeTab = 'job'">직업 아이템</button>
+        <button :class="{ active: activeTab === 'common' }" @click="activeTab = 'common'">공통 아이템</button>
+      </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="items-grid">
           <div 
-            v-for="availableItem in availableItems" 
+            v-for="availableItem in filteredItems" 
             :key="availableItem.id" 
             class="available-item" 
             @click="selectItem(availableItem)"
             :class="{ selected: selectedItem && selectedItem.id === availableItem.id }"
           >
-            <img :src="availableItem.image" :alt="availableItem.name" class="item-image" />
+            <img :src="availableItem.imageUrl" :alt="availableItem.name" class="item-image" />
             <div class="item-details">
               <span class="item-name">{{ availableItem.name }}</span>
               <span class="item-weight">무게: {{ availableItem.weight }}</span>
               <span class="item-description">{{ availableItem.description }}</span>
+              <span v-if="availableItem.count > 0 && availableItem.count !== -1" class="item-count">{{ availableItem.count }}</span>
             </div>
           </div>
         </div>
@@ -45,23 +50,41 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
+import { getEquipmentList } from '@/common/api/InventoryAPI.js';
 
 const props = defineProps({
   currentWeight: Number,
   totalWeight: Number,
+  ruleId: Number,
+  jobId: Number
 });
 
 const emit = defineEmits(['close', 'select-item']);
 
 const isVisible = ref(true);
-const availableItems = ref([
-  { id: 1, name: 'Sword', image: require('@/assets/images/ingame/Sword.png'), description: 'A sharp blade for combat.', weight: 1 },
-  { id: 2, name: 'Helmet', image: require('@/assets/images/ingame/Helmet.png'), description: 'Protects your head from attacks.', weight: 1.5 },
-]);
-
 const selectedItem = ref(null);
 const showWarning = ref(false);
+const activeTab = ref('job'); // Default tab is 'job'
+const equipmentList = ref([]);
+
+const fetchEquipmentList = async () => {
+  try {
+    const list = await getEquipmentList(props.ruleId);
+    equipmentList.value = list;
+  } catch (error) {
+    console.error('Error fetching equipment list:', error);
+  }
+};
+
+// 사용자 직업에 따라 아이템 필터링
+const filteredItems = computed(() => {
+  if (activeTab.value === 'job') {
+    return equipmentList.value.filter(item => item.jobId === props.jobId);
+  } else {
+    return equipmentList.value.filter(item => item.jobId === 9);
+  }
+});
 
 const closeModal = () => {
   emit('close');
@@ -78,12 +101,16 @@ const addItem = () => {
     if (newWeight > props.totalWeight) {
       showWarning.value = true;
     } else {
-      selectedItem.value.count = 1; // 초기 횟수 설정
+      selectedItem.value.currentCount = selectedItem.value.count > 0 ? selectedItem.value.count : -1; // 초기 횟수 설정
       emit('select-item', selectedItem.value);
       closeModal();
     }
   }
 };
+
+onMounted(() => {
+  fetchEquipmentList();
+});
 
 const modalContentStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
@@ -189,6 +216,26 @@ const saveButtonStyle = computed(() => ({
   font-size: 1.5rem;
 }
 
+.modal-tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.modal-tabs button {
+  flex: 1;
+  padding: 10px;
+  cursor: pointer;
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  transition: background 0.3s;
+}
+
+.modal-tabs button.active {
+  background: rgba(0, 0, 0, 0.5);
+}
+
 .modal-body {
   padding: 20px;
   border-radius: 0 0 10px 10px;
@@ -272,6 +319,8 @@ const saveButtonStyle = computed(() => ({
   width: 60px;
   height: 60px;
   margin-right: 10px;
+  object-fit: cover;
+  display: block; /* ensure it is displayed */
 }
 
 .item-details {
@@ -291,6 +340,11 @@ const saveButtonStyle = computed(() => ({
 }
 
 .item-description {
+  color: white;
+  font-size: 0.9rem;
+}
+
+.item-count {
   color: white;
   font-size: 0.9rem;
 }

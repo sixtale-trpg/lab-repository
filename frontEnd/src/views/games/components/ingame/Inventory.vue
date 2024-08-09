@@ -9,18 +9,18 @@
         @mouseover="showTooltip"
         @mouseleave="hideTooltip"
       >
-        <template v-if="item">
+        <div v-if="item">
           <img 
-            :src="item.image" 
+            :src="item.imageURL" 
             :alt="item.name" 
             class="inventory-item"
           />
-          <span class="item-count">{{ item.count }}</span>
+          <span v-if="item.currentCount > 0 && item.currentCount !== -1" class="item-count">{{ item.currentCount }}</span>
           <button @click.stop="confirmDelete(item, index)" class="remove-item-button">
-            <img :src="require('@/assets/images/ingame/Trash.png')" alt="Delete" class="delete" />
+            <img :src="require('@/assets/images/ingame/Delete.png')" alt="Delete" class="delete" />
           </button>
           <div class="tooltip">클릭시 아이템 상세 정보를 볼 수 있습니다</div>
-        </template>
+        </div>>
       </div>
       <div v-if="items.length < maxSlots">
         <button @click="openAddItemModal" class="add-item-button">
@@ -43,6 +43,8 @@
       @select-item="addItem" 
       :current-weight="currentWeight" 
       :total-weight="limitWeight"
+      :rule-id="ruleId"
+      :job-id="jobId"
     />
     <ItemInfoModal 
       v-if="isItemInfoModalVisible" 
@@ -75,7 +77,9 @@
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { selectedPlayMemberID } from '@/store/state.js';
-import { getInventory } from '@/common/api/InventoryAPI.js';
+import { getInventory, getEquipmentList } from '@/common/api/InventoryAPI.js';
+import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
+import {  getRoomInfo } from '@/common/api/RoomsAPI.js';
 import AddItemModal from '@/views/games/components/Modal/AddItemModal.vue';
 import ItemInfoModal from '@/views/games/components/Modal/ItemInfoModal.vue';
 import GoldModal from '@/views/games/components/Modal/GoldModal.vue';
@@ -84,17 +88,21 @@ import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModa
 const route = useRoute();
 const items = reactive([]);
 const maxSlots = 18;
-const currentWeight = ref(5);
-const limitWeight = ref(11);
-const currentGold = ref(7);
+const currentWeight = ref(0);
+const limitWeight = ref(0);
+const currentGold = ref(0);
 const selectedItem = ref(null);
 const selectedIndex = ref(null);
-const isGM = ref(true); // GM 여부 확인
+const isGM = ref(true);
 
 const isAddItemModalVisible = ref(false);
 const isItemInfoModalVisible = ref(false);
 const isGoldModalVisible = ref(false);
 const isConfirmDeleteModalVisible = ref(false);
+
+const ruleId = ref(null);
+const jobId = ref(null);
+const equipmentList = ref([]);
 
 const backgroundStyle = {
   backgroundImage: `url(${require('@/assets/images/ingame/Border4.png')})`,
@@ -124,24 +132,76 @@ const infoBoxStyle = {
 };
 
 const fetchUserItems = async (playMemberID) => {
+  if (!playMemberID) {
+    console.warn('No playMemberID selected');
+    // 기본 상태 설정
+    items.splice(0, items.length);
+    currentWeight.value = 0;
+    limitWeight.value = 0;
+    currentGold.value = 0;
+    jobId.value = null;
+    return;
+  }
+
   try {
     const roomId = route.params.roomId;
     console.log(`Fetching inventory for roomID: ${roomId} and playMemberID: ${playMemberID}`);
-    const inventory = await getInventory(roomId, playMemberID);
-    items.splice(0, items.length, ...inventory);
+    const characterSheet = await getCharacterSheet(roomId, playMemberID);
+    if (characterSheet && Array.isArray(characterSheet.characterEquipment)) {
+      items.splice(0, items.length, ...characterSheet.characterEquipment);
+      currentWeight.value = characterSheet.currentWeight;
+      limitWeight.value = characterSheet.limitWeight;
+      currentGold.value = characterSheet.currentMoney;
+      jobId.value = characterSheet.jobId; // jobId를 설정
+    } else {
+      console.error('Character equipment is not an array or characterSheet is null:', characterSheet);
+      // 기본 상태 설정
+      items.splice(0, items.length);
+      currentWeight.value = 0;
+      limitWeight.value = 0;
+      currentGold.value = 0;
+      jobId.value = null;
+    }
     updateCurrentWeight();
   } catch (error) {
     console.error('Error fetching user items:', error);
+    // 기본 상태 설정
+    items.splice(0, items.length);
+    currentWeight.value = 0;
+    limitWeight.value = 0;
+    currentGold.value = 0;
+    jobId.value = null;
+  }
+};
+
+
+
+const fetchRoomInfo = async () => {
+  try {
+    const roomId = route.params.roomId;
+    const roomInfo = await getRoomInfo(roomId);
+    ruleId.value = roomInfo.ruleID;
+    equipmentList.value = await getEquipmentList(ruleId.value);
+  } catch (error) {
+    console.error('Error fetching room info or equipment list:', error);
   }
 };
 
 const updateCurrentWeight = () => {
-  currentWeight.value = items.reduce((acc, item) => acc + (item.weight * item.count), 0);
+  currentWeight.value = items.reduce((acc, item) => acc + (item.weight * (item.currentCount > 0 ? item.currentCount : 1)), 0);
 };
 
-watch(selectedPlayMemberID, (newID) => {
+watch(selectedPlayMemberID, async (newID) => {
   if (newID) {
-    fetchUserItems(newID);
+    await fetchUserItems(newID);
+  } else {
+    console.log('Player ID is null or undefined');
+    // 기본 상태 설정
+    items.splice(0, items.length);
+    currentWeight.value = 0;
+    limitWeight.value = 0;
+    currentGold.value = 0;
+    jobId.value = null;
   }
 });
 
@@ -195,8 +255,16 @@ const deleteItem = () => {
 
 const addItem = (item) => {
   if (items.length < maxSlots) {
-    items.push(item);
+    const existingItemIndex = items.findIndex(existingItem => existingItem.id === item.id);
+    if (existingItemIndex !== -1) {
+      items[existingItemIndex].currentCount += item.currentCount;
+    } else {
+      // Ensure imageURL is correctly set for added items
+      item.imageURL = item.imageURL || item.imageUrl; // or any other logic to ensure the image URL
+      items.push(item);
+    }
     updateCurrentWeight();
+    closeAddItemModal(); // 모달 닫기
   }
 };
 
@@ -260,9 +328,18 @@ const hideGoldTooltip = (event) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchRoomInfo();
   if (selectedPlayMemberID.value) {
-    fetchUserItems(selectedPlayMemberID.value);
+    await fetchUserItems(selectedPlayMemberID.value);
+  } else {
+    console.log('No player selected initially');
+    // 기본 상태 설정
+    items.splice(0, items.length);
+    currentWeight.value = 0;
+    limitWeight.value = 0;
+    currentGold.value = 0;
+    jobId.value = null;
   }
 });
 </script>
@@ -371,14 +448,16 @@ html, body {
 }
 
 .remove-item-button {
+  object-fit: cover;
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 0px;
+  right: 5px;
   background: none;
   border: none;
   width: 20px;
   height: 20px;
   cursor: pointer;
+  z-index: 10;
 }
 
 .add-item-button {

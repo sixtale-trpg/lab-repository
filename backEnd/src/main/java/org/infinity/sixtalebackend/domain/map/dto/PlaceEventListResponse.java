@@ -9,9 +9,9 @@ import org.infinity.sixtalebackend.domain.map.domain.PlaceEvent;
 import java.util.List;
 
 @Getter
-@Setter
+@Builder
 public class PlaceEventListResponse {
 
-    List<PlaceEvent> placeEvents;
+    List<PlaceEventResponse> placeEvents;
 
 }

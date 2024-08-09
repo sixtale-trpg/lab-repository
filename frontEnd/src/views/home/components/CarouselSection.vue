@@ -1,6 +1,6 @@
 <template>
   <div id="carouselExampleIndicators" class="carousel slide no-padding" data-bs-ride="carousel">
-    <div class="carousel-indicators">
+    <!-- <div class="carousel-indicators">
       <button
         type="button"
         data-bs-target="#carouselExampleIndicators"
@@ -21,7 +21,7 @@
         data-bs-slide-to="2"
         aria-label="Slide 3"
       ></button>
-    </div>
+    </div> -->
     <div class="carousel-inner">
       <div class="carousel-item active">
         <img src="@/assets/images/carousel/slide4.png" class="d-block w-100" alt="" />

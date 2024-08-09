@@ -119,8 +119,12 @@ const { logout, deleteAccount } = useAccountApi(router);
   display: flex;
   align-items: center;
   padding: 0 20px;
-  background-color: #091d31;
+  width: 97% !important;
+  background: rgba(30, 30, 30, 0.88);
+  border-radius: 15px;
+  margin-left: 1.5%;
   color: white;
+  top: 3% !important;
 }
 
 .logo {
@@ -148,7 +152,7 @@ const { logout, deleteAccount } = useAccountApi(router);
   list-style: none;
   padding: 0;
   margin: 0;
-  margin-left: 40px;
+  margin-left: 20px;
 }
 
 .nav-menu li {
@@ -157,6 +161,8 @@ const { logout, deleteAccount } = useAccountApi(router);
 
 .nav-menu a {
   color: white;
+/* font-family: 'Abhaya Libre ExtraBold'; */
+font-weight: 800;
   text-decoration: none;
 }
 
@@ -168,18 +174,18 @@ const { logout, deleteAccount } = useAccountApi(router);
 }
 
 .profile-image {
-  height: 35px;
-  width: 40px;
+  height: 30px;
+  width: 35px;
   object-fit: contain;
   border-radius: 50%;
-  margin-right: 10px;
   cursor: pointer;
 }
 
 .account {
   color: white;
-  padding: 10px;
+  padding: 5px;
   cursor: pointer;
+  font-weight: 800;
 }
 
 .dropdown {
@@ -217,3 +223,6 @@ const { logout, deleteAccount } = useAccountApi(router);
   color: white;
 }
 </style>
+
+
+

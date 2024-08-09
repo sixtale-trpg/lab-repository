@@ -32,27 +32,29 @@ public class MapServiceImpl implements Mapservice {
 
     @Override
     public MapListResponse getMapList(Long roomID) {
+        try {
+            Room room = roomRepository.findById(roomID).get();
+            log.info("room = {}", room.getId());
+            List<Map> mapList = mapRepository.findByScenario(scenario);
+            log.info("mapList OK");
 
-        Room room = roomRepository.findById(roomID).get();
-        log.info("room = {}", room.getId());
-        Scenario scenario = scenarioRepository.findByRoom(room);
-        log.info("scenario = {}", scenario.getId());
-        List<Map> mapList = mapRepository.findByScenario(scenario);
-        log.info("mapList OK");
+            List<MapResponse> maps = mapList.stream()
+                    .map(m -> MapResponse.builder()
+                            .id(m.getId())
+                            .name(m.getName())
+                            .scenarioID(m.getScenario().getId())
+                            .isNpc(m.isNpc())
+                            .isPlace(m.isPlace())
+                            .imageURL(m.getImageURL())
+                            .bgmURL(m.getBgmURL())
+                            .build())
+                    .collect(Collectors.toList());
 
-        List<MapResponse> maps = mapList.stream()
-                .map(m -> MapResponse.builder()
-                        .id(m.getId())
-                        .name(m.getName())
-                        .scenarioID(m.getScenario().getId())
-                        .isNpc(m.isNpc())
-                        .isPlace(m.isPlace())
-                        .imageURL(m.getImageURL())
-                        .bgmURL(m.getBgmURL())
-                        .build())
-                .collect(Collectors.toList());
-
-        return MapListResponse.builder().mapList(maps).build();
+            return MapListResponse.builder().mapList(maps).build();
+        }catch (Exception e) {
+            log.info(e.getMessage());
+        }
+        return null;
     }
 
     @Override

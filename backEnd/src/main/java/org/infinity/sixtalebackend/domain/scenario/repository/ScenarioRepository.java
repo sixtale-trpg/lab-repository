@@ -18,8 +18,6 @@ import java.util.Set;
 @Repository
 public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
 
-    Scenario findByRoom(Room room);
-
     /**
      * 시나리오 목록 조회(장르가 있을 경우)
      * @param genreId 장르 필터링

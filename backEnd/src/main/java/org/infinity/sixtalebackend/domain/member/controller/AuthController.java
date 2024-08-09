@@ -32,31 +32,10 @@ public class AuthController {
 
     private final AuthServiceImpl authService;
     private final JWTUtil jwtUtil;
-    private static final String SECRET_KEY = "mySecretKey";
     private final MemberSerivceImpl memberSerivceImpl;
 
-    public String getProtectedResource(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            return "Unauthorized access";
-        }
-
-        String token = authorizationHeader.substring(7);
-        try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token)
-                    .getBody();
-
-            // JWT가 유효한 경우, 사용자 정보 추출
-            String userId = claims.getSubject();
-            return "Protected resource accessed by user: " + userId;
-        } catch (Exception e) {
-            return "Invalid token";
-        }
-    }
-
     @GetMapping("/auth/user")
-    public ResponseEntity<?> login(@CookieValue(value = "access-token") String token) {
+    public ResponseEntity<?> getUser(@CookieValue(value = "access-token") String token, HttpServletRequest request) {
         try {
             // 토큰에서 유저 뽑아내기
             Member member = memberSerivceImpl.findByAccessToken(token);
@@ -75,7 +54,7 @@ public class AuthController {
                                    HttpServletRequest request, HttpServletResponse response) {
         try {
             Member member = authService.socialLogin(code, registrationID);
-            String accessToken = jwtUtil.generateToken(member.getEmail());
+            String accessToken = jwtUtil.generateToken(member.getId());
             authService.saveAccessToken(member, accessToken);
             
             // HTTP-Only 및 Secure 속성 사용해서 보안 강화해야함
@@ -99,8 +78,11 @@ public class AuthController {
      * 로그아웃
      */
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         try {
+
+            log.info("T***TEST", request.getAttribute("userId"));
+
             Cookie cookie = new Cookie("access-token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정

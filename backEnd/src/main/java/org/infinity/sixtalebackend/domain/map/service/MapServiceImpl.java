@@ -34,14 +34,14 @@ public class MapServiceImpl implements Mapservice {
     public MapListResponse getMapList(Long roomID) {
         try {
             Room room = roomRepository.findById(roomID).get();
-            log.info("room = {}", room.getId());
+            Scenario scenario = scenarioRepository.findById(room.getScenario().getId()).get();
             List<Map> mapList = mapRepository.findByScenario(scenario);
-            log.info("mapList OK");
 
             List<MapResponse> maps = mapList.stream()
                     .map(m -> MapResponse.builder()
                             .id(m.getId())
                             .name(m.getName())
+                            .description(m.getDescription())
                             .scenarioID(m.getScenario().getId())
                             .isNpc(m.isNpc())
                             .isPlace(m.isPlace())

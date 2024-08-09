@@ -22,18 +22,28 @@ public class RuleServiceImpl implements RuleService {
     private final JobRaceRepository jobRaceRepository;
     private final JobBeliefRepository jobBeliefRepository;
     private final JobActionRepository jobActionRepository;
-    private final ActionOptionRepository actionOptionRepository;
     private final EquipmentRepository equipmentRepository;
     private final CommonActionRepository commonActionRepository;
 
     @Override
     public JobListResponse readJobList(Long ruleID) {
         Rule rule = ruleRepository.findById(ruleID).get();
-        List<Job> jobs = jobRepository.findByRule(rule);
+        List<Job> jobList = jobRepository.findByRule(rule);
 
-        JobListResponse response = new JobListResponse();
-        response.setJobList(jobs);
-        return response;
+        List<JobResponse> jobs = jobList.stream()
+                .map(m -> JobResponse.builder()
+                        .id(m.getId())
+                        .name(m.getName())
+                        .description(m.getDescription())
+                        .hp(m.getHp())
+                        .weight(m.getWeight())
+                        .diceType(m.getDiceType())
+                        .imageURL(m.getImageURL())
+                        .ruleId(m.getRule().getId())
+                        .build())
+                .collect(Collectors.toList());
+
+        return JobListResponse.builder().jobList(jobs).build();
     }
 
     @Override

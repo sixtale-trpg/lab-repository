@@ -9,6 +9,7 @@ import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.service.AuthServiceImpl;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
 import org.infinity.sixtalebackend.domain.member.util.JWTUtil;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -28,23 +29,6 @@ public class AuthController {
     private final AuthServiceImpl authService;
     private final JWTUtil jwtUtil;
     private final MemberSerivceImpl memberSerivceImpl;
-
-    /**
-     * member의 id 반환
-     */
-    @GetMapping("/auth/user")
-    public ResponseEntity<?> getUser(HttpServletRequest request) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userId = ((User) authentication.getPrincipal()).getUsername();
-
-            log.info("userId = {}", userId);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_USER, userId), HttpStatus.OK);
-        } catch(Exception e){
-            log.info(e.getMessage());
-            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
     /**
      * 로그인
@@ -78,8 +62,10 @@ public class AuthController {
      * 로그아웃
      */
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(HttpServletResponse response) {
         try {
+            log.info("testtestsetstset={}", AuthenticationUtil.getMemberId());
+
             Cookie cookie = new Cookie("access-token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정
@@ -89,6 +75,7 @@ public class AuthController {
 
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGOUT_SUCCESS), HttpStatus.OK);
         } catch(Exception e){
+            log.info(e.getMessage());
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

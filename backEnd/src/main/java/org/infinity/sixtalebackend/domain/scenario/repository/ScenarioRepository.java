@@ -4,6 +4,7 @@ package org.infinity.sixtalebackend.domain.scenario.repository;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.infinity.sixtalebackend.domain.genre.domain.Genre;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
+import org.infinity.sixtalebackend.domain.room.domain.Room;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,8 @@ import java.util.Set;
 
 @Repository
 public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
+
+    Scenario findByRoom(Room room);
 
     /**
      * 시나리오 목록 조회(장르가 있을 경우)

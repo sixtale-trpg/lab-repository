@@ -33,12 +33,12 @@ export const getRoomInfo = async (roomId) => {
 };
 
 // 게임방에서 유저 강퇴
-export const kickUserFromRoom = async (roomId, playerId) => {
+export const kickUserFromRoom = async (roomId, memberId) => {
   try {
     const response = await axios.delete(`${BASE_URL}/${roomId}/players`, {
       headers: getHeaders(),
       data: {
-        playerId: playerId
+        memberId: memberId
       }
     });
     return response.data;

@@ -78,12 +78,20 @@ public class MapServiceImpl implements Mapservice {
     @Override
     public PlaceEventListResponse getPlaceEventList(Long roomID, Long mapID) {
         Map map = mapRepository.findById(mapID).get();
-        List<PlaceEvent> placeEvents = placeEventRepository.findByMap(map);
+        List<PlaceEvent> placeEventList = placeEventRepository.findByMap(map);
 
-        PlaceEventListResponse response = new PlaceEventListResponse();
-        response.setPlaceEvents(placeEvents);
+        List<PlaceEventResponse> placeEvents = placeEventList.stream()
+                .map(m -> PlaceEventResponse.builder()
+                        .id(m.getId())
+                        .mapId(m.getMap().getId())
+                        .row(m.getRow())
+                        .col(m.getCol())
+                        .description(m.getDescription())
+                        .nextMapId(m.getNextMap().getId())
+                        .build())
+                .collect(Collectors.toList());
 
-        return response;
+        return PlaceEventListResponse.builder().placeEvents(placeEvents).build();
     }
 
     @Override
@@ -103,11 +111,11 @@ public class MapServiceImpl implements Mapservice {
 
         PlaceEventResponse response = PlaceEventResponse.builder()
                 .id(placeEvent.getId())
-                .map(placeEvent.getMap())
+                .mapId(placeEvent.getMap().getId())
                 .row(placeEvent.getRow())
                 .col(placeEvent.getCol())
                 .description(placeEvent.getDescription())
-                .nextMap(placeEvent.getNextMap())
+                .nextMapId(placeEvent.getNextMap().getId())
                 .build();
 
         return response;

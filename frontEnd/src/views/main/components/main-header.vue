@@ -51,6 +51,14 @@
               >회원탈퇴</a
             >
           </li>
+          <li><hr class="dropdown-divider custom-divider" /></li>
+          <li>
+            <router-link to="/mypage"><a
+              class="dropdown-item custom-dropdown-item"
+              >마이페이지</a
+            ></router-link>
+            
+          </li>
         </ul>
       </div>
       <div v-else class="account" @click="openLoginModal">로그인</div>
@@ -61,10 +69,9 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { useAccountApi } from "@/common/api/accountAPI.js"; // 경로가 올바른지 확인
 import Cookies from "js-cookie";
-
 import SocialLoginModal from "./SocialLoginModal.vue";
 
 onMounted(() => {

@@ -9,11 +9,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.util.JWTUtil;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.security.Key;
+import java.util.Collections;
 
 @Slf4j
 public class JWTTokenFilter extends OncePerRequestFilter {
@@ -41,7 +46,13 @@ public class JWTTokenFilter extends OncePerRequestFilter {
                     .parseClaimsJws(token)
                     .getBody();
 
-            log.info("userId = {}", claims.getSubject());
+            String userId = claims.getSubject();
+
+            // Spring Security에 사용자 정보 저장
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    new User(userId, "", Collections.emptyList()), null, Collections.emptyList());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
             // 검증된 사용자 정보 저장
             request.setAttribute("userId", claims.getSubject());
             log.info("getAttribute = {}", request.getAttribute("userId"));

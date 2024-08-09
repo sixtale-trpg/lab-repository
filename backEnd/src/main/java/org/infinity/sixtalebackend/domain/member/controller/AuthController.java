@@ -1,12 +1,8 @@
 package org.infinity.sixtalebackend.domain.member.controller;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
@@ -16,13 +12,12 @@ import org.infinity.sixtalebackend.domain.member.util.JWTUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
-
-import java.security.SignatureException;
 
 @Slf4j
 @RestController
@@ -34,12 +29,17 @@ public class AuthController {
     private final JWTUtil jwtUtil;
     private final MemberSerivceImpl memberSerivceImpl;
 
+    /**
+     * member의 id 반환
+     */
     @GetMapping("/auth/user")
-    public ResponseEntity<?> getUser(@CookieValue(value = "access-token") String token, HttpServletRequest request) {
+    public ResponseEntity<?> getUser(HttpServletRequest request) {
         try {
-            // 토큰에서 유저 뽑아내기
-            Member member = memberSerivceImpl.findByAccessToken(token);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_USER, member), HttpStatus.OK);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userId = ((User) authentication.getPrincipal()).getUsername();
+
+            log.info("userId = {}", userId);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_USER, userId), HttpStatus.OK);
         } catch(Exception e){
             log.info(e.getMessage());
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -80,9 +80,6 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         try {
-
-            log.info("T***TEST", request.getAttribute("userId"));
-
             Cookie cookie = new Cookie("access-token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정

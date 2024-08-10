@@ -33,31 +33,6 @@ services:
       - mongodb
     networks:
       - backend-network
-
-  mariadb:
-    image: mariadb:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: "6tfIrEqQzA"
-      MYSQL_DATABASE: "S11P12D108"
-    ports:
-      - "3306:3306"
-    networks:
-      - backend-network
-
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    networks:
-      - backend-network
-
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    networks:
-      - backend-network
-
   
 networks:
   backend-network:

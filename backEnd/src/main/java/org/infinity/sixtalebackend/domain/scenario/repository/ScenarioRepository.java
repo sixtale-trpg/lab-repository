@@ -20,17 +20,23 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
 
     /**
      * 시나리오 목록 조회(장르가 있을 경우)
-     * @param genreId 장르 필터링
+     * @param genre 장르 필터링
      * @param title 검색할 시나리오 제목
      * @param pageable 좋아요수, 수정일시 순으로 정렬하기 위함, 페이지네이션
      * @return
      */
+//    @Query("SELECT DISTINCT s FROM Scenario s " +
+//            "JOIN ScenarioGenre sg ON s.id = sg.scenario.id " +
+//            "WHERE sg.genre.id = :genreId " +
+//            "AND (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
+//    Page<Scenario> findByGenreIdAndTitleContaining(Long genreId, String title, Pageable pageable);
+
     @Query("SELECT DISTINCT s FROM Scenario s " +
             "JOIN ScenarioGenre sg ON s.id = sg.scenario.id " +
-            "WHERE sg.genre.id = :genreId " +
-            "AND (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
-    Page<Scenario> findByGenreIdAndTitleContaining(Long genreId, String title, Pageable pageable);
-
+            "WHERE sg.genre.id IN :genre " +
+            "AND (:title IS NULL OR :title = '' OR s.title LIKE %:title%) " +
+            "ORDER BY s.updatedAt DESC")
+    Page<Scenario> findByGenreIdAndTitleContaining(List<Long> genre, String title, Pageable pageable);
 
     /**
      * 시나리오 목록 조회(장르가 없을 경우)

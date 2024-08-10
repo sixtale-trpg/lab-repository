@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ScenarioService {
 
-    ScenarioListResponseDto getScenarioList(Long memberID, Long genreID, String title, Pageable diaryPageable);
+    ScenarioListResponseDto getScenarioList(Long memberID, List<Long> genre, String title, Pageable diaryPageable);
 
     ScenarioResponseDto getScenarioInfo(Long scenarioID, Long memberID);
 

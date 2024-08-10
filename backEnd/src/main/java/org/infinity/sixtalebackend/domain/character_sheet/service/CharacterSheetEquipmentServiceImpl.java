@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterEquipmentRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterEquipmentResponse;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetEquipmentResponse;
+import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterUpdateEquipmentRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterEquipmentRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
 import org.infinity.sixtalebackend.domain.equipment.domain.Equipment;
@@ -73,7 +74,6 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
                 .imageURL(equipment.getImageURL())
                 .build();
     }
-
     /**
      *캐릭터 장비 추가
      */
@@ -114,6 +114,32 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
             characterSheetRepository.save(characterSheet);
         }
     }
+
+    /**
+     *캐릭터 장비 수량 업데이트
+     */
+    @Override
+    @Transactional
+    public void updateCharacterEquipment(Long roomID, Long playMemberID, CharacterUpdateEquipmentRequest characterUpdateEquipmentRequest) {
+        PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        // 장비 정보를 조회
+        ScenarioEquipment equipment = scenarioEquipmentRepository.findById(characterUpdateEquipmentRequest.getEquipmentId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Equipment ID: " + characterUpdateEquipmentRequest.getEquipmentId()));
+
+        // 동일한 장비가 있는지 확인하고 수량 업데이트
+        CharacterEquipment existingEquipment = characterEquipmentRepository.findByCharacterSheetAndEquipment(characterSheet, equipment);
+        if (existingEquipment != null) {
+            existingEquipment.setCurrentCount(characterUpdateEquipmentRequest.getCurrentCount());
+            characterEquipmentRepository.save(existingEquipment);
+        } else {
+            throw new IllegalArgumentException("Character Equipment not found");
+        }
+    }
+
 
     /**
      * 캐릭터 장비 삭제

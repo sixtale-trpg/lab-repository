@@ -2,28 +2,32 @@
   <div>
     <div class="card-background">
       <div class="image-container">
-        <img class="card-image" src="@/assets/images/popular/card1.jpg" alt="" />
+        <img class="card-image" :src="scenario.imageURL" alt="" />
         <!-- <i class="fa-regular fa-heart"></i> -->
       </div>
       <div class="text-container">
-        <p class="text-title">{{ scenario.title }}</p>
-        <span class="text-detail" v-for="genre in scenario.genres">
-          #{{ genre }}
-        </span>
+        <div class="text-title">{{ scenario.title }}</div>
+        <div class="text-genres">
+          <span class="text-genre" v-for="genre in scenario.genreList">
+            #{{ genre.name }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { nextTick, onMounted } from "vue";
+
 export default {
   name: "ScenarioCard",
   props: {
     scenario: {
       type: Object,
-      required: true
-    }
-  }
+      required: true,
+    },
+  },
 };
 </script>
 
@@ -48,7 +52,16 @@ export default {
   color: white;
   margin: 10px 0 0 0;
 }
-.text-detail {
+.text-genres {
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  display: block;
+  position: relative;
+}
+.text-genre {
+  display: inline-block;
+  margin-right: 5px;
   color: white;
   font-size: smaller;
 }

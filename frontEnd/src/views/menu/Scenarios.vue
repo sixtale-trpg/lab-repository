@@ -2,14 +2,61 @@
   <div class="background">
     <div class="container">
       <h1 class="menu-title">시나리오</h1>
-      <div class="card-container" style="background-color: gray">
-        {{ scenarios.scenarioList }}
-        <div class="card-inner-container">
-        <ScenarioCard
-          class="card-item"
-          v-for="scenario in scenarios.scenarioList" :key="index"
-          :scenario="scenario"
+      <!-- 정렬 버튼 -->
+      <div class="d-flex justify-content-end" role="group">
+        <button
+          type="button"
+          class="rounded text-white dropdown-toggle"
+          style="background-color: #3c3d41"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          {{ selectedSort.text }}
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a
+              class="dropdown-item"
+              href="#"
+              @click="selectSort('updatedAt', 'desc', '최신순')"
+              >최신순</a
+            >
+          </li>
+          <li>
+            <a
+              class="dropdown-item"
+              href="#"
+              @click="selectSort('updatedAt', 'asc', '등록순')"
+              >등록순</a
+            >
+          </li>
+          <li>
+            <a
+              class="dropdown-item"
+              href="#"
+              @click="selectSort('likes', 'desc', '좋아요순')"
+              >좋아요순</a
+            >
+          </li>
+        </ul>
+      </div>
+      <div class="main-container d-flex">
+        <!-- 장르 필터 -->
+        <ScenarioGenreFilter
+          :genres="genres"
+          :selectedGenres="selectedGenres"
+          @update:selectedGenres="selectedGenres = $event"
         />
+        <!-- 시나리오 아이템 목록 -->
+        <div class="card-container">
+          <div class="card-inner-container">
+            <ScenarioCard
+              class="card-item"
+              v-for="scenario in scenarios.scenarioList"
+              :key="scenario.id"
+              :scenario="scenario"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -17,46 +64,73 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import ScenarioCard from "./components/ScenarioCard.vue";
+import ScenarioGenreFilter from "./components/ScenarioGenreFilter.vue";
 import { getScenarioList } from "@/common/api/ScenarioAPI.js";
-
-onMounted();
+import { getGenreList } from "@/common/api/GenreAPI";
 
 export default {
   name: "Scenarios",
   components: {
     ScenarioCard,
+    ScenarioGenreFilter,
   },
   setup() {
-    // const scenarios = ref([
-    //   {
-    //     title: "아름다운 마을의 더러운 날들",
-    //     genres: ["판타지", "스릴러", "모험"]
-    //   },
-    //   {
-    //     title: "테스트2",
-    //     genres: ["호러", "스릴러"]
-    //   },
-    //   {
-    //     title: "테스트3",
-    //     genres: ["추리", "일상"]
-    //   },
-    //   {
-    //     title: "테스트4",
-    //     genres: ["판타지", "호러"]
-    //   },
-    //   {
-    //     title: "테스트5",
-    //     genres: ["현대", "추리"]
-    //   }
-    // ]);
     const scenarios = ref([]);
-    onMounted(async () => {
-      const scenarios = getScenarioList().then(res => console.log(res));
+    const genres = ref([]);
+    const selectedGenres = ref([]);
+    const selectedSort = ref({
+      criteria: "updatedAt",
+      order: "desc",
+      text: "최신순",
     });
-    return { scenarios };
-  }
+
+    const selectSort = async (criteria, order, text) => {
+      if (
+        selectedSort.value.criteria == criteria &&
+        selectedSort.value.order == order
+      ) {
+        return;
+      }
+
+      selectedSort.value = { criteria, order, text };
+
+      scenarios.value = await getScenarioList(
+        selectedGenres.value.join(","),
+        "",
+        0,
+        20,
+        selectedSort.value.criteria,
+        selectedSort.value.order
+      );
+    };
+
+    onMounted(async () => {
+      scenarios.value = await getScenarioList(
+        "",
+        "",
+        0,
+        20,
+        selectedSort.value.criteria,
+        selectedSort.value.order
+      );
+      genres.value = await getGenreList();
+    });
+
+    watch(selectedGenres, async (newGenres) => {
+      scenarios.value = await getScenarioList(
+        newGenres.join(","),
+        "",
+        0,
+        20,
+        selectedSort.value.criteria,
+        selectedSort.value.order
+      );
+    });
+
+    return { scenarios, genres, selectedSort, selectSort, selectedGenres };
+  },
 };
 </script>
 
@@ -67,25 +141,22 @@ export default {
 }
 .container {
   max-width: 1200px;
-  padding-top: 80px;
+  padding-top: 100px;
+}
+.main-container {
+  max-width: 1200px;
 }
 .card-container {
-  padding: 20px;
+  padding-left: 20px;
   display: flex;
-  justify-content: center; /* 중앙 정렬을 위해 추가 */
+  justify-content: center;
 }
-
 .card-inner-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: start;
   gap: 20px; /* div들 사이의 일정한 간격 */
-  max-width: 1200px; /* 원하는 최대 너비 설정 */
-  width: 100%; /* 전체 너비 사용 */
-}
-
-.card-item {
-  /* 기타 스타일 */
+  width: 100%;
 }
 .menu-title {
   color: white;

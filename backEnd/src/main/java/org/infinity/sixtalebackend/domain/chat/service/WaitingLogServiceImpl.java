@@ -3,19 +3,28 @@ package org.infinity.sixtalebackend.domain.chat.service;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingWhisperLog;
-import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
-import org.infinity.sixtalebackend.domain.chat.dto.MessageType;
-import org.infinity.sixtalebackend.domain.chat.dto.RoomType;
+import org.infinity.sixtalebackend.domain.chat.dto.*;
 import org.infinity.sixtalebackend.domain.chat.repository.WaitingChatLogRepository;
 import org.infinity.sixtalebackend.domain.chat.repository.WaitingWhisperLogRepository;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
+import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioGenre;
+import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
+import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -56,9 +65,127 @@ public class WaitingLogServiceImpl implements WaitingLogService{
         redisPublisher.publish(chatRoomService.getTopic(String.valueOf(chatMessageRequest.getRoomID())), chatMessageRequest);
     }
 
+    /**
+     * 전체 전송 로그 저장(페이지네이션)
+     * @param roomID
+     * @param pageable
+     * @return
+     */
     @Override
-    public List<WaitingChatLog> getLogsByRoomID(Long roomID) {
-        return waitingChatLogRepository.findByRoomID(roomID);
+    public ChatMessageListResponse getWaitingChatLogList(Long roomID, Pageable pageable) {
+        // 방 유효성 검사
+        findRoom(roomID);
+
+        // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
+        Page<WaitingChatLog> waitingChatLogs = waitingChatLogRepository.findByRoomID(roomID, pageable);
+
+        // 날짜/시간 포맷 설정
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // Entity - Dto 수동 변환 방법
+        //DTO로 변환
+        List<ChatMessageResponse> chatMessageResponseList = waitingChatLogs.getContent().stream()
+                .map(c -> {
+                    Member member = findMember(c.getMemberID());
+                    ChatMessageRequest chatMessageRequest = ChatMessageRequest.builder()
+                            .roomID(roomID)
+                            .memberID(c.getMemberID())
+                            .nickName(member.getNickname())
+                            .recipientID(null)
+                            .recipientNickName(null)
+                            .content(c.getContent())
+                            .type(MessageType.TALK)
+                            .roomType(RoomType.WAITING)
+                            .createdAt(c.getCreatedAt().format(dateTimeFormatter)).build();
+
+                    return new ChatMessageResponse(chatMessageRequest);
+                }).toList();
+
+        return ChatMessageListResponse.builder()
+                .chatMessageResponseList(chatMessageResponseList)
+                .totalPages(waitingChatLogs.getTotalPages())
+                .totalElements(waitingChatLogs.getTotalElements()).build();
+    }
+
+    @Override
+    public ChatMessageListResponse getWaitingChatWisperLogList(Long roomID, Long memberID, Pageable pageable) {
+        // 회원 유효 검사
+        findMember(memberID);
+        // 방 유효성 검사
+        findRoom(roomID);
+
+        // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
+        Page<WaitingWhisperLog> waitingWhisperLogs = waitingWhisperLogRepository.findByRoomIDAndRecipientID(roomID,memberID, pageable);
+
+        // 날짜/시간 포맷 설정
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // Entity - Dto 수동 변환 방법
+        //DTO로 변환
+        List<ChatMessageResponse> chatMessageResponseList = waitingWhisperLogs.getContent().stream()
+                .map(c -> {
+                    Member member = findMember(c.getMemberID());
+                    Member recipient = findMember(c.getRecipientID());
+                    ChatMessageRequest chatMessageRequest = ChatMessageRequest.builder()
+                            .roomID(roomID)
+                            .memberID(c.getMemberID())
+                            .nickName(member.getNickname())
+                            .recipientID(c.getRecipientID())
+                            .recipientNickName(recipient.getNickname())
+                            .content(c.getContent())
+                            .type(MessageType.WHISPER)
+                            .roomType(RoomType.WAITING)
+                            .createdAt(c.getCreatedAt().format(dateTimeFormatter)).build();
+
+                    return new ChatMessageResponse(chatMessageRequest);
+                }).toList();
+
+        return ChatMessageListResponse.builder()
+                .chatMessageResponseList(chatMessageResponseList)
+                .totalPages(waitingWhisperLogs.getTotalPages())
+                .totalElements(waitingWhisperLogs.getTotalElements()).build();
+    }
+
+    /**
+     * 대기방 전체 채팅 로그 리스트 조회(페이지네이션)
+     * @param roomID
+     * @param memberID
+     * @param pageable
+     * @return
+     */
+    @Override
+    public ChatMessageListResponse getWaitingChatAllLogList(Long roomID, Long memberID, Pageable pageable) {
+        // 대기방 채팅 로그와 귓속말 로그 모두 조회 (페이지네이션 없이 전체 조회)
+        List<ChatMessageResponse> chatMessages = getWaitingChatLogList(roomID, Pageable.unpaged()).getChatMessageResponseList();
+        List<ChatMessageResponse> whisperMessages = getWaitingChatWisperLogList(roomID, memberID, Pageable.unpaged()).getChatMessageResponseList();
+
+        // 두 리스트를 합치고 시간순으로 정렬
+        List<ChatMessageResponse> allMessages = new ArrayList<>();
+        allMessages.addAll(chatMessages);
+        allMessages.addAll(whisperMessages);
+
+        // 시간순으로 정렬 (createdAt 기준)
+        allMessages.sort(Comparator.comparing(ChatMessageResponse::getCreatedAt));
+
+        // 페이지 크기와 페이지 번호 계산
+        int pageSize = pageable.getPageSize();
+        int pageNumber = pageable.getPageNumber();
+        int fromIndex = pageNumber * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, allMessages.size());
+
+        // 페이지에 해당하는 메시지 서브 리스트 추출
+        List<ChatMessageResponse> paginatedMessages = allMessages.subList(fromIndex, toIndex);
+
+        // 페이지와 총 개수
+        int totalPages = (int) Math.ceil((double) allMessages.size() / pageSize);
+        long totalElements = allMessages.size();
+
+        // 결과를 반환
+        return ChatMessageListResponse.builder()
+                .chatMessageResponseList(paginatedMessages)
+                .totalPages(totalPages)
+                .totalElements(totalElements)
+                .build();
     }
 
     /**

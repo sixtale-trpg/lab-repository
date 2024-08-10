@@ -4,9 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
+import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageListResponse;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
 import org.infinity.sixtalebackend.domain.chat.service.WaitingLogService;
+import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
+import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
+import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
+import org.infinity.sixtalebackend.global.common.response.StatusCode;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -28,31 +35,56 @@ public class WaitingChatController {
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
     }
 
+    /**
+     * 방별로 대기방 일반 채팅 로그 리스트 조회(페이지네이션)
+     *
+     * @param roomID
+     * @param pageable
+     * @return
+     */
     @GetMapping("/waiting/chat/log/{roomID}")
-    public ResponseEntity<List<WaitingChatLog>> getLogsByRoomID(@PathVariable Long roomID) {
-        List<WaitingChatLog> logs = waitingLogService.getLogsByRoomID(roomID);
-        return ResponseEntity.ok(logs);
+    public ResponseEntity<?> getWaitingChatLogList(@PathVariable Long roomID,Pageable pageable) {
+        try {
+            ChatMessageListResponse chatMessageListResponse = waitingLogService.getWaitingChatLogList(roomID,pageable);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_WAITING_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-//    @MessageMapping("/waiting/whisper/message")
-//    public void handleWaitingWhisperMessage(ChatMessageRequest chatMessageRequest) {
-//        // 대기방 귓속말 처리
-//        waitingLogService.sendWaitingChatMessage(chatMessageRequest);
-//    }
+    /**
+     * 방별로 대기방 귓속말 채팅 로그 리스트 조회(페이지네이션)
+     *
+     * @param roomID
+     * @param pageable
+     * @return
+     */
+    @GetMapping("/waiting/chat/whisper/log/{roomID}")
+    public ResponseEntity<?> getWaitingWhisperChatLogList(@PathVariable Long roomID,Pageable pageable) {
+        try {
+            Long memberID = 2L;
+            ChatMessageListResponse chatMessageListResponse = waitingLogService.getWaitingChatWisperLogList(roomID,memberID,pageable);
+            return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_WAITING_WHISPER_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     /**
-     * websocket "/pub/chat/message"로 들어오는 메시징을 처리한다.
+     * 전체 대기방 채팅 로그 리스트 조회(페이지네이션)
+     * @param roomID
+     * @param pageable
+     * @return
      */
-//    @MessageMapping("/chat/message")
-//    public void message(ChatMessage message) {
-//        if (MessageType.ENTER.equals(message.getType())) {
-//            // 채팅 입장 시, 룸 아이디로 토픽 생성
-//            chatRoomRepository.enterChatRoom(String.valueOf(message.getRoomID()));
-//            message.setMessage(message.getSender()+ "님이 입장하셨습니다.");
-//        }
-//        // Websocket에 발행된 메시지를 redis로 발행한다(publish)
-//        redisPublisher.publish(chatRoomRepository.getTopic(String.valueOf(message.getRoomID())), message);
-//    }
-
+    @GetMapping("/waiting/chat/all/log/{roomID}")
+    public ResponseEntity<?> getWaitingChatAllLogList(@PathVariable Long roomID,Pageable pageable) {
+        try {
+            Long memberID = 2L;
+            ChatMessageListResponse chatMessageListResponse = waitingLogService.getWaitingChatAllLogList(roomID,memberID,pageable);
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_WAITING_ALL_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
+        }catch(Exception e){
+            return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

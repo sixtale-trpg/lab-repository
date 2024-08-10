@@ -38,6 +38,8 @@ public class RoomController {
     @PostMapping("/{roomID}/players")
     public ResponseEntity addPlayerToRoom(@PathVariable Long roomID, @RequestBody AddPlayerRequest addPlayerRequest) {
         try {
+            // 로그인 유저 아이디 가져오기
+//            Long memberId = AuthenticationUtil.getMemberId();
             // id = 1 유저 가정
             Long memberID = 1L;
             RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID, addPlayerRequest.getPassword());
@@ -58,6 +60,8 @@ public class RoomController {
     @DeleteMapping("{roomID}/players")
     public ResponseEntity deletePlayerFromRoom(@PathVariable Long roomID) {
         try {
+            // 로그인 유저 아이디 가져오기
+//            Long memberId = AuthenticationUtil.getMemberId();
             Long memberID = 1L;
             roomServiceImpl.deletePlayerFromRoom(roomID, memberID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.EXIT_USER), HttpStatus.OK);
@@ -89,6 +93,8 @@ public class RoomController {
     @PostMapping
     public ResponseEntity createRoom(@RequestBody RoomCreateRequest roomCreateRequest) {
         try {
+            // 로그인 유저 아이디 가져오기
+//            Long gmId = AuthenticationUtil.getMemberId();
             Long gmID = 1L;
             RoomResponse roomResponse = roomServiceImpl.createRoom(roomCreateRequest, gmID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_ROOM, roomResponse), HttpStatus.CREATED);
@@ -120,6 +126,8 @@ public class RoomController {
     @PatchMapping("/{roomID}")
     public ResponseEntity updateRoom(@PathVariable Long roomID, @RequestBody RoomUpdateRequest roomUpdateRequest) {
         try {
+            // 로그인 유저 아이디 가져오기
+//            Long memberId = AuthenticationUtil.getMemberId();
             Long gmID = 1L;
             RoomUpdateResponse roomResponse = roomServiceImpl.updateRoom(roomID, gmID, roomUpdateRequest);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_ROOM, roomResponse), HttpStatus.OK);

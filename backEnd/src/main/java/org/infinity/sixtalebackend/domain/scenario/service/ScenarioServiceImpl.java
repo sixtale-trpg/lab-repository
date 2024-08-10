@@ -40,23 +40,23 @@ public class ScenarioServiceImpl implements ScenarioService{
      * @param memberID
      * @param genre
      * @param title
-     * @param scenarioPageable
      * @return
      */
     @Override
-    public ScenarioListResponseDto getScenarioList(Long memberID, List<Long> genre, String title,Pageable scenarioPageable) {
+    public ScenarioListResponseDto getScenarioList(Long memberID, List<Long> genre, String title, int page, int size, String sort, String order) {
         // 회원 처리
         Member member = (memberID == null) ? null : findMember(memberID);
 
-        log.info("genreID = {}", genre);
+        // Sort 및 Pageable 객체 생성
+        Sort pageSort = Sort.by(Sort.Direction.fromString(order), sort);
+        Pageable pageable = PageRequest.of(page, size, pageSort);
 
         // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
         Page<Scenario> scenarioPage;
-        if (genre.size() == 0) { // 장르 ID가 없으면 전체 장르 조회
-            scenarioPage = scenarioRepository.findByTitleContaining(title, scenarioPageable);
+        if (genre.isEmpty()) { // 장르 ID가 없으면 전체 장르 조회
+            scenarioPage = scenarioRepository.findByTitleContaining(title, pageable);
         } else {
-//            scenarioPage = scenarioRepository.findByTitleContaining(title, scenarioPageable);
-            scenarioPage = scenarioRepository.findByGenreIdAndTitleContaining(genre, title, scenarioPageable);
+            scenarioPage = scenarioRepository.findByGenreIdAndTitleContaining(genre, title, pageable);
             System.out.println(scenarioPage.stream().toList());
         }
 

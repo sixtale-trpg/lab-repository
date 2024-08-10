@@ -25,17 +25,10 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
      * @param pageable 좋아요수, 수정일시 순으로 정렬하기 위함, 페이지네이션
      * @return
      */
-//    @Query("SELECT DISTINCT s FROM Scenario s " +
-//            "JOIN ScenarioGenre sg ON s.id = sg.scenario.id " +
-//            "WHERE sg.genre.id = :genreId " +
-//            "AND (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
-//    Page<Scenario> findByGenreIdAndTitleContaining(Long genreId, String title, Pageable pageable);
-
     @Query("SELECT DISTINCT s FROM Scenario s " +
             "JOIN ScenarioGenre sg ON s.id = sg.scenario.id " +
             "WHERE sg.genre.id IN :genre " +
-            "AND (:title IS NULL OR :title = '' OR s.title LIKE %:title%) " +
-            "ORDER BY s.updatedAt DESC")
+            "AND (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
     Page<Scenario> findByGenreIdAndTitleContaining(List<Long> genre, String title, Pageable pageable);
 
     /**
@@ -45,8 +38,7 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
      * @return
      */
     @Query("SELECT DISTINCT s FROM Scenario s " +
-            "WHERE (:title IS NULL OR :title = '' OR s.title LIKE %:title%)" +
-            "ORDER BY s.id DESC")
+            "WHERE (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
     Page<Scenario> findByTitleContaining(String title, Pageable pageable);
 
     @Query("SELECT s FROM Scenario s JOIN FETCH s.rule WHERE s.id = :id")

@@ -64,8 +64,6 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         try {
-            log.info("testtestsetstset={}", AuthenticationUtil.getMemberId());
-
             Cookie cookie = new Cookie("access-token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정

@@ -39,7 +39,8 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
      * @return
      */
     @Query("SELECT DISTINCT s FROM Scenario s " +
-            "WHERE (:title IS NULL OR :title = '' OR s.title LIKE %:title%)")
+            "WHERE (:title IS NULL OR :title = '' OR s.title LIKE %:title%)" +
+            "ORDER BY s.id DESC")
     Page<Scenario> findByTitleContaining(String title, Pageable pageable);
 
     @Query("SELECT s FROM Scenario s JOIN FETCH s.rule WHERE s.id = :id")

@@ -18,9 +18,12 @@ import org.infinity.sixtalebackend.domain.rule.domain.*;
 import org.infinity.sixtalebackend.domain.rule.repository.*;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioEquipment;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioEquipmentRepository;
+import org.infinity.sixtalebackend.infra.s3.S3Service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,6 +46,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
     private final ScenarioEquipmentRepository scenarioEquipmentRepository;
     private final JobRaceRepository jobRaceRepository;
     private final JobBeliefRepository jobBeliefRepository;
+    private final S3Service s3Service;
 
     /**
      * 캐릭터 시트 작성
@@ -50,7 +54,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      */
     @Override
     @Transactional
-    public void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID) {
+    public void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID, MultipartFile[] files) throws IOException {
         PlayMember playMember = playMemberRepository.findByMemberIdAndRoomId(memberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
 
@@ -62,6 +66,12 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
 
         Race race = raceRepository.findById(characterSheetRequest.getRaceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
+
+        // 캐릭터 이미지 저장
+        List<String> listUrl = null;
+        if (files != null && files.length > 0) {
+            listUrl = s3Service.upload(files, "room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId());
+        }
 
         // 캐릭터 시트 저장
         CharacterSheet characterSheet = CharacterSheet.builder()
@@ -81,7 +91,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 .inspirationScore(characterSheetRequest.getInspirationScore())
                 .level(characterSheetRequest.getLevel())
                 .exp(characterSheetRequest.getExp())
-                .imageURL(characterSheetRequest.getImageURL())
+                .imageURL(listUrl.get(0))
                 .build();
         characterSheetRepository.save(characterSheet);
 
@@ -136,7 +146,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      */
     @Override
     @Transactional
-    public void updateCharacterSheet(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest) {
+    public void updateCharacterSheet(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest, MultipartFile[] files) throws IOException{
         PlayMember playMember = playMemberRepository.findById(playMemberID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember"));
 
@@ -151,6 +161,19 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
 
         Race race = raceRepository.findById(characterSheetUpdateRequest.getRaceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
+
+        // 기존 캐릭터 이미지 삭제
+        if (characterSheet.getImageURL() != null) {
+            String oldImageName = characterSheet.getImageURL().substring(characterSheet.getImageURL().lastIndexOf("/")+1);
+            System.out.println(oldImageName);
+            s3Service.delete("room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId() + "/" + oldImageName);
+        }
+
+        // 캐릭터 이미지 저장
+        List<String> listUrl = null;
+        if (files != null && files.length > 0) {
+            listUrl = s3Service.upload(files, "room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId());
+        }
 
         // 캐릭터 시트 업데이트
         characterSheet.setPlayMember(playMember);
@@ -169,7 +192,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         characterSheet.setInspirationScore(characterSheetUpdateRequest.getInspirationScore());
         characterSheet.setLevel(characterSheetUpdateRequest.getLevel());
         characterSheet.setExp(characterSheetUpdateRequest.getExp());
-        characterSheet.setImageURL(characterSheetUpdateRequest.getImageURL());
+        characterSheet.setImageURL(listUrl.get(0));
         characterSheetRepository.save(characterSheet);
 
         // 캐릭터 스탯 업데이트
@@ -305,6 +328,13 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
 
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMember(playMember)
                 .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        // 기존 캐릭터 이미지 삭제
+        if (characterSheet.getImageURL() != null) {
+            String oldImageName = characterSheet.getImageURL().substring(characterSheet.getImageURL().lastIndexOf("/")+1);
+            System.out.println(oldImageName);
+            s3Service.delete("room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId() + "/" + oldImageName);
+        }
 
         // CharacterStat 삭제하면 캐스케이드 옵션 사용에 의해 전부 삭제
         characterSheetRepository.delete(characterSheet);

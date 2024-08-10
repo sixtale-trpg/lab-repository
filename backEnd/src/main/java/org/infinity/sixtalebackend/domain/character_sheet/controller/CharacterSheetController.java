@@ -5,12 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.*;
 import org.infinity.sixtalebackend.domain.character_sheet.service.CharacterSheetService;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,12 +27,17 @@ public class CharacterSheetController {
     /**
      * 캐릭터 시트 작성
      */
-    @PatchMapping
-    public ResponseEntity createCharacterSheet(@PathVariable Long roomID, @RequestBody @Valid CharacterSheetRequest characterSheetRequest) {
+    @PostMapping
+    public ResponseEntity createCharacterSheet(@PathVariable Long roomID,
+                                               @RequestPart(value = "files", required = false) MultipartFile[] files,
+                                               @RequestPart(value = "characterSheetRequest") @Valid CharacterSheetRequest characterSheetRequest) {
         try {
+            // 로그인 유저 아이디 가져오기
+//            Long memberId = AuthenticationUtil.getMemberId();
+
             //memberID = 1L 가정
             Long memberID = 1L;
-            characterSheetService.createCharacterSheet(roomID, characterSheetRequest, memberID);
+            characterSheetService.createCharacterSheet(roomID, characterSheetRequest, memberID, files);
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_CHARACTER_SHEET), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
@@ -45,9 +52,13 @@ public class CharacterSheetController {
      * 캐릭터 시트 수정
      */
     @PutMapping("/{playMemberID}")
-    public ResponseEntity updateCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID, @RequestBody @Valid CharacterSheetUpdateRequest characterSheetUpdateRequest) {
+    public ResponseEntity updateCharacterSheet(@PathVariable Long roomID,
+                                               @PathVariable Long playMemberID,
+                                               @RequestPart(value = "files", required = false) MultipartFile[] files,
+                                               @RequestPart(value = "characterSheetUpdateRequest") @Valid CharacterSheetUpdateRequest characterSheetUpdateRequest
+                                               ) {
         try {
-            characterSheetService.updateCharacterSheet(roomID, playMemberID, characterSheetUpdateRequest);
+            characterSheetService.updateCharacterSheet(roomID, playMemberID, characterSheetUpdateRequest, files);
 
             // 현재 시각 설정
             String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

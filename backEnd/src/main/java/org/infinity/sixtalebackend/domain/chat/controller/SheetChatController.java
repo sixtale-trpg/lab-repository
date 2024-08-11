@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-@CrossOrigin(value = "*")
 public class SheetChatController {
     private final SheetLogService sheetLogService;
 

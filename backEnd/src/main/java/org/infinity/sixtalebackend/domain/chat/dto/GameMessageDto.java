@@ -15,7 +15,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL) //
 public class GameMessageDto {
     @JsonProperty("type")
-    private MessageType type; // 메시지 유형 (예: GAME_START, MAP_CHANGE 등)
+    private GameType gameType; // 메시지 유형 (예: GAME_START, MAP_CHANGE 등)
 
     @JsonProperty("timestamp")
     private LocalDateTime timestamp; // 메시지가 생성된 시간
@@ -49,6 +49,9 @@ public class GameMessageDto {
 
     @JsonProperty("npc")
     private NpcAction npcAction; // NPC 동작 (이동, 생성, 삭제)
+
+    @JsonProperty("content")
+    private String content;
 
     // 복잡한 유형을 위한 내부 클래스들
     @Data
@@ -93,22 +96,4 @@ public class GameMessageDto {
         private Map<String, Integer> position; // 이동할 경우 새 위치 (x, y)
     }
 
-    public enum MessageType {
-        GAME_START,
-        MAP_CHANGE,
-        STAT_CHANGE,
-        DICE_ROLL,
-        ACTION_USE,
-        EQUIPMENT_CHANGE,
-        EVENT,
-        LEVEL_UP,
-        GAME_END,
-        MAP_MOVEMENT,
-        DICE_SETTING,
-        HP_EVENT,
-        EQUIPMENT_MODIFY,
-        NPC_MOVE,
-        NPC_CREATE,
-        NPC_DELETE
-    }
 }

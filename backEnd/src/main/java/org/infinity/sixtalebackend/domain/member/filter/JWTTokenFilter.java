@@ -37,8 +37,9 @@ public class JWTTokenFilter extends OncePerRequestFilter {
 
         String token = authorizationHeader.substring(7);
         try {
-            Claims claims = Jwts.parser()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY)
+                    .build()
                     .parseClaimsJws(token)
                     .getBody();
 

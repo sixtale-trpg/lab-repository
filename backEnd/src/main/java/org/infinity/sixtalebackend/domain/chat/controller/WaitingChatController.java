@@ -25,7 +25,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-@CrossOrigin(value = "*")
 public class WaitingChatController {
     private final WaitingLogService waitingLogService;
 

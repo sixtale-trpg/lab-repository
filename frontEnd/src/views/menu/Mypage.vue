@@ -90,7 +90,7 @@
           <router-view></router-view>
         </div>
       </div>
-      <div style="height: 10px" class="mb-5"></div>
+      <div style="height: 200px"></div>
     </div>
   </div>
 </template>

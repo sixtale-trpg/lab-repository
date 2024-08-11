@@ -1,7 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie"; // 쿠키 다루기 위한 라이브러리
 
-
 const BASE_URL = "/api/v1/members";
 
 // 토큰을 쿠키에서 가져오기
@@ -21,7 +20,7 @@ const getHeaders = () => {
   return headers;
 };
 
-//유저 id, nickName, image 가져오기
+//유저 id, nickName, image, createdAt 가져오기
 export const getMemberInfo = () => {
   return axios.get(`${BASE_URL}`, {
     headers: getHeaders(),
@@ -43,7 +42,6 @@ export const getMemberInfo = () => {
 //   console.error("Failed to fetch member info:", error);
 // });
 
-
 // 좋아요한 시나리오 조회
 export const getLikedScenarioList = async () => {
   try {
@@ -57,3 +55,31 @@ export const getLikedScenarioList = async () => {
   }
 };
 
+//회원 상세 조회
+export const getMemberDetailInfo = () => {
+  return axios.get(`${BASE_URL}/details`, {
+    headers: getHeaders(),
+  });
+};
+
+//회원 정보 수정
+export const updateMemberInfo = (nickName, files) => {
+  const accessToken = getAccessToken();
+  const headers = {
+    "Content-Type": "multipart/form-data", // 파일 업로드 때문에 multipart
+  };
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
+  const formData = new FormData();
+  formData.append("nickName", nickName);
+  if (files && files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+  }
+  return axios.put(BASE_URL, formData, {
+    headers: headers, // 헤더 세팅
+  });
+};

@@ -10,8 +10,11 @@ public class ResponseMessage {
     public static final String READ_MEMBER_DETAIL = "회원 상세정보 조회 성공";
     public static final String READ_SCENARIO_LIST = "시나리오 목록 조회 성공";
     public static final String READ_WAITING_CHAT_LOG_LIST = "대기방 일반 채팅 로그 리스트 조회 성공";
+    public static final String READ_PLAY_CHAT_LOG_LIST = "플레이방 일반 채팅 로그 리스트 조회 성공";
     public static final String READ_WAITING_WHISPER_CHAT_LOG_LIST = "대기방 귓속말 채팅 로그 리스트 조회 성공";
+    public static final String READ_PLAY_WHISPER_CHAT_LOG_LIST = "플레이방 귓속말 채팅 로그 리스트 조회 성공";
     public static final String READ_WAITING_ALL_CHAT_LOG_LIST = "대기방 전체 채팅 로그 리스트 조회 성공";
+    public static final String READ_PLAY_ALL_CHAT_LOG_LIST = "플레이방 전체 채팅 로그 리스트 조회 성공";
     public static final String BAD_REQUEST_TERMS = "회원약관 요청 에러";
     public static final String DUPLICATE_EMAIL = "이메일 중복 에러";
     public static final String VALIDATION_ERROR = "이메일 유효성 에러";

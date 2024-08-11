@@ -18,8 +18,6 @@
 </template>
 
 <script>
-import { nextTick, onMounted } from "vue";
-
 export default {
   name: "ScenarioCard",
   props: {
@@ -34,7 +32,7 @@ export default {
 <style scoped>
 .card-background {
   background-color: #3c3d41;
-  width: 250px;
+  width: 230px;
   height: 225px;
   border-radius: 1ch;
   padding: 15px;
@@ -49,6 +47,8 @@ export default {
   border-radius: 1ch;
 }
 .text-title {
+  white-space: nowrap;
+  overflow: hidden;
   color: white;
   margin: 10px 0 0 0;
 }

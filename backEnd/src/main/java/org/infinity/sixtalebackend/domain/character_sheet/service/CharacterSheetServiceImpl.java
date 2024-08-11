@@ -142,7 +142,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
     }
 
     /**
-     * 캐릭터 시트 수정
+     * 캐릭터 시트 수정(플레이 전)
      */
     @Override
     @Transactional
@@ -351,5 +351,59 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
 
         characterSheet.setCurrentMoney(characterGoldUpdateRequest.getCurrentMoney());
         characterSheetRepository.save(characterSheet);
+    }
+
+    /**
+     * 캐릭터 시트 수정(플레이 중)
+     */
+    @Override
+    @Transactional
+    public void updateCharacterSheetInPlaying(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest) {
+        PlayMember playMember = playMemberRepository.findById(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember"));
+
+        CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
+
+        Job job = jobRepository.findById(characterSheetUpdateRequest.getJobId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Job ID"));
+
+        Belief belief = beliefRepository.findById(characterSheetUpdateRequest.getBeliefId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Belief ID"));
+
+        Race race = raceRepository.findById(characterSheetUpdateRequest.getRaceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
+
+        // 캐릭터 시트 업데이트
+        characterSheet.setPlayMember(playMember);
+        characterSheet.setJob(job);
+        characterSheet.setBelief(belief);
+        characterSheet.setRace(race);
+        characterSheet.setName(characterSheetUpdateRequest.getName());
+        characterSheet.setAppearance(characterSheetUpdateRequest.getAppearance());
+        characterSheet.setBackground(characterSheetUpdateRequest.getBackground());
+        characterSheet.setCurrentWeight(characterSheetUpdateRequest.getCurrentWeight());
+        characterSheet.setCurrentHp(characterSheetUpdateRequest.getCurrentHp());
+        characterSheet.setCurrentMoney(characterSheetUpdateRequest.getCurrentMoney());
+        characterSheet.setLimitWeight(characterSheetUpdateRequest.getLimitWeight());
+        characterSheet.setLimitHp(characterSheetUpdateRequest.getLimitHp());
+        characterSheet.setGlove(characterSheetUpdateRequest.getGlove());
+        characterSheet.setInspirationScore(characterSheetUpdateRequest.getInspirationScore());
+        characterSheet.setLevel(characterSheetUpdateRequest.getLevel());
+        characterSheet.setExp(characterSheetUpdateRequest.getExp());
+        characterSheet.setImageURL(characterSheet.getImageURL());
+        characterSheetRepository.save(characterSheet);
+
+        // 캐릭터 스탯 업데이트
+        Map<Long, CharacterStatRequest> statRequestMap = characterSheetUpdateRequest.getStat().stream()
+                .collect(Collectors.toMap(CharacterStatRequest::getStatID, Function.identity()));
+
+        characterSheet.getCharacterStats().forEach(stat -> {
+            CharacterStatRequest statRequest = statRequestMap.get(stat.getStat().getId());
+            if (statRequest != null) {
+                stat.setStatValue(statRequest.getStatValue());
+                stat.setStatWeight(statRequest.getStatWeight());
+            }
+        });
     }
 }

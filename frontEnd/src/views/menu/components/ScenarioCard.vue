@@ -1,15 +1,25 @@
 <template>
   <div>
     <div class="card-background">
-      <div class="image-container">
-        <img class="card-image" src="@/assets/images/popular/card1.jpg" alt="" />
-        <!-- <i class="fa-regular fa-heart"></i> -->
+      <div class="position-relative" style="height: 140px">
+        <img class="card-image" :src="scenario.imageURL" alt="" />
+        <i
+          v-if="scenario.isLiked"
+          class="position-absolute bi bi-suit-heart-fill text-danger end-0 px-2"
+        ></i>
+        <i
+          v-else
+          class="position-absolute bi bi-suit-heart text-white end-0 px-2"
+        ></i>
+        <img />
       </div>
       <div class="text-container">
-        <p class="text-title">{{ scenario.title }}</p>
-        <span class="text-detail" v-for="genre in scenario.genres">
-          #{{ genre }}
-        </span>
+        <div class="text-title">{{ scenario.title }}</div>
+        <div class="text-genres">
+          <span class="text-genre" v-for="genre in scenario.genreList">
+            #{{ genre.name }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -21,22 +31,19 @@ export default {
   props: {
     scenario: {
       type: Object,
-      required: true
-    }
-  }
+      required: true,
+    },
+  },
 };
 </script>
 
 <style scoped>
 .card-background {
   background-color: #3c3d41;
-  width: 250px;
+  width: 230px;
   height: 225px;
   border-radius: 1ch;
   padding: 15px;
-}
-.image-container {
-  height: 140px;
 }
 .card-image {
   width: 100%;
@@ -45,10 +52,21 @@ export default {
   border-radius: 1ch;
 }
 .text-title {
+  white-space: nowrap;
+  overflow: hidden;
   color: white;
   margin: 10px 0 0 0;
 }
-.text-detail {
+.text-genres {
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  display: block;
+  position: relative;
+}
+.text-genre {
+  display: inline-block;
+  margin-right: 5px;
   color: white;
   font-size: smaller;
 }

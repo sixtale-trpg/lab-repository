@@ -15,5 +15,6 @@ public class PlaceEventResponse {
     private Integer col;
     private String description;
     private Long nextMapId;
+    private String nextMapUrl;
 
 }

@@ -88,6 +88,7 @@ public class MapServiceImpl implements MapService {
                         .col(m.getCol())
                         .description(m.getDescription())
                         .nextMapId(m.getNextMap().getId())
+                        .nextMapUrl(m.getNextMap().getImageURL())
                         .build())
                 .collect(Collectors.toList());
 
@@ -123,6 +124,7 @@ public class MapServiceImpl implements MapService {
                 .col(placeEvent.getCol())
                 .description(placeEvent.getDescription())
                 .nextMapId(placeEvent.getNextMap().getId())
+                .nextMapUrl(placeEvent.getNextMap().getImageURL())
                 .build();
 
         return response;

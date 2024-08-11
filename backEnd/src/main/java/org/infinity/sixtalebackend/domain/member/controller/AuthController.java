@@ -9,6 +9,8 @@ import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.service.AuthServiceImpl;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
 import org.infinity.sixtalebackend.domain.member.util.JWTUtil;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
@@ -62,8 +64,14 @@ public class AuthController {
      * 로그아웃
      */
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         try {
+            // 현재 SecurityContext의 인증 정보 제거
+            SecurityContextHolder.clearContext();
+
+            // 세션 무효화
+            request.getSession().invalidate();
+
             Cookie cookie = new Cookie("access-token", "");
             cookie.setHttpOnly(true);
             cookie.setSecure(true); // HTTPS를 사용하는 경우에만 설정
@@ -82,8 +90,15 @@ public class AuthController {
      * 회원탈퇴
      */
     @PatchMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@CookieValue(value = "access-token", required = false) String token, HttpServletResponse response) {
+    public ResponseEntity<?> withdraw(@CookieValue(value = "access-token", required = false) String token,
+                                      HttpServletRequest request, HttpServletResponse response) {
         try {
+            // 현재 SecurityContext의 인증 정보 제거
+            SecurityContextHolder.clearContext();
+
+            // 세션 무효화
+            request.getSession().invalidate();
+
             // 토큰에서 유저 뽑아내기
             Member member = memberSerivceImpl.findByAccessToken(token);
 

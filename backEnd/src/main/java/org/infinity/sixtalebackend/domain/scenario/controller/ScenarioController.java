@@ -6,6 +6,7 @@ import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.service.ScenarioService;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -43,12 +44,10 @@ public class ScenarioController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String order){
         try {
-            log.info("sort = {}", sort);
-            log.info("order = {}", order);
-
-            Long memberID = 1L;
             // 로그인 중인지 아닌지의 로직
-            // Long memberId = (userPrincipal != null) ? userPrincipal.getId() : null;
+            Long memberID = AuthenticationUtil.getMemberId();
+            if (memberID == -1) memberID = null;
+
             ScenarioListResponseDto scenarioList = scenarioService.getScenarioList(memberID,genre,title,page,size,sort,order);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_SCENARIO_LIST,scenarioList), HttpStatus.OK);
         }catch(Exception e){

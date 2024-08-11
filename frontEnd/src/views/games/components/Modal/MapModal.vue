@@ -53,7 +53,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useMapStore } from '@/store/map/mapStore'; // Pinia 스토어 사용
+import { useRoute } from 'vue-router';
+import { getMapList } from '@/common/api/RoomsAPI';
+import { useMapStore } from '@/store/map/mapStore';
 import titleImage from '@/assets/images/maps/background/title.png';
 import mainBackground from '@/assets/images/maps/background/main_background.png';
 import tabBackground from '@/assets/images/maps/background/tab_background.png';
@@ -68,18 +70,27 @@ const emit = defineEmits(['close', 'save']);
 const isVisible = ref(true);
 const currentMapIndex = ref(0);
 
-// Pinia 스토어 인스턴스
+// 상태 변수
+const mapData = ref([]);
+const isLoading = ref(true);
+const error = ref(null);
 const mapStore = useMapStore();
 
-// 컴포넌트가 마운트되면 더미 데이터 로드
-onMounted(() => {
-  mapStore.loadDummyData();
+const route = useRoute();
+const roomId = ref(route.params.roomId);
+// 컴포넌트가 마운트되면 API를 통해 맵 데이터를 로드
+onMounted(async () => {
+  try {
+    // roomId는 prop이나 외부에서 제공받는다고 가정
+    const roomId2 = roomId.value; // 실제 roomId를 사용해야 합니다.
+    const response = await getMapList(roomId2);
+    mapData.value = response.mapList || [];
+    isLoading.value = false;
+  } catch (err) {
+    error.value = err;
+    isLoading.value = false;
+  }
 });
-
-// 맵 데이터, 로딩 상태 및 오류 메시지를 계산 속성으로 설정
-const mapData = computed(() => mapStore.mapData);
-const isLoading = computed(() => mapStore.isLoading);
-const error = computed(() => mapStore.error);
 
 // 모달 콘텐츠 스타일
 const modalContentStyle = computed(() => ({
@@ -142,13 +153,13 @@ const selectMap = (index) => {
 const saveSelection = () => {
   const selectedMap = mapData.value[currentMapIndex.value];
   console.log('선택된 맵:', selectedMap);
-  // 선택한 맵을 Pinia 스토어에 저장
-  mapStore.setSelectedMap(selectedMap);
+  mapStore.setSelectedMap(selectedMap); // 저장 버튼을 눌렀을 때 선택한 맵과 이미지를 저장
   emit('save', selectedMap);
 };
 </script>
 
 <style scoped>
+/* 기존 스타일 코드 유지 */
 .modal-overlay {
   position: fixed;
   top: 0;

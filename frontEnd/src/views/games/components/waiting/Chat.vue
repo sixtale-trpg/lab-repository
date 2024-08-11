@@ -100,11 +100,12 @@ const sendMessage = () => {
   if (newMessage.value.trim() === '') return;
 
   const messageData = {
-    roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
-    memberID: 1, // 사용자 ID, 실제 값으로 설정
+    roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 채팅방 ID
+    sender: 'Me', // 발신자 이름, 실제 사용자 이름으로 변경 필요
+    recipient: selectedTab.value === 'whisper' ? 'recipientUsername' : '', // 귓속말 대상자, 귓속말일 때만 설정
     content: newMessage.value, // 메시지 내용
     type: selectedTab.value === 'whisper' ? 'whisper' : 'chat', // 메시지 유형
-    roomType: roomInfo.value ? roomInfo.value.type : null, // 방 정보에서 roomType 사용
+    roomType: roomInfo.value ? roomInfo.value.type : null, // 방 유형
   };
 
   // 메시지를 화면에 즉시 추가

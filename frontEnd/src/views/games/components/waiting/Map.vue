@@ -9,60 +9,81 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
-// 이미지 경로를 설정합니다.
-const currentMap = ref(require('@/assets/images/maps/map1.png'));
-const maps = [
-  require('@/assets/images/maps/map1.png'),
-  require('@/assets/images/maps/map2.png'),
-  require('@/assets/images/maps/map3.png'),
-];
-const gameImage = require('@/assets/images/room/gameImage.png');
+// Props 받아오기
+const props = defineProps({
+  roomId: {
+    type: String,
+    required: true,
+  },
+  mapList: {
+    type: Array,
+    required: true,
+  },
+  isGM: {
+    type: Boolean,
+    required: true,
+  },
+});
+
+
 const previousIcon = require('@/assets/images/room/previous.png');
 const nextIcon = require('@/assets/images/room/next.png');
-const mapBackground = require('@/assets/images/room/map_background2.png');
 
+// 상태 변수 정의
+const currentMap = ref(null);
 let currentMapIndex = 0;
 
+// MapList에 따라 currentMap 설정
+watch(
+  () => props.mapList,
+  (newMapList) => {
+    if (newMapList && newMapList.length > 0) {
+      currentMap.value = newMapList[0];
+    }
+  },
+  { immediate: true }
+);
+
+// 맵 전환 함수
 const previousMap = () => {
   if (currentMapIndex > 0) {
     currentMapIndex -= 1;
   } else {
-    currentMapIndex = maps.length - 1;
+    currentMapIndex = props.mapList.length - 1;
   }
-  currentMap.value = maps[currentMapIndex];
+  currentMap.value = props.mapList[currentMapIndex];
 };
 
 const nextMap = () => {
-  if (currentMapIndex < maps.length - 1) {
+  if (currentMapIndex < props.mapList.length - 1) {
     currentMapIndex += 1;
   } else {
     currentMapIndex = 0;
   }
-  currentMap.value = maps[currentMapIndex];
+  currentMap.value = props.mapList[currentMapIndex];
 };
 
-// GM 여부 확인
-const isGM = ref(true); // GM 여부를 확인할 수 있는 논리값
-
 // 배경 이미지 스타일 설정
-const mapViewStyle = {
+const mapViewStyle = computed(() => ({
   position: 'relative',
   height: '80%',
-  backgroundImage: `url(${mapBackground})`,
-  backgroundColor: 'transparent', // 배경색 투명으로 설정
+  backgroundImage: currentMap.value && currentMap.value.bgmURL ? `url(${currentMap.value.bgmURL})` : '',
+  backgroundColor: 'transparent',
   borderRadius: '10px',
   width: '70%',
   boxSizing: 'border-box',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-};
+}));
 
 const currentImage = computed(() => {
-  return isGM.value ? currentMap.value : gameImage;
+  console.log('Current Map Image URL:', currentMap.value ? currentMap.value.imageURL : 'No Map Selected');
+  return currentMap.value ? currentMap.value.imageURL : require('@/assets/images/room/gameImage.png');
 });
+
 </script>
 
 <style scoped>

@@ -39,11 +39,15 @@ class WebSocketService {
     sendMessage(message) {
         if (this.connected) {
             console.log('Sending message:', message);
-            this.stompClient.send('/pub/waiting/chat/message', {}, JSON.stringify(message)); // 메시지 전송
+            try {
+                this.stompClient.send('/pub/waiting/chat/message', {}, JSON.stringify(message)); // 메시지 전송
+                console.log('Message sent successfully');
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
         } else {
             console.error('WebSocket is not connected');
         }
     }
-}
-
+}    
 export default new WebSocketService();

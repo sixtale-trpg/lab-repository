@@ -1,9 +1,5 @@
 <template>
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
-    <!-- 디버그용 버튼 최상단에 위치 -->
-    <!-- <button class="debug-button" @click="logSelectedMap">Check selectedMap</button> -->
-
-    <!-- selectedMap prop을 사용하여 이미지 렌더링 -->
     <img :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
     <div
@@ -15,7 +11,6 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
-      <!-- Removed the token-coordinates span to disable tooltip display -->
     </div>
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
@@ -136,7 +131,6 @@ let threeJSManager = null;
 
 // 맵 스토어
 const mapStore = useMapStore();
-mapStore.loadDummyData(); // 더미 데이터 로드
 
 const tokenImage = require("@/assets/images/ingame/Token.png");
 const defaultMapImage = require("@/assets/images/maps/map1.png");
@@ -419,8 +413,6 @@ onUnmounted(() => {
   height: 100%;
 }
 
-/* Removed the token-coordinates style since it's not needed anymore */
-
 .grid-overlay {
   position: absolute;
   top: 0;
@@ -492,23 +484,6 @@ onUnmounted(() => {
 .info-content p {
   font-size: 14px;
   line-height: 1.6;
-}
-
-.debug-button {
-  position: absolute;
-  top: 10px; /* 화면 최상단에 위치 */
-  left: 10px; /* 왼쪽에 위치 */
-  z-index: 100; /* 다른 요소들 위에 위치하도록 설정 */
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.debug-button:hover {
-  background-color: #0056b3;
 }
 
 @keyframes pulse {

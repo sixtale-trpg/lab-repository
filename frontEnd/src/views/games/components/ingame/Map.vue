@@ -1,5 +1,9 @@
 <template>
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
+    <!-- 디버그용 버튼 최상단에 위치 -->
+    <!-- <button class="debug-button" @click="logSelectedMap">Check selectedMap</button> -->
+
+    <!-- selectedMap prop을 사용하여 이미지 렌더링 -->
     <img :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
     <div
@@ -11,6 +15,7 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
+      <!-- Removed the token-coordinates span to disable tooltip display -->
     </div>
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
@@ -111,6 +116,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore"; // 맵 스토어 사용
+import { getMapInfo } from '@/common/api/RoomsAPI';
+import { getMapPlace } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
 
 // 이미지 경로 설정
 import scheduleModal from '@/assets/images/ingame/map/background.png';
@@ -131,6 +139,8 @@ let threeJSManager = null;
 
 // 맵 스토어
 const mapStore = useMapStore();
+const route = useRoute();
+const roomId = ref(route.params.roomId);
 
 const tokenImage = require("@/assets/images/ingame/Token.png");
 const defaultMapImage = require("@/assets/images/maps/map1.png");
@@ -146,12 +156,42 @@ const selectedMapIndex = ref(0); // 선택된 맵의 인덱스
 // selectedMap prop의 변경 사항 감시
 watch(
   () => props.selectedMap,
-  (newMap) => {
+  async (newMap) => {
     // 새로운 맵의 이미지 URL로 mapImage를 업데이트
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
+      console.log("Selected Map ID:", newMap.id); // 선택된 맵의 ID를 콘솔에 출력
+
+      try {
+        const mapId = newMap.id; // 선택된 맵의 ID를 가져옵니다.
+        const roomId2 = roomId.value; // 현재 방의 ID를 가져옵니다.
+        const mapInfo = await getMapPlace(roomId2, mapId); // 맵 정보를 API로부터 가져옵니다.
+
+        // 레이저 이벤트를 활성화할 좌표 설정
+        activeLasers.value = new Set(
+          mapInfo.cellList.map(cell => {
+            const coord = `${cell.row}-${cell.column}`;
+            console.log("Laser activated at:", coord); // 레이저 좌표를 출력
+            return coord;
+          })
+        );
+
+        // 각 셀의 설명을 저장
+        mapInfo.cellList.forEach(cell => {
+          cellDescriptions.value[`${cell.row}-${cell.column}`] = {
+            description: cell.description,
+            events: cell.scenarioEvent,
+          };
+        });
+
+        // 맵 정보를 콘솔에 출력하여 디버그에 사용
+        console.log("Map Info:", mapInfo);
+      } catch (error) {
+        console.error("Error loading map data:", error);
+      }
     } else {
       mapImage.value = defaultMapImage;
+      console.warn("Selected Map is null or does not have an image URL.");
     }
   },
   { immediate: true }
@@ -166,7 +206,7 @@ const gridCols = computed(() =>
 );
 
 // 하드코딩된 덤프 데이터로 활성 레이저 설정
-const activeLasers = ref(new Set(["2-3", "4-5", "1-1", "6-7"]));
+const activeLasers = ref(new Set());
 const hoveredDescription = ref({ title: "", details: "" }); // 현재 마우스가 올려진 그리드 셀의 설명 저장
 
 // 툴팁 데이터와 위치
@@ -361,8 +401,12 @@ onMounted(() => {
     deleteTokenFromMap(event.detail);
   });
 
-  // 초기 이벤트 좌표 설정
-  activeLasers.value = new Set(["2-3", "4-5", "1-1", "6-7"]);
+  // selectedMap이 초기 로드 시 설정되어 있는지 확인
+  if (props.selectedMap && props.selectedMap.id) {
+    console.log("Initial Selected Map ID:", props.selectedMap.id);
+  } else {
+    console.warn("Selected Map is null or ID is not available on initial load.");
+  }
 });
 
 onUnmounted(() => {
@@ -412,6 +456,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+
+/* Removed the token-coordinates style since it's not needed anymore */
 
 .grid-overlay {
   position: absolute;
@@ -484,6 +530,23 @@ onUnmounted(() => {
 .info-content p {
   font-size: 14px;
   line-height: 1.6;
+}
+
+.debug-button {
+  position: absolute;
+  top: 10px; /* 화면 최상단에 위치 */
+  left: 10px; /* 왼쪽에 위치 */
+  z-index: 100; /* 다른 요소들 위에 위치하도록 설정 */
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.debug-button:hover {
+  background-color: #0056b3;
 }
 
 @keyframes pulse {

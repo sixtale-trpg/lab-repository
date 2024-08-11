@@ -236,6 +236,22 @@ const saveSelection = () => {
   flex: 1;
   overflow-y: auto;
   margin-top: 10px;
+  scrollbar-color: #855e2fee #201805;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #201805;
+  border-radius: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: #855e2fee;
+  border-radius: 5px;
+  border: 2px solid #201805;
 }
 
 .map-grid {

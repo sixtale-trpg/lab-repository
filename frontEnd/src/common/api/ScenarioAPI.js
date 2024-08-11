@@ -1,4 +1,3 @@
-// src/api/ScenarioAPI.js
 import axios from 'axios';
 
 const BASE_URL = '/api/v1/scenarios';

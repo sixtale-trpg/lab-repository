@@ -167,7 +167,7 @@ const closeRulebookModal = () => {
 
 const openScenarioModal = () => {
   fetchScenarioDetails();
-  isScenarioModalOpen.value = true;
+  // isScenarioModalOpen.value = true;
 };
 
 const closeScenarioModal = () => {
@@ -180,14 +180,20 @@ const startGame = () => {
 };
 
 const fetchScenarioDetails = async () => {
-  // 시나리오 정보를 백엔드에서 가져오는 부분
-  scenarioDetails.value = {
-    title: '왕자와 죽음의 개',
-    writer_id: 'writer123',
-    summary: '이 시나리오는...',
-    description: '상세 설명 내용...'
-  };
-  openScenarioModal();
+  try {
+    // 시나리오 정보를 백엔드에서 가져오는 부분
+    scenarioDetails.value = {
+      title: '왕자와 죽음의 개',
+      writer_id: 'writer123',
+      summary: '이 시나리오는...',
+      description: '상세 설명 내용...'
+    };
+    
+    // 모달을 열기
+    isScenarioModalOpen.value = true;
+  } catch (error) {
+    console.error('Error fetching scenario details:', error);
+  }
 };
 
 const toggleScenarioDetails = () => {

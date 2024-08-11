@@ -8,13 +8,16 @@
             <!--프로필 섹션 -->
             <div class="profile-section">
               <img
-                src="https://png.pngtree.com/thumb_back/fh260/background/20230610/pngtree-the-character-wearing-headphones-with-an-ear-piercing-in-his-head-image_2919756.jpg"
+                :src="profileImage || require('@/assets/images/mypage/user.png')"
                 alt="Profile Image"
                 class="profile-image"
               />
               <!-- Profile Name -->
               <h3 class="profile-name">
-                <router-link to="/mypage/user-info">보라돌이님 &gt;</router-link>
+                <router-link to="/mypage/user-info"
+                  >{{ nickName.length > 7 ? nickName.substring(0, 7) + "..." : nickName }} 님
+                  &gt;</router-link
+                >
               </h3>
               <hr class="divider" />
               <!-- Menu -->
@@ -92,17 +95,33 @@
   </div>
 </template>
 
-<script>
-import { ref, computed } from "vue";
-export default {
-  name: "Mypage",
-};
+<script setup>
+import { ref, onMounted } from "vue";
+import { getMemberInfo } from "@/common/api/mypageAPI";
+
+const id = ref(0);
+const nickName = ref("");
+const profileImage = ref("");
+
+onMounted(() => {
+  getMemberInfo()
+    .then((response) => {
+      id.value = response.data.data.id;
+      nickName.value = response.data.data.nickName;
+      profileImage.value = response.data.data.imageURL;
+      console.log(id.value);
+      console.log(nickName.value);
+      console.log(profileImage.value);
+    })
+    .catch((error) => {
+      console.error("Failed to fetch member info:", error);
+    });
+});
 </script>
 
 <style scoped>
 .background {
   width: 100%;
-  height: 100vh;
   background: radial-gradient(circle, #262626 0%, #232428 100%);
 }
 .container {

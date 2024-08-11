@@ -18,7 +18,7 @@ export const useMapStore = defineStore("map", {
       this.selectedMapId = map.id; // 선택한 맵의 ID를 저장
     },
 
-    // 특정 위치에 해당하는 맵을 가져오는 함수
+    // 특정 위치에 해당하는 맵을 가져오는 함수임
     getMapByPosition(row, column) {
       const map = this.mapData.find((m) =>
         m.cellList.some((cell) => cell.row === row && cell.column === column)

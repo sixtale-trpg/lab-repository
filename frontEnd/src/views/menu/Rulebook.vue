@@ -2,19 +2,21 @@
   <section class="rule-book">
     <div v-if="data.error" class="alert alert-danger alert-dismissible fade show" role="alert">
       {{ data.error }}
-      <button type="button" class="btn-close" aria-label="Close" @click="data.error = ''"></button>
     </div>
     <div class="card container shadow rounded-3" style="height: 100%;">
-      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <div class="card-header d-flex justify-content-between align-items-center"
+      style="color: white; background: rgba(255, 255, 255, 0.12);">
         <div class="d-flex align-items-center">
-          <!-- <img src="@/assets/chat/chatbot.png" width="38" height="38" class="rounded-circle" /> -->
-          <span class="ms-2 fs-5 fw-semibold text-muted">Rule Chatbot</span>
+          <span class="ms-2 fs-5 fw-semibold fs-4">Rule Chatbot</span>
         </div>
       </div>
       <div class="card-body p-5 overflow-auto">
         <RuleResult :messages="generatedMessages" />
       </div>
       <div class="card-footer p-3">
+        <div class="loading" v-if="data.loads">
+            <div class="loader2"></div>
+        </div>
         <div class="input-group">
           <input
             type="text"
@@ -23,7 +25,9 @@
             placeholder="무엇이 궁금하신가요?"
             @input="remember('userMessage', data.userMessage)"
           />
-          <button class="btn btn-outline-secondary rounded-end" type="button" @click="run">
+          <button class="btn btn-outline-secondary rounded-end" type="button" @click="run"
+          style="background-color: #4E5E8A;">
+            <img src="@/assets/images/chat/send.png" width="30" height="30" />
             <!-- <IconSearch :width="23" :height="23" :color="'#666666'" />  -->
           </button> 
         </div>
@@ -43,7 +47,8 @@ import {
   ROLE_USER,
 } from '@/common/api/openaiApi';
 
-const DEFAULT_SYSTEM_MESSAGE = '어서오세요。\n';
+const DEFAULT_SYSTEM_MESSAGE = '안녕하세요! 던전월드 룰에 대해 궁금한 것이 있으면 뭐든지 물어보세요!'
+
 const DEFAULT_USER_MESSAGE = '';
 const DEFAULT_DELAY_SECONDS = 1;
 
@@ -63,7 +68,6 @@ const data = reactive({
   key: 'sec_ksARBi5NqYI2LMk1PXzFF2uupbMFZfmc',
   systemMessage: localStorage.getItem('systemMessage') || DEFAULT_SYSTEM_MESSAGE,
   userMessage: DEFAULT_USER_MESSAGE,
-  delaySeconds:  DEFAULT_DELAY_SECONDS,
   generatedMessages: loadGeneratedMessagesFromLocalStorage(),
   loads: false,
 });
@@ -105,8 +109,8 @@ const run = async () => {
       const content = result.content; // Adjust based on actual response structure
       console.log(content);
       data.generatedMessages.push(new Message(ROLE_ASSISTANT, content));
-      await new Promise((resolve) => setTimeout(resolve, data.value.delaySeconds * 1000));
-      data.value.loads = false;
+      // await new Promise((resolve) => setTimeout(resolve, data.value.delaySeconds * 1000));
+      // data.value.loads = false;
     }
       // }
     // }
@@ -119,14 +123,23 @@ const run = async () => {
 </script>
 
 <style scoped>
+
+
+
 /* 룰북 페이지 스타일 */
 .container {
   /* max-width: 1200px; */
   padding: 0 !important;
   margin-top: 150px;
   margin-bottom: 150px;
-  background-color: aliceblue;
+  background: rgba(255, 255, 255, 0.13);
+  mix-blend-mode: exclusion;
+  border-radius: 15px;
+  min-height: 850px;
+  max-height: 1000px;
+
 }
+
 
 .custom-input:focus {
   border-color: #eceff1 !important;
@@ -145,7 +158,4 @@ const run = async () => {
   background-color: #eceff1;
 }
 
-.card-footer{
-  
-}
 </style>

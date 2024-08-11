@@ -6,10 +6,11 @@
         <h1>신규 시나리오</h1>
       </div>
       <div class="w-100 mx-auto mt-4">
-        <Carousel id="activeClasses" :itemsToShow="2.2" :wrapAround="true" :transition="500">
-              <Slide v-for="scenario in scenarios" :key="slide">
+        <Carousel id="activeClasses2" :itemsToShow="2.2" :wrapAround="true" :transition="500" :autoplay="3000">
+              <Slide class="scenario-card2" v-for="scenario in scenarios2" :key="scenario.title">
                   <div class="card">
-                    <img :src="require(`@/assets/images/${scenario.image}`)" :alt="scenario.title" class="static-image" />
+                    <img :src="require(`@/assets/images/${scenario.image}`)" :alt="scenario.title" class="static-image2" />
+                    <img :src="require(`@/assets/images/popular/${scenario.gif}`)" :alt="scenario.title" class="gif-image2" />
                   </div>
               </Slide>
               <template #addons>
@@ -26,7 +27,7 @@
 import {ref} from 'vue';
 import { Carousel, Pagination, Slide,Navigation } from 'vue3-carousel'
 
-const scenarios = ref([
+const scenarios2 = ref([
   {
     image: 'scenario_img.png',
     gif: 'card1.gif',
@@ -61,29 +62,71 @@ const scenarios = ref([
 </script>
 
 <style>
+:root {
+  --vc-clr-primary: #000;
+  --vc-clr-secondary: #090f207f;
+  --vc-clr-white: #ffffff;
+
+  --vc-icn-width: 1.2em;
+
+  --vc-nav-width: 30px;
+  --vc-nav-height: 30px;
+  --vc-nav-border-radius: 0;
+  --vc-nav-color: var(--vc-clr-primary);
+  --vc-nav-color-hover: var(--vc-clr-secondary);
+  --vc-nav-background: transparent;
+
+  --vc-pgn-width: 12px;
+  --vc-pgn-height: 4px;
+  --vc-pgn-margin: 4px;
+  --vc-pgn-border-radius: 0;
+  --vc-pgn-background-color: var(--vc-clr-secondary);
+  --vc-pgn-active-color: var(--vc-clr-primary);
+}
+
+.carousel__track {
+  display: flex;
+  padding: 0 !important;
+  position: relative;
+}
+
 .new-scenario {
   background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%), linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
   color: white;
-  padding: 0; 
-
+  padding: 0;
 }
 
 .container {
-  padding: 200px 20px; 
-  /* padding: 150px 20px 150px;  */
+  padding: 200px 20px !important; 
   border-radius: 0; 
   max-width: 1200px; 
   margin: 0 auto;
   text-align: center;
 }
 
-.header {
-  margin-top: 20px;
-  margin-bottom: 50px;
+.scenario-card2 {
+  position: relative;
+  overflow: hidden;
 }
 
-.static-image,
-.gif-image {
+.scenario-card2 .static-image2 {
+  opacity: 1; /* 정적 이미지는 처음에 보이도록 설정 */
+}
+
+.scenario-card2 .gif-image2 {
+  opacity: 0; /* GIF는 처음에 숨겨지도록 설정 */
+}
+
+.scenario-card2:hover .gif-image2 {
+  opacity: 1; /* 마우스를 올리면 GIF가 보이도록 설정 */
+}
+
+.scenario-card2:hover .static-image2 {
+  opacity: 0; /* 마우스를 올리면 정적 이미지가 숨겨지도록 설정 */
+}
+
+.static-image2,
+.gif-image2 {
   position: absolute;
   top: 0;
   left: 0;
@@ -93,7 +136,8 @@ const scenarios = ref([
   transition: opacity 0.3s;
 }
 
-#activeClasses {
+
+#activeClasses2 {
   .carousel__slide {
     padding: 50px;
     transition: transform 0.5s, opacity 0.5s;
@@ -138,27 +182,7 @@ const scenarios = ref([
   }
 }
 
-:root {
-  --vc-clr-primary: #000;
-  --vc-clr-secondary: #090f207f;
-  --vc-clr-white: #ffffff;
 
-  --vc-icn-width: 1.2em;
-
-  --vc-nav-width: 30px;
-  --vc-nav-height: 30px;
-  --vc-nav-border-radius: 0;
-  --vc-nav-color: var(--vc-clr-primary);
-  --vc-nav-color-hover: var(--vc-clr-secondary);
-  --vc-nav-background: transparent;
-
-  --vc-pgn-width: 12px;
-  --vc-pgn-height: 4px;
-  --vc-pgn-margin: 4px;
-  --vc-pgn-border-radius: 0;
-  --vc-pgn-background-color: var(--vc-clr-secondary);
-  --vc-pgn-active-color: var(--vc-clr-primary);
-}
 
 .carousel {
   position: relative;
@@ -174,12 +198,6 @@ const scenarios = ref([
 
 .carousel * {
   box-sizing: border-box;
-}
-
-.carousel__track {
-  display: flex;
-  padding: 0 !important;
-  position: relative;
 }
 
 .carousel__viewport {
@@ -305,153 +323,3 @@ const scenarios = ref([
 }
 
 </style>
-<!-- <template>
-  <section class="popular-scenario">
-    <div class="container">
-      <div class="header">
-        <h2>신규 시나리오</h2>
-      </div>
-      <div class="scenarios-grid">
-        <div class="scenario-card" v-for="(scenario, index) in scenarios" :key="index">
-          <div class="image-container">
-            <img :src="require(`@/assets/images/popular/${scenario.image}`)" :alt="scenario.title" class="static-image" />
-            <img :src="require(`@/assets/images/popular/${scenario.gif}`)" :alt="scenario.title" class="gif-image" />
-          </div>
-          <div class="info">
-            <h3>{{ scenario.title }}</h3>
-            <p>{{ scenario.genre }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</template>
-
-<script setup>
-import { ref } from 'vue';
-
-const scenarios = ref([
-  {
-    image: 'card1.jpg',
-    gif: 'card1.gif',
-    title: 'Scenario 1',
-    genre: 'Genre 1'
-  },
-  {
-    image: 'card2.jpg',
-    gif: 'card2.gif',
-    title: 'Scenario 2',
-    genre: 'Genre 2'
-  },
-  {
-    image: 'card3.jpg',
-    gif: 'card3.gif',
-    title: 'Scenario 3',
-    genre: 'Genre 3'
-  },
-  {
-    image: 'card4.jpg',
-    gif: 'card4.gif',
-    title: 'Scenario 4',
-    genre: 'Genre 4'
-  },
-  {
-    image: 'card5.jpg',
-    gif: 'card5.gif',
-    title: 'Scenario 5',
-    genre: 'Genre 5'
-  }
-]);
-</script>
-
-<style scoped>
-.popular-scenario {
-  background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%), linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
-  color: white;
-  padding: 0; 
-}
-
-.container {
-  padding: 40px 20px; 
-  border-radius: 0; 
-  max-width: 1200px; 
-  margin: 0 auto;
-  text-align: center;
-}
-
-.header {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.header h2 {
-  font-size: 2.5rem;
-  margin: 0;
-}
-
-.scenarios-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 20px;
-}
-
-.scenario-card {
-  padding: 20px;
-  border-radius: 10px;
-  overflow: hidden;
-  transition: transform 0.3s;
-  text-align: center;
-}
-
-/* Rectangle 5314 */
-
-
-.scenario-card:hover {
-  transform: scale(1.05);
-}
-
-.image-container {
-  position: relative;
-  width: 100%;
-  padding-top: 75%; 
-  overflow: hidden;
-}
-
-.static-image,
-.gif-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: opacity 0.3s;
-}
-
-.gif-image {
-  opacity: 0;
-}
-
-.scenario-card:hover .gif-image {
-  opacity: 1;
-}
-
-.scenario-card:hover .static-image {
-  opacity: 0;
-}
-
-.info {
-  padding: 10px;
-  text-align: center;
-}
-
-.info h3 {
-  margin-bottom: 10px;
-  font-size: 1.5rem; 
-}
-
-.info p {
-  margin: 0;
-  color: #ccc; 
-}
-</style> -->

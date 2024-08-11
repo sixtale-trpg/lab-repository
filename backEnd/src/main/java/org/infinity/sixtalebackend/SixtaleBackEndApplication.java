@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-public class SixtaleBackEndApplication {
+public class    SixtaleBackEndApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SixtaleBackEndApplication.class, args);

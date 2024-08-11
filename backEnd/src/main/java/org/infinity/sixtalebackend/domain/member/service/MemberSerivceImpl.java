@@ -127,6 +127,7 @@ public class MemberSerivceImpl implements MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원이 존재하지 않습니다. id=" + id));
 
         return MemberResponseDto.builder()
+                .id(id)
                 .nickName(member.getNickname())
                 .imageURL(member.getImageURL())
                 .build();

@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 import org.infinity.sixtalebackend.domain.room.dto.*;
 import org.infinity.sixtalebackend.domain.room.exception.IncorrectPasswordException;
 import org.infinity.sixtalebackend.domain.room.service.RoomService;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -192,6 +193,25 @@ public class RoomController {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST,  ResponseMessage.CREATE_ROOM_MEMBER_CALENDARS_ERROR), HttpStatus.BAD_REQUEST);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_ROOM_MEMBER_CALENDARS_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 특정 사용자의 게임 방 목록 조회
+     */
+    @GetMapping("/member")
+    public ResponseEntity getRoomListByMemberId(@RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "6") int size,
+                                                PagedResourcesAssembler<RoomResponse> assembler) {
+        try {
+            Long memberId = AuthenticationUtil.getMemberId();
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+            Page<RoomResponse> rooms = roomServiceImpl.getRoomListByMemberId(memberId, pageable);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_ROOM_LIST, rooms), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_ROOM_LIST_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }

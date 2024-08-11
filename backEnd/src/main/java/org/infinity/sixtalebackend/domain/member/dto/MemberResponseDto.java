@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 public class MemberResponseDto {
-
+    private Long id;
     @NonNull
     private String nickName;
     private String imageURL;

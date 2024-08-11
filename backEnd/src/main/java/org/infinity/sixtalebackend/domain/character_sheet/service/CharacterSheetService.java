@@ -15,4 +15,6 @@ public interface CharacterSheetService {
     void deleteCharacterSheet(Long roomID, Long playMemberID);
 
     void updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest);
+
+    void updateCharacterSheetInPlaying(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest);
 }

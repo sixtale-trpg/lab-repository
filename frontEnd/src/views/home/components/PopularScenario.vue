@@ -5,34 +5,17 @@
         <h1>인기 시나리오</h1>
       </div>
       <div class="w-100 mx-auto mt-4">
-        <Carousel
-          id="activeClasses"
-          :itemsToShow="2.2"
-          :wrapAround="true"
-          :transition="500"
-        >
-          <Slide
-            class="scenario-card"
-            v-for="scenario in scenarios"
-            :key="slide"
-          >
-            <div class="card">
-              <img
-                :src="require(`@/assets/images/${scenario.image}`)"
-                :alt="scenario.title"
-                class="static-image"
-              />
-              <img
-                :src="require(`@/assets/images/popular/${scenario.gif}`)"
-                :alt="scenario.title"
-                class="gif-image"
-              />
-            </div>
-          </Slide>
-          <template #addons>
-            <Navigation />
-          </template>
-        </Carousel>
+        <Carousel id="activeClasses" :itemsToShow="2.2" :wrapAround="true" :transition="500" :autoplay="3000">
+              <Slide class="scenario-card" v-for="scenario in scenarios" :key="scenario.title">
+                  <div class="card">
+                    <img :src="require(`@/assets/images/${scenario.image}`)" :alt="scenario.title" class="static-image" />
+                    <img :src="require(`@/assets/images/popular/${scenario.gif}`)" :alt="scenario.title" class="gif-image" />
+                  </div>
+              </Slide>
+              <template #addons>
+                  <Navigation />
+              </template>
+          </Carousel>
       </div>
     </div>
   </section>
@@ -44,10 +27,10 @@ import { Carousel, Pagination, Slide, Navigation } from "vue3-carousel";
 
 const scenarios = ref([
   {
-    image: "scenario_img.png",
-    gif: "card1.gif",
-    title: "Scenario 1",
-    genre: "Genre 1",
+    image: 'scenario.png',
+    gif: 'card1.gif',
+    title: 'Scenario 1',
+    genre: 'Genre 1'
   },
   {
     image: "scenario.png",
@@ -76,6 +59,7 @@ const scenarios = ref([
 ]);
 </script>
 
+
 <style scoped>
 .popular-scenario {
   background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%),
@@ -96,6 +80,19 @@ const scenarios = ref([
   margin-top: 20px;
   margin-bottom: 50px;
 }
+
+.static-image,
+.gif-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
+}
+
+
 
 .scenario-card:hover {
   transform: scale(1.05);
@@ -118,8 +115,11 @@ const scenarios = ref([
   opacity: 0;
 }
 
+
+
 #activeClasses {
   .carousel__slide {
+    padding: 50px;
     transition: transform 0.5s, opacity 0.5s;
   }
 
@@ -127,9 +127,17 @@ const scenarios = ref([
     perspective: 1000px;
   }
 
+  .card {
+    min-width: 500px;
+    min-height: 300px;
+    background-color: black;
+  }
+
   .carousel__track {
     transform-style: preserve-3d;
   }
+
+
 
   .carousel__slide--sliding {
     transition: 0.5s;
@@ -155,7 +163,6 @@ const scenarios = ref([
     transform: rotateY(10deg) scale(0.8);
   }
 }
-
 :root {
   --vc-clr-primary: #000;
   --vc-clr-secondary: #090f207f;
@@ -194,11 +201,7 @@ const scenarios = ref([
   box-sizing: border-box;
 }
 
-.carousel__track {
-  display: flex;
-  padding: 0 !important;
-  position: relative;
-}
+
 
 .carousel__viewport {
   overflow: hidden;

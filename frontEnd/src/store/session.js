@@ -116,11 +116,12 @@ export const useSessionStore = defineStore('session', () => {
       const response = await fetch('https://i11d108.p.ssafy.io/api/v1/sessions', {
         method: 'POST',
         headers: {
-          Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
+        //   Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ customSessionId: 'SessionA' }),
       });
+      console.log(response.data)
 
       if (response.status === 409) {
         console.log('Session already exists, fetching token');

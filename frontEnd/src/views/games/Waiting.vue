@@ -4,13 +4,13 @@
     <div class="content">
       <div class="left-section">
         <div class="user-cards">
-          <UserCard v-for="user in allUsers" :key="user.id || user.placeholder" :user="user" :isGM="isGM" />
+          <UserCard v-for="user in allUsers" :key="user.id || user.placeholder" :user="user" :isGM="isGM" :roomId="roomId" :memberId="user.memberId" />
         </div>
         <Chat class="chat-section" />
       </div>
       <div class="right-section">
         <div :style="topSectionStyle" class="top-section">
-          <Map />
+          <Map :roomId="roomId"/>
           <div :style="gmCardStyle" class="gm-section">
             <div class="gm-info">
               <div :style="profileImageContainerStyle" class="profile-image-container">
@@ -91,6 +91,7 @@ const gameRule = ref('');
 const scenario = ref('');
 const scenarioDetails = ref({});
 const showScenarioDetails = ref(false);
+const roomId = ref(null);
 
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
@@ -116,16 +117,20 @@ const fetchRoomDetails = async () => {
     gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
     users.value = roomInfo.playMemberList.map(member => ({
       id: member.playMemberID,
+      memberId: member.memberID,
       name: member.playMemberNickname,
       profileImage: member.playMemberImageURL || defaultImage,
     }));
+    console.log('users',users.value)
   } catch (error) {
     console.error('Error fetching room details:', error);
   }
 };
 
 onMounted(() => {
+  roomId.value = route.params.roomId;
   fetchRoomDetails();
+  console.log('Room ID in Waiting.vue:', roomId.value);
 });
 
 const selectDate = (date) => {

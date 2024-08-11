@@ -33,12 +33,12 @@ export const getRoomInfo = async (roomId) => {
 };
 
 // 게임방에서 유저 강퇴
-export const kickUserFromRoom = async (roomId, memberId) => {
+export const kickUserFromRoom = async (roomId, playerId) => {
   try {
     const response = await axios.delete(`${BASE_URL}/${roomId}/players`, {
       headers: getHeaders(),
       data: {
-        memberId: memberId
+        playerId: playerId
       }
     });
     return response.data;
@@ -60,3 +60,29 @@ export const getMapList = async (roomId) => {
     throw error;
   }
 };
+
+// 맵 정보 조회
+export const getMapInfo = async (roomId, mapId) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/${roomId}/maps/${mapId}`, {
+      headers: getHeaders()
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching map info:', error);
+    throw error;
+  }
+};
+
+export const getMapPlace = async (roomId, mapId) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/${roomId}/maps/${mapId}/places`, {
+      headers: getHeaders()
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching map info:', error);
+    throw error;
+  }
+};
+

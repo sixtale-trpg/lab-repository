@@ -4,7 +4,7 @@
     <!-- <button class="debug-button" @click="logSelectedMap">Check selectedMap</button> -->
 
     <!-- selectedMap prop을 사용하여 이미지 렌더링 -->
-    <img :src="mapImage" alt="Map" class="map-image" />
+    <img v-if="mapImage" :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
     <div
       v-for="token in placedTokens"
@@ -31,7 +31,7 @@
             class="laser-effect"
             @mouseenter="onLaserMouseEnter(row, col)"
             @mouseleave="onLaserMouseLeave(row, col)"
-            @click="openModal"
+            @click="openModal(row, col)" 
           ></div>
         </div>
       </div>
@@ -115,7 +115,9 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
-import { useMapStore } from "@/store/map/mapStore"; // 맵 스토어 사용
+import { useMapStore } from "@/store/map/mapStore";
+import { getMapPlace } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
 
 // 이미지 경로 설정
 import scheduleModal from '@/assets/images/ingame/map/background.png';
@@ -134,30 +136,61 @@ const props = defineProps({
 const rendererContainer = ref(null);
 let threeJSManager = null;
 
-// 맵 스토어
 const mapStore = useMapStore();
-mapStore.loadDummyData(); // 더미 데이터 로드
+const route = useRoute();
+const roomId = ref(route.params.roomId);
 
 const tokenImage = require("@/assets/images/ingame/Token.png");
 const defaultMapImage = require("@/assets/images/maps/map1.png");
-const mapImage = ref(defaultMapImage); // 기본 맵 이미지
-const infoBackground = ref(require("@/assets/images/hover/token_hover.png")); // 기본 정보 배경 이미지
+const mapImage = ref(defaultMapImage);
+const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
 
-// 모달 상태 변수
-const selectedMapIndex = ref(0); // 선택된 맵의 인덱스
+const selectedMapIndex = ref(0);
+const cellDescriptions = ref({});  // 여기에 cellDescriptions를 초기화합니다.
 
 // selectedMap prop의 변경 사항 감시
 watch(
   () => props.selectedMap,
-  (newMap) => {
-    // 새로운 맵의 이미지 URL로 mapImage를 업데이트
+  async (newMap) => {
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
+      console.log("Selected Map ID:", newMap.id);
+
+      try {
+        const mapId = newMap.id;
+        const roomId2 = roomId.value;
+        const mapInfo = await getMapPlace(roomId2, mapId);
+
+        if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
+          activeLasers.value = new Set(
+            mapInfo.placeEvents.map(event => {
+              const coord = `${event.row}-${event.col}`;
+              console.log("Laser activated at:", coord);
+              return coord;
+            })
+          );
+
+          mapInfo.placeEvents.forEach(event => {
+            cellDescriptions.value[`${event.row}-${event.col}`] = {
+              title: `Event at (${event.row}, ${event.col})`,
+              details: event.description,
+              nextMapId: event.nextMapId,
+            };
+          });
+
+          console.log("Map Info:", mapInfo);
+        } else {
+          console.warn("Invalid map data or placeEvents is undefined");
+        }
+      } catch (error) {
+        console.error("Error loading map data:", error);
+      }
     } else {
       mapImage.value = defaultMapImage;
+      console.warn("Selected Map is null or does not have an image URL.");
     }
   },
   { immediate: true }
@@ -172,30 +205,28 @@ const gridCols = computed(() =>
 );
 
 // 하드코딩된 덤프 데이터로 활성 레이저 설정
-const activeLasers = ref(new Set(["2-3", "4-5", "1-1", "6-7"]));
-const hoveredDescription = ref({ title: "", details: "" }); // 현재 마우스가 올려진 그리드 셀의 설명 저장
+const activeLasers = ref(new Set());
+const hoveredDescription = ref({ title: "", details: "" });
 
 // 툴팁 데이터와 위치
 const hoveredLaserDescription = ref(null);
 const tooltipPosition = ref({ x: 0, y: 0 });
-let tooltipTimeout = null; // 툴팁 타임아웃 변수
+let tooltipTimeout = null;
 
 // 레이저 효과 위에 마우스를 올렸을 때
 const onLaserMouseEnter = (row, col) => {
-  if (tooltipTimeout) clearTimeout(tooltipTimeout); // 이전 타임아웃 클리어
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
   const description = getDescription(row, col);
   console.log(`Mouse entered on laser at (${row}, ${col})`, description);
   hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-  // 레이저 효과에 위치한 이미지로 infoBackground 업데이트
   if (hoveredLaserDescription.value.image) {
     infoBackground.value = hoveredLaserDescription.value.image;
   } else {
-    // 레이저에 이미지가 없을 경우 기본 이미지로 설정
     infoBackground.value = require("@/assets/images/hover/token_hover.png");
   }
 
-  console.log("Tooltip Image:", hoveredLaserDescription.value.image); // 이미지 데이터 로그 확인
+  console.log("Tooltip Image:", hoveredLaserDescription.value.image);
 };
 
 // 레이저 효과에서 마우스를 내렸을 때
@@ -204,7 +235,7 @@ const onLaserMouseLeave = (row, col) => {
   tooltipTimeout = setTimeout(() => {
     hoveredLaserDescription.value = null;
     infoBackground.value = require("@/assets/images/hover/token_hover.png");
-  }, 1000); // 1초 후에 툴팁 제거
+  }, 1000);
 };
 
 // 마우스를 올린 그리드 셀에 대한 설명 표시
@@ -217,23 +248,20 @@ const showDescription = (row, col) => {
 // 그리드 셀에서 마우스가 벗어나면 설명 숨김
 const hideDescription = () => {
   hoveredDescription.value = { title: "", details: "" };
-  if (tooltipTimeout) clearTimeout(tooltipTimeout); // 기존 타임아웃 제거
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
   tooltipTimeout = setTimeout(() => {
     hoveredLaserDescription.value = null;
-  }, 1000); // 1초 후에 툴팁 제거
+  }, 1000);
 };
 
 // 행과 열에 따라 각 그리드 셀에 대한 설명 제공
 const getDescription = (row, col) => {
-  const map = mapStore.getMapByPosition(row, col);
-  if (map) {
-    return {
-      title: map.name,
-      details: map.description,
-      image: map.imageURL,
-    };
+  const descriptionKey = `${row}-${col}`;
+  const description = cellDescriptions.value[descriptionKey];
+  if (description) {
+    return description;
   }
-  return { title: "", details: "" };
+  return { title: "Unknown Location", details: "No description available." };
 };
 
 const onDrop = (event) => {
@@ -323,27 +351,30 @@ const isLaserActive = (row, col) => {
 
 // 마우스 움직임에 따라 툴팁 위치 업데이트
 document.addEventListener("mousemove", (event) => {
-  tooltipPosition.value.x = event.pageX + 10; // 마우스 포인터에서 약간 떨어지도록 오프셋 추가
+  tooltipPosition.value.x = event.pageX + 10;
   tooltipPosition.value.y = event.pageY + 10;
 });
 
-const openModal = () => {
-  // 부트스트랩 모달 열기
-  const modal = new bootstrap.Modal(document.getElementById("eventModal"), {
-    backdrop: false, // 백드롭을 비활성화합니다
-  });
-  modal.show();
+const openModal = (row, col) => {
+  const description = getDescription(row, col);
+  if (description) {
+    hoveredLaserDescription.value = description;
+    const modal = new bootstrap.Modal(document.getElementById("eventModal"), {
+      backdrop: false,
+    });
+    modal.show();
+    console.log("Modal opened for position:", row, col);
+  } else {
+    console.warn("No event found for this position.");
+  }
 };
 
-// 맵 변경 로직
 const changeMap = (row, col) => {
-  const map = mapStore.getMapByPosition(row, col);
-  if (map) {
-    mapImage.value = map.imageURL;
-    mapStore.setSelectedMap(map);
-    console.log("Map changed to:", map.name);
+  const description = getDescription(row, col);
+  if (description && description.nextMapId) {
+    console.log(`Changing map to ID: ${description.nextMapId}`);
   } else {
-    console.log("해당 좌표에 맵이 없습니다.");
+    console.warn("No next map available for this position.");
   }
 };
 
@@ -353,7 +384,7 @@ const modalStyle = computed(() => ({
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  zIndex: 1070, // 모달 z-index 설정
+  zIndex: 1070,
 }));
 
 onMounted(() => {
@@ -367,8 +398,11 @@ onMounted(() => {
     deleteTokenFromMap(event.detail);
   });
 
-  // 초기 이벤트 좌표 설정
-  activeLasers.value = new Set(["2-3", "4-5", "1-1", "6-7"]);
+  if (props.selectedMap && props.selectedMap.id) {
+    console.log("Initial Selected Map ID:", props.selectedMap.id);
+  } else {
+    console.warn("Selected Map is null or ID is not available on initial load.");
+  }
 });
 
 onUnmounted(() => {

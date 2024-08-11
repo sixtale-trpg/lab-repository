@@ -1,9 +1,17 @@
 <template>
   <div>
     <div class="card-background">
-      <div class="image-container">
+      <div class="position-relative" style="height: 140px">
         <img class="card-image" :src="scenario.imageURL" alt="" />
-        <!-- <i class="fa-regular fa-heart"></i> -->
+        <i
+          v-if="scenario.isLiked"
+          class="position-absolute bi bi-suit-heart-fill text-danger end-0 px-2"
+        ></i>
+        <i
+          v-else
+          class="position-absolute bi bi-suit-heart text-white end-0 px-2"
+        ></i>
+        <img />
       </div>
       <div class="text-container">
         <div class="text-title">{{ scenario.title }}</div>
@@ -36,9 +44,6 @@ export default {
   height: 225px;
   border-radius: 1ch;
   padding: 15px;
-}
-.image-container {
-  height: 140px;
 }
 .card-image {
   width: 100%;

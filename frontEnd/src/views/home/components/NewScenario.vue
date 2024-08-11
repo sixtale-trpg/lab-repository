@@ -1,78 +1,85 @@
-
 <template>
   <section class="new-scenario">
-    <div class="container"> 
+    <div class="container">
       <div class="header">
         <h1>신규 시나리오</h1>
       </div>
       <div class="w-100 mx-auto mt-4">
-        <Carousel id="activeClasses" :itemsToShow="2.2" :wrapAround="true" :transition="500">
-              <Slide v-for="scenario in scenarios" :key="slide">
-                  <div class="card">
-                    <img :src="require(`@/assets/images/${scenario.image}`)" :alt="scenario.title" class="static-image" />
-                  </div>
-              </Slide>
-              <template #addons>
-                  <Navigation />
-              </template>
-          </Carousel>
+        <Carousel
+          id="activeClasses"
+          :itemsToShow="2.2"
+          :wrapAround="true"
+          :transition="500"
+        >
+          <Slide v-for="scenario in scenarios" :key="slide">
+            <div class="card">
+              <img
+                :src="require(`@/assets/images/${scenario.image}`)"
+                :alt="scenario.title"
+                class="static-image"
+              />
+            </div>
+          </Slide>
+          <template #addons>
+            <Navigation />
+          </template>
+        </Carousel>
       </div>
     </div>
-
-</section>
+  </section>
 </template>
 
 <script setup>
-import {ref} from 'vue';
-import { Carousel, Pagination, Slide,Navigation } from 'vue3-carousel'
+import { ref } from "vue";
+import { Carousel, Pagination, Slide, Navigation } from "vue3-carousel";
 
 const scenarios = ref([
   {
-    image: 'scenario_img.png',
-    gif: 'card1.gif',
-    title: 'Scenario 1',
-    genre: 'Genre 1'
+    image: "scenario_img.png",
+    gif: "card1.gif",
+    title: "Scenario 1",
+    genre: "Genre 1",
   },
   {
-    image: 'scenario.png',
-    gif: 'card2.gif',
-    title: 'Scenario 2',
-    genre: 'Genre 2'
+    image: "scenario.png",
+    gif: "card2.gif",
+    title: "Scenario 2",
+    genre: "Genre 2",
   },
   {
-    image: 'scenario_img.png',
-    gif: 'card3.gif',
-    title: 'Scenario 3',
-    genre: 'Genre 3'
+    image: "scenario_img.png",
+    gif: "card3.gif",
+    title: "Scenario 3",
+    genre: "Genre 3",
   },
   {
-    image: 'scenario_img.png',
-    gif: 'card4.gif',
-    title: 'Scenario 4',
-    genre: 'Genre 4'
+    image: "scenario_img.png",
+    gif: "card4.gif",
+    title: "Scenario 4",
+    genre: "Genre 4",
   },
   {
-    image: 'scenario_img.png',
-    gif: 'card5.gif',
-    title: 'Scenario 5',
-    genre: 'Genre 5'
-  }
+    image: "scenario_img.png",
+    gif: "card5.gif",
+    title: "Scenario 5",
+    genre: "Genre 5",
+  },
 ]);
 </script>
 
-<style>
+<style scoped>
 .new-scenario {
-  background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%), linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
+  background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%),
+    linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
   color: white;
-  padding: 0; 
-
+  padding: 0;
 }
 
 .container {
-  padding: 200px 20px; 
+  padding: 200px 20px;
   /* padding: 150px 20px 150px;  */
-  border-radius: 0; 
-  max-width: 1200px; 
+  border-radius: 0;
+  max-width: 1200px;
   margin: 0 auto;
   text-align: center;
 }
@@ -276,7 +283,7 @@ const scenarios = ref([
 
 .carousel__pagination-button::after {
   display: block;
-  content: '';
+  content: "";
   width: var(--vc-pgn-width);
   height: var(--vc-pgn-height);
   border-radius: var(--vc-pgn-border-radius);
@@ -287,7 +294,7 @@ const scenarios = ref([
   background-color: var(--vc-pgn-active-color);
 }
 
-@media(hover: hover) {
+@media (hover: hover) {
   .carousel__pagination-button:hover::after {
     background-color: var(--vc-pgn-active-color);
   }
@@ -303,7 +310,6 @@ const scenarios = ref([
   align-items: center;
   transform: translateZ(0); /* Fix iOS scrolling #22 */
 }
-
 </style>
 <!-- <template>
   <section class="popular-scenario">

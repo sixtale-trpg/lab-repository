@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,6 +17,7 @@ public class ChatMessageResponse {
     private String content;  // 메시지 내용
     private MessageType type; // 메시지 유형
     private RoomType roomType;
+    private String createdAt;
 
     public ChatMessageResponse(ChatMessageRequest request) {
         this.roomID = request.getRoomID();
@@ -23,6 +26,7 @@ public class ChatMessageResponse {
         this.content = request.getContent();
         this.type = request.getType();
         this.roomType = request.getRoomType();
+        this.createdAt = request.getCreatedAt();
     }
 
 }

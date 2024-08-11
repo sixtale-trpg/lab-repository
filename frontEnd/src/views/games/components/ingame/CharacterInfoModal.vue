@@ -21,15 +21,18 @@
       <div class="modal-body" :style="modalBodyStyle">
         <component 
           :is="activeComponent" 
-          :character-data="characterData" 
+          :formData="characterData" 
           :equipment-data="equipmentData" 
-          :stats-data="statsData"
-          :action-data="actionData"
+          :gold="gold"
+          :currentWeight="currentWeight"
+          :maxWeight="maxWeight"
+          :statsData="statsData"
+          :actionData="actionData"
           @update-character="updateCharacterData"
           @update-equipment="updateEquipmentData"
           @update-stats="updateStatsData"
           @update-action="updateActionData"
-        ></component>
+        />
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
         <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
@@ -40,93 +43,62 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
-import { getCharacterSheet, updateCharacterSheet } from '@/common/api/CharacterSheetAPI';
+import { ref, computed, defineProps, defineEmits } from 'vue';
+import { updateCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
 import CharacterInfo from './CharacterInfo.vue';
 import Equipment from './Equipment.vue';
 import Stats from './CharacterStats2.vue';
-import ActionTab from './ActionTab.vue';  // 추가된 컴포넌트
+import ActionTab from './ActionTab.vue';
 
-const props = defineProps(['roomID', 'playMemberID']);
+const props = defineProps({
+  roomID: {
+    type: Number,
+    required: true
+  },
+  playMemberID: {
+    type: Number,
+    required: true
+  },
+  formData: Object
+});
+
 const emit = defineEmits(['close']);
 
 const isVisible = ref(true);
 const activeTab = ref('character');
-const tabs = ['character', 'equipment', 'stats', 'action'];  // 액션 탭 추가
+const tabs = ['character', 'equipment', 'stats', 'action'];
 const tabLabels = {
   character: '캐릭터 정보',
   equipment: '장비',
   stats: '능력치',
-  action: '액션',  // 액션 탭 라벨 추가
+  action: '액션',
 };
 
-const characterData = ref({});
-const equipmentData = ref([]);
-const statsData = ref({});
-const actionData = ref([]);  // 액션 데이터 추가
+const characterData = ref({ ...props.formData });
+const equipmentData = computed(() => characterData.value.characterEquipment || []);
+const gold = computed(() => characterData.value.currentMoney || 0);
+const currentWeight = computed(() => characterData.value.currentWeight || 0);
+const maxWeight = computed(() => characterData.value.limitWeight || 0);
 
-onMounted(async () => {
-  try {
-    const data = await getCharacterSheet(props.roomID, props.playMemberID);
-
-    // 캐릭터 정보 데이터
-    characterData.value = {
-      jobId: data.jobId,
-      raceId: data.raceId,
-      beliefId: data.beliefId,
-      name: data.name,
-      appearance: data.appearance,
-      background: data.background,
-      imageURL: data.imageURL
+const statsData = ref({
+  currentHp: characterData.value.currentHp || 0,
+  glove: characterData.value.glove || 0,
+  inspirationScore: characterData.value.inspirationScore || 0,
+  level: characterData.value.level || 1,
+  exp: characterData.value.exp || 0,
+  attributes: (characterData.value.stat || []).reduce((acc, stat) => {
+    acc[stat.statID] = {
+      value: stat.statValue,
+      weight: stat.statWeight,
     };
-
-    // 장비 데이터
-    equipmentData.value = data.characterEquipment.map(equip => ({
-      id: equip.id,
-      equipmentID: equip.equipmentID,
-      name: equip.name,
-      description: equip.description,
-      currentCount: equip.currentCount,
-      imageURL: equip.imageURL
-    }));
-
-    // 능력치 데이터
-    statsData.value = {
-      currentHp: data.currentHp,
-      glove: data.glove,
-      inspirationScore: data.inspirationScore,
-      level: data.level,
-      exp: data.exp,
-      attributes: data.stat.reduce((acc, stat) => {
-        acc[stat.statID] = {
-          value: stat.statValue,
-          weight: stat.statWeight
-        };
-        return acc;
-      }, {})
-    };
-
-    // 액션 데이터
-    actionData.value = data.characterAction.map(action => ({
-      id: action.id,
-      actionID: action.actionID,
-      name: action.name,
-      isCore: action.isCore,
-      description: action.description,
-      isDice: action.isDice,
-      diceType: action.diceType,
-      diceCount: action.diceCount,
-      level: action.level,
-      actionOption: action.actionOption
-    }));
-  } catch (error) {
-    console.error('Error fetching character sheet:', error);
-  }
+    return acc;
+  }, {}),
 });
 
-// 자식 컴포넌트에서 업데이트된 데이터를 부모로 전달받기 위한 함수
+const actionData = ref(characterData.value.characterAction || []);
+
 const updateCharacterData = (updatedData) => {
-  characterData.value = updatedData;
+  characterData.value = { ...characterData.value, ...updatedData };
 };
 
 const updateEquipmentData = (updatedData) => {
@@ -134,7 +106,13 @@ const updateEquipmentData = (updatedData) => {
 };
 
 const updateStatsData = (updatedData) => {
-  statsData.value = updatedData;
+  statsData.value = { ...updatedData };
+  // 캐릭터 데이터에 직접 업데이트 반영
+  characterData.value.stat = Object.entries(statsData.value.attributes).map(([key, value]) => ({
+    statID: parseInt(key),
+    statValue: value.value,
+    statWeight: value.weight,
+  }));
 };
 
 const updateActionData = (updatedData) => {
@@ -150,27 +128,41 @@ const saveForm = async () => {
       name: characterData.value.name,
       appearance: characterData.value.appearance,
       background: characterData.value.background,
-      stat: Object.entries(statsData.value.attributes).map(([key, value]) => ({ statID: key, ...value })),
-      characterAction: actionData.value,
-      characterEquipment: equipmentData.value,
-      currentWeight: statsData.value.currentWeight,
-      currentHp: statsData.value.currentHp,
-      currentMoney: statsData.value.currentMoney,
-      limitWeight: statsData.value.limitWeight,
-      limitHp: statsData.value.limitHp,
-      glove: statsData.value.glove,
-      inspirationScore: statsData.value.inspirationScore,
-      level: statsData.value.level,
-      exp: statsData.value.exp,
-      imageURL: characterData.value.imageURL
+      stat: characterData.value.stat,
+      characterAction: actionData.value.map(action => ({
+        actionID: action.actionID,
+        actionOptionId: action.actionOptionId || ""
+      })),
+      characterEquipment: equipmentData.value.map(equipment => ({
+        equipmentId: equipment.equipmentId,
+        currentCount: equipment.currentCount,
+        weight: equipment.weight
+      })),
+      currentWeight: characterData.value.currentWeight,
+      currentHp: characterData.value.currentHp,
+      currentMoney: characterData.value.currentMoney,
+      limitWeight: characterData.value.limitWeight,
+      limitHp: characterData.value.limitHp,
+      glove: characterData.value.glove,
+      inspirationScore: characterData.value.inspirationScore,
+      level: characterData.value.level,
+      exp: characterData.value.exp,
+      imageURL: characterData.value.imageURL,
     };
+
+    console.log('Updated Data:', updatedData);
 
     const response = await updateCharacterSheet(props.roomID, props.playMemberID, updatedData);
     console.log('Save successful:', response);
+
+    // 저장이 성공하면 모달을 닫음
+    closeModal();
+
   } catch (error) {
     console.error('Error saving form data:', error);
   }
 };
+
 
 const closeModal = () => {
   isVisible.value = false;
@@ -179,11 +171,16 @@ const closeModal = () => {
 
 const activeComponent = computed(() => {
   switch (activeTab.value) {
-    case 'character': return CharacterInfo;
-    case 'equipment': return Equipment;
-    case 'stats': return Stats;
-    case 'action': return ActionTab;  // 액션 탭 컴포넌트 추가
-    default: return CharacterInfo;
+    case 'character':
+      return CharacterInfo;
+    case 'equipment':
+      return Equipment;
+    case 'stats':
+      return Stats;
+    case 'action':
+      return ActionTab;
+    default:
+      return CharacterInfo;
   }
 });
 
@@ -225,7 +222,10 @@ function getTabButtonStyle(tab) {
 }
 </script>
 
+
+
 <style scoped>
+/* 스타일은 그대로 유지 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -358,7 +358,7 @@ function getTabButtonStyle(tab) {
 }
 
 .footer-button:hover {
-  transform: translateY(-2px); /* 버튼 호버 시 살짝 위로 움직이는 효과 */
+  transform: translateY(-2px);
 }
 
 .footer-button.save-button {

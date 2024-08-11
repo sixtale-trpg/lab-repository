@@ -51,7 +51,11 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
-import { getEquipmentList } from '@/common/api/InventoryAPI.js';
+import { useRoute } from 'vue-router';
+import { getEquipmentList, addEquipment } from '@/common/api/InventoryAPI.js';
+import { selectedPlayMemberID } from '@/store/state.js';
+
+const route = useRoute();  
 
 const props = defineProps({
   currentWeight: Number,
@@ -77,7 +81,6 @@ const fetchEquipmentList = async () => {
   }
 };
 
-// 사용자 직업에 따라 아이템 필터링
 const filteredItems = computed(() => {
   if (activeTab.value === 'job') {
     return equipmentList.value.filter(item => item.jobId === props.jobId);
@@ -95,15 +98,27 @@ const selectItem = (item) => {
   showWarning.value = false;
 };
 
-const addItem = () => {
+const addItem = async () => {
   if (selectedItem.value) {
     const newWeight = props.currentWeight + selectedItem.value.weight;
     if (newWeight > props.totalWeight) {
       showWarning.value = true;
     } else {
-      selectedItem.value.currentCount = selectedItem.value.count > 0 ? selectedItem.value.count : -1; // 초기 횟수 설정
-      emit('select-item', selectedItem.value);
-      closeModal();
+      try {
+        const equipmentData = {
+          equipmentId: selectedItem.value.id,
+          currentCount: selectedItem.value.count > 0 ? selectedItem.value.count : -1,
+          weight: selectedItem.value.weight
+        };
+
+        await addEquipment(route.params.roomId, selectedPlayMemberID.value, equipmentData);
+
+        // 이벤트 발생시 아이템의 전체 수량(currentCount)을 정확히 반영하여 전달합니다.
+        emit('select-item', { ...selectedItem.value, currentCount: selectedItem.value.count }); 
+        closeModal();
+      } catch (error) {
+        console.error('Failed to add item to the server:', error);
+      }
     }
   }
 };
@@ -111,6 +126,7 @@ const addItem = () => {
 onMounted(() => {
   fetchEquipmentList();
 });
+
 
 const modalContentStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,

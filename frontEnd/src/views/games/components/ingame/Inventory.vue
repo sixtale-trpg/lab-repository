@@ -3,7 +3,7 @@
     <div class="inventory-grid">
       <div
         v-for="(item, index) in items"
-        :key="index"
+        :key="item.id"
         class="inventory-slot"
         @click="openItemInfoModal(item)"
         @mouseover="showTooltip"
@@ -20,7 +20,7 @@
             <img :src="require('@/assets/images/ingame/Delete.png')" alt="Delete" class="delete" />
           </button>
           <div class="tooltip">클릭시 아이템 상세 정보를 볼 수 있습니다</div>
-        </div>>
+        </div>
       </div>
       <div v-if="items.length < maxSlots">
         <button @click="openAddItemModal" class="add-item-button">
@@ -68,7 +68,7 @@
       :isVisible="isConfirmDeleteModalVisible"
       :item="selectedItem"
       @close="closeConfirmDeleteModal"
-      @confirm="deleteItem"
+      @confirm="handleDeleteConfirm"
     />
   </div>
 </template>
@@ -79,7 +79,7 @@ import { useRoute } from 'vue-router';
 import { selectedPlayMemberID } from '@/store/state.js';
 import { getInventory, getEquipmentList } from '@/common/api/InventoryAPI.js';
 import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
-import {  getRoomInfo } from '@/common/api/RoomsAPI.js';
+import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import AddItemModal from '@/views/games/components/Modal/AddItemModal.vue';
 import ItemInfoModal from '@/views/games/components/Modal/ItemInfoModal.vue';
 import GoldModal from '@/views/games/components/Modal/GoldModal.vue';
@@ -174,8 +174,6 @@ const fetchUserItems = async (playMemberID) => {
   }
 };
 
-
-
 const fetchRoomInfo = async () => {
   try {
     const roomId = route.params.roomId;
@@ -245,7 +243,7 @@ const closeConfirmDeleteModal = () => {
   selectedIndex.value = null;
 };
 
-const deleteItem = () => {
+const handleDeleteConfirm = () => {
   if (selectedIndex.value !== null) {
     items.splice(selectedIndex.value, 1);
     updateCurrentWeight();
@@ -255,18 +253,23 @@ const deleteItem = () => {
 
 const addItem = (item) => {
   if (items.length < maxSlots) {
-    const existingItemIndex = items.findIndex(existingItem => existingItem.id === item.id);
+    const existingItemIndex = items.findIndex(existingItem => existingItem.equipmentId === item.equipmentId);
     if (existingItemIndex !== -1) {
+      // 동일한 아이템이 있을 경우, 수량을 합침
       items[existingItemIndex].currentCount += item.currentCount;
+      // 반응성 보장하기 위해 배열을 다시 할당
+      items.splice(existingItemIndex, 1, { ...items[existingItemIndex] });
     } else {
-      // Ensure imageURL is correctly set for added items
-      item.imageURL = item.imageURL || item.imageUrl; // or any other logic to ensure the image URL
+      // 동일한 아이템이 없을 경우 새로 추가
+      item.imageURL = item.imageURL || item.imageUrl;
       items.push(item);
     }
     updateCurrentWeight();
     closeAddItemModal(); // 모달 닫기
   }
 };
+
+
 
 const updateItem = (updatedItem) => {
   const itemIndex = items.findIndex(item => item.id === updatedItem.id);
@@ -287,8 +290,8 @@ const showTooltip = (event) => {
     tooltip.style.opacity = '1';
     const slotRect = event.target.closest('.inventory-slot').getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
-    const top = slotRect.top + slotRect.height + 5; // 아이템 슬롯 아래에 5px 간격
-    const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2); // 중앙 정렬
+    const top = slotRect.top + slotRect.height + 5;
+    const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2);
     tooltip.style.top = `${top}px`;
     tooltip.style.left = `${left}px`;
   }
@@ -310,8 +313,8 @@ const showGoldTooltip = (event) => {
       tooltip.style.opacity = '1';
       const slotRect = event.target.closest('.info-box').getBoundingClientRect();
       const tooltipRect = tooltip.getBoundingClientRect();
-      const top = slotRect.top + slotRect.height + 5; // 골드 박스 아래에 5px 간격
-      const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2); // 중앙 정렬
+      const top = slotRect.top + slotRect.height + 5;
+      const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2);
       tooltip.style.top = `${top}px`;
       tooltip.style.left = `${left}px`;
     }
@@ -324,7 +327,7 @@ const hideGoldTooltip = (event) => {
     if (tooltip) {
       tooltip.style.visibility = 'hidden';
       tooltip.style.opacity = '0';
-    }
+  }
   }
 };
 
@@ -333,8 +336,6 @@ onMounted(async () => {
   if (selectedPlayMemberID.value) {
     await fetchUserItems(selectedPlayMemberID.value);
   } else {
-    console.log('No player selected initially');
-    // 기본 상태 설정
     items.splice(0, items.length);
     currentWeight.value = 0;
     limitWeight.value = 0;
@@ -343,6 +344,7 @@ onMounted(async () => {
   }
 });
 </script>
+
 
 <style scoped>
 html, body {

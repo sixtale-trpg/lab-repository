@@ -12,16 +12,28 @@
       </div>
     </div>
     <div class="stats-grid">
+      <!-- 개별 속성들 렌더링 -->
+      <div class="stat-item" v-for="(attr, index) in individualAttributes" :key="index">
+        <div class="stat-name">{{ attr.name }}</div>
+        <div class="stat-controls">
+          <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseIndividualValue(attr.key)">
+          <div class="stat-value-container">
+            <div class="stat-value">{{ statsData[attr.key] }}</div>
+          </div>
+          <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseIndividualValue(attr.key)">
+        </div>
+      </div>
+      <!-- 스탯 속성들 렌더링 -->
       <div class="stat-item" v-for="(attribute, index) in attributes" :key="index">
         <div class="stat-name">{{ attribute.name }}</div>
         <div class="stat-controls">
-          <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseValue(attribute.key)">
+          <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseStatValue(attribute.key)">
           <div class="stat-value-container">
-            <div class="stat-value">{{ statsData.attributes[attribute.key].value }}</div>
+            <div class="stat-value">{{ statsData.attributes[attribute.key] ? statsData.attributes[attribute.key].value : 0 }}</div>
           </div>
-          <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseValue(attribute.key)">
+          <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseStatValue(attribute.key)">
         </div>
-        <div class="stat-weight-controls" v-if="statsData.attributes[attribute.key].weight !== undefined">
+        <div class="stat-weight-controls" v-if="statsData.attributes[attribute.key] && statsData.attributes[attribute.key].weight !== undefined">
           <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseWeight(attribute.key)">
           <div class="stat-weight-container">
             <div class="stat-weight">{{ statsData.attributes[attribute.key].weight }}</div>
@@ -35,84 +47,94 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 
-const props = defineProps(['statsData']);
-const emit = defineEmits(['update:statsData']);
-
-// 임시 데이터 예시 (실제 데이터가 부모 컴포넌트에서 전달될 때 이 부분을 대체합니다)
-const statsData = ref({
-  level: 1,
-  attributes: {
-    experience: { value: 5 },
-    hp: { value: 10 },
-    armor: { value: 4 },
-    exaltation: { value: 5 },
-    strength: { value: 8, weight: 2 },
-    intelligence: { value: 7, weight: 1 },
-    constitution: { value: 6, weight: 1 },
-    wisdom: { value: 9, weight: 0 },
-    dexterity: { value: 8, weight: 2 },
-    charisma: { value: 7, weight: 1 },
-    
-  }
+const props = defineProps({
+  statsData: Object,
 });
+
+const emit = defineEmits(['update:statsData']);
 
 const descriptionText = `
   캐릭터의 현재 능력치를 확인하고, 필요에 따라 수정할 수 있습니다.<br>
   변경 사항은 저장 버튼을 누를 때만 적용됩니다.
 `;
 
-const attributes = [
-  { name: '경험치', key: 'experience' },
-  { name: 'HP', key: 'hp' },
-  { name: '장갑', key: 'armor' },
-  { name: '고양감', key: 'exaltation' },
-  { name: '근력', key: 'strength' },
-  { name: '지능', key: 'intelligence' },
-  { name: '체력', key: 'constitution' },
-  { name: '지혜', key: 'wisdom' },
-  { name: '민첩성', key: 'dexterity' },
-  { name: '매력', key: 'charisma' },
-  
+const individualAttributes = [
+  { name: '경험치', key: 'exp' },
+  { name: 'HP', key: 'currentHp' },
+  { name: '장갑', key: 'glove' },
+  { name: '고양감', key: 'inspirationScore' },
 ];
 
-const increaseValue = (key) => {
-  statsData.value.attributes[key].value++;
-  emit('update:statsData', statsData.value);
+const attributes = [
+  { name: '근력', key: 1 },
+  { name: '민첩성', key: 2 },
+  { name: '체력', key: 3 },
+  { name: '지능', key: 4 },
+  { name: '지혜', key: 5 },
+  { name: '매력', key: 6 },
+];
+
+const increaseIndividualValue = (key) => {
+  props.statsData[key]++;
+  emit('update:statsData', { ...props.statsData });
 };
 
-const decreaseValue = (key) => {
-  if (statsData.value.attributes[key].value > 0) {
-    statsData.value.attributes[key].value--;
-    emit('update:statsData', statsData.value);
+const decreaseIndividualValue = (key) => {
+  if (props.statsData[key] > 0) {
+    props.statsData[key]--;
+    emit('update:statsData', { ...props.statsData });
+  }
+};
+
+const increaseStatValue = (key) => {
+  if (props.statsData.attributes[key]) {
+    props.statsData.attributes[key].value++;
+    emit('update:statsData', { ...props.statsData });
+  }
+};
+
+const decreaseStatValue = (key) => {
+  if (props.statsData.attributes[key] && props.statsData.attributes[key].value > 0) {
+    props.statsData.attributes[key].value--;
+    emit('update:statsData', { ...props.statsData });
   }
 };
 
 const increaseWeight = (key) => {
-  statsData.value.attributes[key].weight++;
-  emit('update:statsData', statsData.value);
+  if (props.statsData.attributes[key]) {
+    props.statsData.attributes[key].weight++;
+    emit('update:statsData', { ...props.statsData });
+  }
 };
 
 const decreaseWeight = (key) => {
-  statsData.value.attributes[key].weight--;
-  emit('update:statsData', statsData.value);
+  if (props.statsData.attributes[key] && props.statsData.attributes[key].weight > 0) {
+    props.statsData.attributes[key].weight--;
+    emit('update:statsData', { ...props.statsData });
+  }
 };
 
 const increaseLevel = () => {
-  statsData.value.level++;
-  emit('update:statsData', statsData.value);
+  props.statsData.level++;
+  emit('update:statsData', { ...props.statsData });
 };
 
 const decreaseLevel = () => {
-  if (statsData.value.level > 1) {
-    statsData.value.level--;
-    emit('update:statsData', statsData.value);
+  if (props.statsData.level > 1) {
+    props.statsData.level--;
+    emit('update:statsData', { ...props.statsData });
   }
 };
 </script>
 
+
+
+
+
 <style scoped>
+/* 스타일은 그대로 유지 */
 .attributes-content {
   padding: 20px;
   color: #fff;

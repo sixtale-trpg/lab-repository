@@ -46,5 +46,5 @@ public interface ScenarioRepository extends JpaRepository<Scenario,Long> {
 
     @Query("SELECT s FROM Scenario s WHERE EXISTS (" +
             "SELECT 1 FROM ScenarioLike sl WHERE sl.scenario = s AND sl.member = :member)")
-    Page<Scenario> findLikedScenariosByMember(@Param("member") Member member, Pageable scenarioPageable);
+    Page<Scenario> findLikedScenariosByMember(Member member, Pageable scenarioPageable);
 }

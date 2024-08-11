@@ -6,6 +6,7 @@ import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
 import org.infinity.sixtalebackend.domain.member.dto.MemberNicknameCheckResponse;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -96,7 +97,8 @@ public class MemberController {
     @GetMapping("/liked-scenarios")
     public ResponseEntity getLikedScenarioList (Pageable scenarioPageable) {
         try {
-            Long memberID = 1L;
+            Long memberID = AuthenticationUtil.getMemberId();
+            log.info("memberID = {}", memberID);
 
             ScenarioListResponseDto scenarioList = memberService.getScenarioLikeList(memberID, scenarioPageable);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_SCENARIO_LIKE_LIST,scenarioList), HttpStatus.OK);

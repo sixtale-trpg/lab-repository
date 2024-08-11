@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberSerivceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
@@ -147,9 +149,11 @@ public class MemberSerivceImpl implements MemberService {
     public ScenarioListResponseDto getScenarioLikeList(Long memberID, Pageable scenarioPageable) {
         Member member = findMember(memberID);
 
+        log.info("like memberID = {}", member.getId());
+
         // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
         // 좋아요 한 시나리오
-        Page<Scenario> scenarioPage = scenarioRepository.findLikedScenariosByMember(null, scenarioPageable);
+        Page<Scenario> scenarioPage = scenarioRepository.findLikedScenariosByMember(member, scenarioPageable);
 
         // Entity - Dto 변환
         List<ScenarioResponseDto> scenarioResponseDtoList = scenarioPage.getContent().stream()

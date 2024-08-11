@@ -39,6 +39,10 @@ const props = defineProps({
   roomId: {
     type: [String, Number],
     required: true,
+  },
+  memberId: {
+    type: [Number],
+    required: true,
   }
 });
 
@@ -52,13 +56,13 @@ const closeModal = () => {
 
 // 유저 퇴장 확인 및 DELETE 요청 전송 함수
 const confirmKick = async () => {
-  try {
-    // 방 ID와 액세스 토큰을 사용하여 DELETE 요청
-    const response = await kickUserFromRoom(props.roomId, props.user.id);
+  console.log('Room ID:', props.roomId);  // roomId가 undefined인지 확인
+  console.log('User ID:', props.memberId);  // user ID도 확인
 
-    if (response.statusCode === 200) {
-      console.log('게임 방 유저 퇴장 성공:', response);
-      emit('kick', props.user);
+  try {
+    const response = await kickUserFromRoom(props.roomId, props.memberId);
+    if (response.statusCode === 200 || response.status === 'success') {
+      emit('kick', props.memberId);
     } else {
       console.error('유저 퇴장 실패:', response);
     }
@@ -68,6 +72,7 @@ const confirmKick = async () => {
     closeModal();
   }
 };
+
 
 // 모달 스타일
 const modalStyle = computed(() => ({

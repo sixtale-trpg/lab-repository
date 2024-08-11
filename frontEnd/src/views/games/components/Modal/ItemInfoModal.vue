@@ -53,6 +53,11 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, watch } from 'vue';
+import { updateEquipmentCount } from '@/common/api/InventoryAPI.js';
+import { useRoute } from 'vue-router';
+import { selectedPlayMemberID } from '@/store/state.js';
+
+const route = useRoute();
 
 const props = defineProps({
   item: {
@@ -99,19 +104,45 @@ const increaseCount = () => {
   }
 };
 
-const saveChanges = () => {
-  if (!showWarning.value) {
-    emit('update-item', localItem.value);
-    closeModal();
-  }
-};
-
 watch(
   () => props.item,
   (newItem) => {
+    console.log('Selected item:', newItem);
     localItem.value = { ...newItem };
   }
 );
+
+const saveChanges = async () => {
+  if (!showWarning.value) {
+    try {
+      const roomId = route.params.roomId;
+      const playMemberID = selectedPlayMemberID.value;
+
+      // 현재 수정 중인 아이템 확인
+      console.log('Saving changes for item:', localItem.value);
+
+      const equipmentData = {
+        equipmentId: localItem.value.equipmentID,  // 올바른 equipmentID를 사용
+        currentCount: localItem.value.currentCount, // 새로운 수량으로 대체
+      };
+
+      // 서버로 전송할 데이터 확인
+      console.log('Sending equipment data:', equipmentData);
+
+      // 수량을 덮어씌우는 작업을 위해 PUT 요청을 보냄
+      await updateEquipmentCount(roomId, playMemberID, equipmentData);
+
+      // UI 업데이트
+      emit('update-item', localItem.value); // 업데이트된 값을 바로 사용
+      closeModal();
+    } catch (error) {
+      console.error('Failed to update item count on the server:', error);
+    }
+  }
+};
+
+
+
 
 const modalContentStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
@@ -189,6 +220,17 @@ const saveButtonStyle = computed(() => ({
 .modal-title-container {
   position: relative;
   width: 100%;
+  text-align: left; 
+  padding-left: 15px; 
+}
+
+.modal-title-text {
+  position: relative; 
+  color: white;
+  font-size: 1.5rem;
+  white-space: normal; 
+  word-wrap: break-word; 
+  max-width: calc(100% - 30px); 
 }
 
 .modal-title-image {
@@ -197,14 +239,7 @@ const saveButtonStyle = computed(() => ({
   object-fit: cover;
 }
 
-.modal-title-text {
-  position: absolute;
-  top: 50%;
-  left: 15%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 1.5rem;
-}
+
 
 .modal-body {
   padding: 20px;
@@ -308,7 +343,7 @@ const saveButtonStyle = computed(() => ({
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  height: 150px; /* 크기 줄임 */
+  height: 150px;
   overflow-y: auto;
 }
 
@@ -327,7 +362,7 @@ const saveButtonStyle = computed(() => ({
 
 .footer-buttons {
   display: flex;
-  gap: 10px; /* 버튼 간의 간격 조정 */
+  gap: 10px;
 }
 
 .footer-button {
@@ -340,7 +375,7 @@ const saveButtonStyle = computed(() => ({
 }
 
 .footer-button:hover {
-  transform: translateY(-2px); /* 버튼 호버 시 살짝 위로 움직이는 효과 */
+  transform: translateY(-2px);
 }
 
 .warning-message {

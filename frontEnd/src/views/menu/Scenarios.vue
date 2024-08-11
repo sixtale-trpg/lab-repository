@@ -74,6 +74,7 @@ import ScenarioCard from "./components/ScenarioCard.vue";
 import ScenarioGenreFilter from "./components/ScenarioGenreFilter.vue";
 import { getScenarioList } from "@/common/api/ScenarioAPI.js";
 import { getGenreList } from "@/common/api/GenreAPI";
+import { getLikedScenarioList } from "../../common/api/mypageAPI";
 
 export default {
   name: "Scenarios",
@@ -91,11 +92,17 @@ export default {
       text: "최신순",
     });
     const searchKeyword = ref("");
+    const likedScenarios = ref([]);
 
     // 첫 조회
     onMounted(async () => {
       showScenarios("", "");
       genres.value = await getGenreList();
+      likedScenarios.value = await getLikedScenarioList(); //
+    });
+
+    watch(likedScenarios, (newLiked) => {
+      console.log(newLiked.scenarioList);
     });
 
     // 검색 키워드에 따른 시나리오 조회

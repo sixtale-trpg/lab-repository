@@ -64,7 +64,11 @@ const tabs = ref(["대기", "플레이"]); // 탭 목록
 
 const logEntriesWait = ref([
   { type: "GM", user: "GM", message: "이제 던전월드로 떠나볼까요?" },
-  { type: "플레이어", user: "플레이어1", message: "여행은 새로운 장소로 떠나는 것 같아요." },
+  {
+    type: "플레이어",
+    user: "플레이어1",
+    message: "여행은 새로운 장소로 떠나는 것 같아요.",
+  },
   { type: "플레이어", user: "플레이어2", message: "동의해요!" },
   { type: "플레이어", user: "플레이어2", message: "동의해요!" },
   { type: "플레이어", user: "플레이어2", message: "동의해요!" },

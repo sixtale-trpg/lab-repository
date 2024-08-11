@@ -130,6 +130,7 @@ public class MemberSerivceImpl implements MemberService {
                 .id(id)
                 .nickName(member.getNickname())
                 .imageURL(member.getImageURL())
+                .createdAt(member.getCreatedAt())
                 .build();
     }
 

@@ -39,7 +39,7 @@ public class MemberController {
     }
 
     /**
-     * 회원 정보 조회(닉네임, 프로필 이미지)
+     * 회원 정보 조회(id, 닉네임, 프로필 이미지, 가입 날짜)
      */
     @GetMapping("")
     public ResponseEntity<?> getMemberInfo(){
@@ -59,7 +59,8 @@ public class MemberController {
     @PutMapping(value = "",consumes = "multipart/*")
     public ResponseEntity<?> updateMemberInfo(String nickName, @RequestPart("files")MultipartFile[] files){
         try {
-            Long memberId = 1L;
+            Long memberId = AuthenticationUtil.getMemberId();
+
             MemberResponseDto memberResponseDto = memberService.updateMemberInfo(memberId,nickName,files);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){

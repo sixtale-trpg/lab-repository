@@ -70,16 +70,24 @@ const characterData = computed(() => ({
   name: props.formData.name || '알 수 없음',
   raceName: props.formData.raceName || '알 수 없음',
   jobName: props.formData.jobName || '알 수 없음',
-  background: props.formData.background || '배경 정보 없음',
+  background: props.formData.background || '',
 }));
 
 const editableBackground = ref(characterData.value.background);
 
-// Watcher to update the parent component's data when editableBackground changes
-watch(editableBackground, (newVal) => {
-  emit('update:formData', { ...props.formData, background: newVal });
+watch(editableBackground, (newBackground) => {
+  emit('update:formData', { ...props.formData, background: newBackground });
 });
+
+watch(
+  () => props.formData.background,
+  (newBackground) => {
+    editableBackground.value = newBackground;
+  }
+);
+
 </script>
+
 
 <style scoped>
 /* 스타일은 그대로 유지 */

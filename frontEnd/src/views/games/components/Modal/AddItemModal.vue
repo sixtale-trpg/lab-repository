@@ -108,16 +108,19 @@ const addItem = async () => {
         const equipmentData = {
           equipmentId: selectedItem.value.id,
           currentCount: selectedItem.value.count > 0 ? selectedItem.value.count : -1,
-          weight: selectedItem.value.weight
+          weight: selectedItem.value.weight,
         };
 
         await addEquipment(route.params.roomId, selectedPlayMemberID.value, equipmentData);
 
+        // `select-item` 이벤트가 발생하는지 확인
+        console.log("Emitting select-item with:", selectedItem.value);
+
         // 이벤트 발생시 아이템의 전체 수량(currentCount)을 정확히 반영하여 전달합니다.
-        emit('select-item', { ...selectedItem.value, currentCount: selectedItem.value.count }); 
+        emit("select-item", { ...selectedItem.value, currentCount: selectedItem.value.count });
         closeModal();
       } catch (error) {
-        console.error('Failed to add item to the server:', error);
+        console.error("Failed to add item to the server:", error);
       }
     }
   }

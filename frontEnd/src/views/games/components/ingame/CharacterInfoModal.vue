@@ -21,7 +21,7 @@
       <div class="modal-body" :style="modalBodyStyle">
         <component 
           :is="activeComponent" 
-          :formData="characterData" 
+          v-model:formData="characterData"
           :equipment-data="equipmentData" 
           :gold="gold"
           :currentWeight="currentWeight"
@@ -66,11 +66,11 @@ const emit = defineEmits(['close']);
 
 const isVisible = ref(true);
 const activeTab = ref('character');
-const tabs = ['character', 'equipment', 'stats', 'action'];
+const tabs = ['character', 'stats', 'equipment', 'action'];
 const tabLabels = {
   character: '캐릭터 정보',
-  equipment: '장비',
   stats: '능력치',
+  equipment: '장비',
   action: '액션',
 };
 
@@ -98,8 +98,10 @@ const statsData = ref({
 const actionData = ref(characterData.value.characterAction || []);
 
 const updateCharacterData = (updatedData) => {
+  console.log("Received updated formData:", updatedData);
   characterData.value = { ...characterData.value, ...updatedData };
 };
+
 
 const updateEquipmentData = (updatedData) => {
   equipmentData.value = updatedData;
@@ -119,6 +121,10 @@ const updateActionData = (updatedData) => {
   actionData.value = updatedData;
 };
 
+// SaveForm 함수 바로 위에 추가해볼 수 있습니다.
+console.log("Equipment Data:", equipmentData.value);
+
+
 const saveForm = async () => {
   try {
     const updatedData = {
@@ -134,7 +140,7 @@ const saveForm = async () => {
         actionOptionId: action.actionOptionId || ""
       })),
       characterEquipment: equipmentData.value.map(equipment => ({
-        equipmentId: equipment.equipmentId,
+        equipmentId: equipment.equipmentID,
         currentCount: equipment.currentCount,
         weight: equipment.weight
       })),

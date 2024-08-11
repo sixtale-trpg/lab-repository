@@ -102,3 +102,48 @@ export const deleteEquipment = async (roomID, playMemberID, equipmentID) => {
     throw error;
   }
 };
+
+
+// 캐릭터 장비 수량 수정
+export const updateEquipmentCount = async (roomID, playMemberID, equipmentData) => {
+  const headers = getHeaders();
+  const url = `${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/equipment`;
+  
+  console.log('Updating equipment count:', url, headers, equipmentData);
+
+  try {
+    const response = await axios.put(url, equipmentData, {
+      headers
+    });
+    console.log('Response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating equipment count:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+// 골드 수정
+export const updateGold = async (roomID, playMemberID, newGoldAmount) => {
+  const headers = getHeaders();
+  const url = `${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/gold`;
+
+  console.log('Updating gold:', url, headers, newGoldAmount);
+
+  try {
+    const response = await axios.put(url, { currentMoney: newGoldAmount }, {
+      headers
+    });
+    console.log('Response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating gold:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+    }
+    throw error;
+  }
+};

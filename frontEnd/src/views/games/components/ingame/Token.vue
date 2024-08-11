@@ -10,7 +10,7 @@
       @mouseleave="hideTooltip"
     >
       <img :src="tokenImage" :alt="token.name" class="token" />
-      <div class="tooltip">맵의 그리드로 자유롭게 이동해보세요</div>
+      <div class="tooltip">{{ token.name }}의 토큰입니다</div>
     </div>
     <div class="token-slot add-token" @click="showInput">
       <img :src="plusIcon" alt="Add Token" class="add-icon" />
@@ -38,6 +38,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { getRoomInfo } from '@/common/api/RoomsAPI'; // 방 정보 조회 API
 
 const tokens = ref([]);
 const tokenImage = require('@/assets/images/ingame/Token.png');
@@ -66,7 +68,9 @@ const newTokenInfo = ref('');
 const inputVisible = ref(false);
 const modalVisible = ref(false);
 const selectedToken = ref({});
-let nextTokenId = ref(5); // 고유 ID를 추적하기 위해 사용
+let nextTokenId = ref(1); // 고유 ID를 추적하기 위해 사용
+
+const route = useRoute(); // 현재 라우트 정보를 가져옴
 
 const showInput = () => {
   inputVisible.value = true;
@@ -83,7 +87,6 @@ const addToken = () => {
     newTokenInfo.value = '';
     inputVisible.value = false;
   }
-  console.log(tokens.value);
 };
 
 const closeInput = () => {
@@ -92,7 +95,6 @@ const closeInput = () => {
 
 const dragStart = (token, event) => {
   event.dataTransfer.setData('text/plain', JSON.stringify(token));
-  console.log(tokens.value);
 };
 
 const deleteToken = (event) => {
@@ -100,10 +102,7 @@ const deleteToken = (event) => {
   try {
     const parsedToken = JSON.parse(tokenData);
     tokens.value = tokens.value.filter(t => t.id !== parsedToken.id);
-    console.log(parsedToken.id);
-    console.log(parsedToken);
-    // 토큰 삭제 이벤트 발생
-    window.dispatchEvent(new CustomEvent('delete-token', { detail: parsedToken }));
+    window.dispatchEvent(new CustomEvent('remove-token-from-list', { detail: parsedToken }));
   } catch (error) {
     console.error("Invalid JSON data:", tokenData);
   }
@@ -140,29 +139,54 @@ const closeModal = () => {
   modalVisible.value = false;
 };
 
-// 더미 데이터 추가
-const addDummyData = () => {
-  tokens.value = [
-    { id: 1, name: 'Player 1', info: 'This is the token for Player 1' },
-    { id: 2, name: 'Player 2', info: 'This is the token for Player 2' },
-    { id: 3, name: 'Player 3', info: 'This is the token for Player 3' },
-    { id: 4, name: 'Player 4', info: 'This is the token for Player 4' }
-  ];
+const handleTokenReturn = (token) => {
+  if (!tokens.value.find(t => t.id === token.id)) {
+    tokens.value.push(token);
+  }
+};
+
+const handleTokenRemove = (token) => {
+  tokens.value = tokens.value.filter(t => t.id !== token.id);
+};
+
+const fetchTokens = async () => {
+  try {
+    const roomId = route.params.roomId; // 라우트에서 roomId를 가져옴
+    const roomInfo = await getRoomInfo(roomId);
+
+    tokens.value = roomInfo.playMemberList.map((participant) => ({
+      id: participant.playMemberID,
+      name: participant.playMemberNickname,
+      info: `${participant.playMemberNickname}의 토큰입니다.`
+    }));
+
+    nextTokenId.value = tokens.value.length + 1;
+  } catch (error) {
+    console.error('Failed to fetch room info:', error);
+  }
 };
 
 onMounted(async () => {
-  addDummyData();
+  await fetchTokens();
 
   window.addEventListener('remove-token-from-list', (event) => {
     const token = event.detail;
-    tokens.value = tokens.value.filter(t => t.id !== token.id);
+    handleTokenRemove(token);
   });
 
   window.addEventListener('add-token-to-list', (event) => {
     const token = event.detail;
-    if (!tokens.value.find(t => t.id === token.id)) {
-      tokens.value.push(token);
-    }
+    handleTokenReturn(token);
+  });
+
+  window.addEventListener('drop-token-on-map', (event) => {
+    const token = event.detail;
+    handleTokenRemove(token);
+  });
+
+  window.addEventListener('return-token-to-list', (event) => {
+    const token = event.detail;
+    handleTokenReturn(token);
   });
 });
 </script>

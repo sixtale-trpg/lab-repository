@@ -53,7 +53,7 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, watch } from 'vue';
-import { addEquipment } from '@/common/api/InventoryAPI.js'; // 기존 API 가져오기
+import { updateEquipmentCount } from '@/common/api/InventoryAPI.js';
 import { useRoute } from 'vue-router';
 import { selectedPlayMemberID } from '@/store/state.js';
 
@@ -124,14 +124,13 @@ const saveChanges = async () => {
       const equipmentData = {
         equipmentId: localItem.value.equipmentID,  // 올바른 equipmentID를 사용
         currentCount: localItem.value.currentCount, // 새로운 수량으로 대체
-        weight: localItem.value.weight,
       };
 
       // 서버로 전송할 데이터 확인
       console.log('Sending equipment data:', equipmentData);
 
-      // 이 부분에서 수량을 추가하는 것이 아니라 덮어씌우는 작업을 한다는 의미로 전달
-      await addEquipment(roomId, playMemberID, equipmentData);
+      // 수량을 덮어씌우는 작업을 위해 PUT 요청을 보냄
+      await updateEquipmentCount(roomId, playMemberID, equipmentData);
 
       // UI 업데이트
       emit('update-item', localItem.value); // 업데이트된 값을 바로 사용

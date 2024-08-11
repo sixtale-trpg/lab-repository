@@ -25,5 +25,41 @@ export const useMapStore = defineStore("map", {
       );
       return map || null;
     },
+    async fetchMaps(roomID, mapID) {
+      this.isLoading = true;
+      try {
+        const response = await axios.get(
+          `http://i11d108.p.ssafy.io:8888/api/v1/rooms/${roomID}/maps/${mapID}`
+        );
+        // API 응답 구조에 맞춰 데이터를 저장
+        this.mapData = response.data.map((map) => ({
+          id: map.id, // 고유 식별자가 필요할 경우 추가
+          name: map.name,
+          description: map.description,
+          imageURL: map.imageURL,
+          bgmURL: map.bgmURL,
+          cellList: map.cellList.map((cell) => ({
+            row: cell.row,
+            column: cell.column,
+            description: cell.description,
+            scenarioEvent: cell.scenarioEvent.map((event) => ({
+              id: event.id,
+              title: event.title,
+              name: event.name,
+              description: event.description,
+              npcDescription: event.npcDescription,
+              hp: event.hp,
+              glove: event.glove,
+              imageURL: event.imageURL,
+            })),
+          })),
+        }));
+      } catch (error) {
+        this.error = error;
+        console.error("맵 데이터를 가져오는 중 오류 발생:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });

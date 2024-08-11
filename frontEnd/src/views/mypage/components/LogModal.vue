@@ -19,14 +19,24 @@
       <div class="log-content">
         <!-- 대기 탭 내용 -->
         <div v-if="activeTab === '대기'">
-          <p v-for="(entry, index) in logEntriesWait" :key="index" class="log-entry">
-            <span :class="entry.type">{{ entry.user }}:</span> {{ entry.message }}
+          <p
+            v-for="(entry, index) in logEntriesWait"
+            :key="index"
+            class="log-entry"
+          >
+            <span :class="entry.type">{{ entry.user }}:</span>
+            {{ entry.message }}
           </p>
         </div>
         <!-- 플레이 탭 내용 -->
         <div v-if="activeTab === '플레이'">
-          <p v-for="(entry, index) in logEntriesPlay" :key="index" class="log-entry">
-            <span :class="entry.type">{{ entry.user }}:</span> {{ entry.message }}
+          <p
+            v-for="(entry, index) in logEntriesPlay"
+            :key="index"
+            class="log-entry"
+          >
+            <span :class="entry.type">{{ entry.user }}:</span>
+            {{ entry.message }}
           </p>
         </div>
       </div>
@@ -58,7 +68,11 @@ const room = ref({
 //대기 탭 로그 데이터 -- 형식 봐야 함
 const logEntriesWait = ref([
   { type: "GM", user: "GM", message: "이제 던전월드로 떠나볼까요?" },
-  { type: "플레이어", user: "플레이어1", message: "여행은 새로운 장소로 떠나는 것 같아요." },
+  {
+    type: "플레이어",
+    user: "플레이어1",
+    message: "여행은 새로운 장소로 떠나는 것 같아요.",
+  },
   { type: "플레이어", user: "플레이어2", message: "동의해요!" },
 ]);
 // 플레이 탭 로그 데이터
@@ -69,7 +83,7 @@ const logEntriesPlay = ref([
 ]);
 </script>
 
-<style>
+<style scoped>
 .log-modal {
   position: fixed;
   top: 0;

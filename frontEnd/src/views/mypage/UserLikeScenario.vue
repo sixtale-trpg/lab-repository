@@ -1,15 +1,21 @@
 <template>
   <div><h3 class="menu-title">좋아요한 시나리오</h3></div>
-  <div class="content-box right-box"></div>
+  <div class="content-box right-box">
+    <!-- <ScenarioCard /> -->
+  </div>
 </template>
 
 <script>
 import { ref, onMounted } from "vue";
+import ScenarioCard from "../menu/components/ScenarioCard.vue";
 
 onMounted();
 
 export default {
   name: "UserLikeScenario",
+  components: {
+    ScenarioCard,
+  },
 };
 </script>
 

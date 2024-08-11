@@ -1,7 +1,6 @@
-
 <template>
   <section class="popular-scenario">
-    <div class="container"> 
+    <div class="container">
       <div class="header">
         <h1>인기 시나리오</h1>
       </div>
@@ -23,8 +22,8 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
-import { Carousel, Pagination, Slide,Navigation } from 'vue3-carousel'
+import { ref } from "vue";
+import { Carousel, Pagination, Slide, Navigation } from "vue3-carousel";
 
 const scenarios = ref([
   {
@@ -34,44 +33,45 @@ const scenarios = ref([
     genre: 'Genre 1'
   },
   {
-    image: 'scenario.png',
-    gif: 'card2.gif',
-    title: 'Scenario 2',
-    genre: 'Genre 2'
+    image: "scenario.png",
+    gif: "card2.gif",
+    title: "Scenario 2",
+    genre: "Genre 2",
   },
   {
-    image: 'scenario_img.png',
-    gif: 'card3.gif',
-    title: 'Scenario 3',
-    genre: 'Genre 3'
+    image: "scenario_img.png",
+    gif: "card3.gif",
+    title: "Scenario 3",
+    genre: "Genre 3",
   },
   {
-    image: 'scenario_img.png',
-    gif: 'card4.gif',
-    title: 'Scenario 4',
-    genre: 'Genre 4'
+    image: "scenario_img.png",
+    gif: "card4.gif",
+    title: "Scenario 4",
+    genre: "Genre 4",
   },
   {
-    image: 'scenario_img.png',
-    gif: 'card5.gif',
-    title: 'Scenario 5',
-    genre: 'Genre 5'
-  }
+    image: "scenario_img.png",
+    gif: "card5.gif",
+    title: "Scenario 5",
+    genre: "Genre 5",
+  },
 ]);
 </script>
 
 
 <style scoped>
 .popular-scenario {
-  background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%), linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
+  background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%),
+    linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
   color: white;
   padding: 0;
 }
 
 .container {
-  padding: 200px 20px !important; 
-  border-radius: 0; 
-  max-width: 1200px; 
+  padding: 200px 20px !important;
+  border-radius: 0;
+  max-width: 1200px;
   margin: 0 auto;
   text-align: center;
 }
@@ -102,7 +102,6 @@ const scenarios = ref([
   min-width: 500px;
   min-height: 300px;
 }
-
 
 .gif-image {
   opacity: 0;
@@ -298,7 +297,7 @@ const scenarios = ref([
 
 .carousel__pagination-button::after {
   display: block;
-  content: '';
+  content: "";
   width: var(--vc-pgn-width);
   height: var(--vc-pgn-height);
   border-radius: var(--vc-pgn-border-radius);
@@ -309,7 +308,7 @@ const scenarios = ref([
   background-color: var(--vc-pgn-active-color);
 }
 
-@media(hover: hover) {
+@media (hover: hover) {
   .carousel__pagination-button:hover::after {
     background-color: var(--vc-pgn-active-color);
   }
@@ -325,7 +324,6 @@ const scenarios = ref([
   align-items: center;
   transform: translateZ(0); /* Fix iOS scrolling #22 */
 }
-
 </style>
 <!-- <template>
   <section class="popular-scenario">

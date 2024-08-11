@@ -1,9 +1,19 @@
 <template>
   <div>
     <div class="card-background">
-      <div class="image-container">
+      <div class="position-relative" style="height: 140px">
         <img class="card-image" :src="scenario.imageURL" alt="" />
-        <!-- <i class="fa-regular fa-heart"></i> -->
+        <i
+          v-if="scenario.isLiked"
+          class="position-absolute bi bi-suit-heart-fill text-danger end-0 px-2"
+          @click="toggleLikeScenario(scenario.id, 'unlike')"
+        ></i>
+        <i
+          v-else
+          class="position-absolute bi bi-suit-heart text-white end-0 px-2"
+          @click="toggleLikeScenario(scenario.id, 'like')"
+        ></i>
+        <img />
       </div>
       <div class="text-container">
         <div class="text-title">{{ scenario.title }}</div>
@@ -18,7 +28,7 @@
 </template>
 
 <script>
-import { nextTick, onMounted } from "vue";
+import { likeScenario, unlikeScenario } from "@/common/api/ScenarioAPI";
 
 export default {
   name: "ScenarioCard",
@@ -28,19 +38,29 @@ export default {
       required: true,
     },
   },
+  emits: ["toggle-like"],
+  setup(props, { emit }) {
+    const toggleLikeScenario = async (scenarioID, op) => {
+      if (op == "like") {
+        await likeScenario(scenarioID);
+      } else if (op == "unlike") {
+        await unlikeScenario(scenarioID);
+      }
+      emit("toggle-like", scenarioID, op);
+    };
+
+    return { toggleLikeScenario };
+  },
 };
 </script>
 
 <style scoped>
 .card-background {
   background-color: #3c3d41;
-  width: 250px;
+  width: 230px;
   height: 225px;
   border-radius: 1ch;
   padding: 15px;
-}
-.image-container {
-  height: 140px;
 }
 .card-image {
   width: 100%;
@@ -49,6 +69,8 @@ export default {
   border-radius: 1ch;
 }
 .text-title {
+  white-space: nowrap;
+  overflow: hidden;
   color: white;
   margin: 10px 0 0 0;
 }

@@ -1,57 +1,85 @@
 <template>
-    <div class="modal-overlay" @click.self="close">
-      <div class="modal-content" :style="modalContentStyle">
-        <div class="modal-header">
-          <div class="modal-title-container">
-            <img src="@/assets/images/character_sheet/title.png" alt="제목" class="modal-title-image">
-            <h2 class="modal-title-text">아이템 삭제</h2>
-          </div>
-        </div>
-        <div class="modal-body" :style="modalBodyStyle">
-          <p>정말로 이 아이템을 삭제하시겠습니까?</p>
-        </div>
-        <div class="modal-footer" :style="modalFooterStyle">
-          <button class="footer-button delete-button" @click="confirm">삭제</button>
-          <button class="footer-button" @click="close">닫기</button>
+  <div class="modal-overlay" @click.self="close">
+    <div class="modal-content" :style="modalContentStyle">
+      <div class="modal-header">
+        <div class="modal-title-container">
+          <img src="@/assets/images/character_sheet/title.png" alt="제목" class="modal-title-image">
+          <h2 class="modal-title-text">아이템 삭제</h2>
         </div>
       </div>
+      <div class="modal-body" :style="modalBodyStyle">
+        <p>정말로 이 아이템을 삭제하시겠습니까?</p>
+      </div>
+      <div class="modal-footer" :style="modalFooterStyle">
+        <button class="footer-button delete-button" @click="handleDelete">삭제</button>
+        <button class="footer-button" @click="close">닫기</button>
+      </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { computed, defineEmits } from 'vue';
-  
-  const emit = defineEmits(['close', 'confirm']);
-  
-  const close = () => {
-    emit('close');
-  };
-  
-  const confirm = () => {
-    emit('confirm');
-  };
-  
-  const modalContentStyle = computed(() => ({
-    background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-    backgroundSize: 'cover',
-  }));
-  
-  const modalBodyStyle = computed(() => ({
-    background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
-    backgroundSize: 'cover',
-    marginTop: '10px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '20px',
-    height: '100px',
-  }));
-  
-  const modalFooterStyle = computed(() => ({
-    background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-    backgroundSize: 'cover',
-  }));
-  </script>
+  </div>
+</template>
+
+<script setup>
+import { computed, defineProps, defineEmits } from 'vue';
+import { useRoute } from 'vue-router';
+import { deleteEquipment } from '@/common/api/InventoryAPI.js';
+import { selectedPlayMemberID } from '@/store/state.js';
+
+const props = defineProps({
+  item: Object, // 삭제할 아이템 정보를 받아옴
+});
+
+const emit = defineEmits(['close', 'confirm']);
+
+const route = useRoute();
+
+const close = () => {
+  emit('close');
+};
+
+const handleDelete = async () => {
+  if (props.item) {
+    try {
+      const roomId = route.params.roomId;
+      const playMemberID = selectedPlayMemberID.value;
+
+      console.log('Deleting equipment with equipmentID:', props.item.equipmentID); // 로그 추가
+
+      // 서버에 삭제 요청 (equipmentID를 사용)
+      await deleteEquipment(roomId, playMemberID, props.item.equipmentID);
+
+      // 성공 시 confirm 이벤트 emit
+      emit('confirm');
+      close();
+    } catch (error) {
+      console.error('Failed to delete item from the server:', error);
+      // 에러 처리 (필요시 사용자에게 알림)
+    }
+  }
+};
+
+
+const modalContentStyle = computed(() => ({
+  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+
+const modalBodyStyle = computed(() => ({
+  background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+  marginTop: '10px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: '20px',
+  height: '100px',
+}));
+
+const modalFooterStyle = computed(() => ({
+  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
+  backgroundSize: 'cover',
+}));
+</script>
+
   
   <style scoped>
   .modal-overlay {

@@ -60,6 +60,7 @@
               v-for="scenario in scenarios.scenarioList"
               :key="scenario.id"
               :scenario="scenario"
+              @toggle-like="handleToggleLike"
             />
           </div>
         </div>
@@ -142,6 +143,17 @@ export default {
       );
     };
 
+    // 좋아요 버튼 토글
+    const handleToggleLike = (scenarioID, op) => {
+      console.log(`Scenario ID: ${scenarioID}, Operation: ${op}`);
+      const scenario = scenarios.value.scenarioList.find(
+        (s) => s.id == scenarioID
+      );
+      if (scenario) {
+        scenario.isLiked = op === "like";
+      }
+    };
+
     return {
       scenarios,
       genres,
@@ -149,6 +161,7 @@ export default {
       searchKeyword,
       selectSort,
       selectedGenres,
+      handleToggleLike,
     };
   },
 };

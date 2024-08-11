@@ -8,6 +8,7 @@
           v-for="scenario in likedScenarios.scenarioList"
           :key="scenario.id"
           :scenario="scenario"
+          @toggle-like="handleToggleLike"
         />
       </div>
     </div>
@@ -25,15 +26,23 @@ export default {
     ScenarioCard,
   },
   setup() {
-    const likedScenarios = ref([]);
+    const likedScenarios = ref({ scenarioList: [] });
 
     onMounted(async () => {
       likedScenarios.value = await getLikedScenarioList();
-      console.log("liked", likedScenarios.value.scenarioList);
     });
+
+    // 좋아요 버튼 토글
+    const handleToggleLike = (scenarioID, op) => {
+      if (op == "unlike") {
+        likedScenarios.value.scenarioList =
+          likedScenarios.value.scenarioList.filter((s) => s.id !== scenarioID);
+      }
+    };
 
     return {
       likedScenarios,
+      handleToggleLike,
     };
   },
 };
@@ -44,10 +53,10 @@ export default {
   color: white;
   margin: 0 0 20px 20px;
 }
-.content-box {
-  /* background-color: #3a3a3c; */
-  /* border-radius: 18px; */
-}
+/* .content-box {
+  background-color: #3a3a3c;
+  border-radius: 18px;
+} */
 .left-box {
   height: 750x;
   padding: 20px;
@@ -55,7 +64,6 @@ export default {
 }
 .right-box {
   height: 695px; /*왼쪽 박스와 높이 끝 같게 */
-  /* border: 1px solid #3a3a3c; */
 }
 .card-container {
   padding-left: 20px;

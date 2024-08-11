@@ -6,10 +6,12 @@
         <i
           v-if="scenario.isLiked"
           class="position-absolute bi bi-suit-heart-fill text-danger end-0 px-2"
+          @click="toggleLikeScenario(scenario.id, 'unlike')"
         ></i>
         <i
           v-else
           class="position-absolute bi bi-suit-heart text-white end-0 px-2"
+          @click="toggleLikeScenario(scenario.id, 'like')"
         ></i>
         <img />
       </div>
@@ -26,6 +28,8 @@
 </template>
 
 <script>
+import { likeScenario, unlikeScenario } from "@/common/api/ScenarioAPI";
+
 export default {
   name: "ScenarioCard",
   props: {
@@ -33,6 +37,19 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  emits: ["toggle-like"],
+  setup(props, { emit }) {
+    const toggleLikeScenario = async (scenarioID, op) => {
+      if (op == "like") {
+        await likeScenario(scenarioID);
+      } else if (op == "unlike") {
+        await unlikeScenario(scenarioID);
+      }
+      emit("toggle-like", scenarioID, op);
+    };
+
+    return { toggleLikeScenario };
   },
 };
 </script>

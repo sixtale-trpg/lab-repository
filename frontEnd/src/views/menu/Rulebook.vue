@@ -1,16 +1,151 @@
 <template>
-    <div>
-      <h1>룰북 페이지</h1>
+  <section class="rule-book">
+    <div v-if="data.error" class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ data.error }}
+      <button type="button" class="btn-close" aria-label="Close" @click="data.error = ''"></button>
     </div>
-  </template>
+    <div class="card container shadow rounded-3" style="height: 100%;">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <!-- <img src="@/assets/chat/chatbot.png" width="38" height="38" class="rounded-circle" /> -->
+          <span class="ms-2 fs-5 fw-semibold text-muted">Rule Chatbot</span>
+        </div>
+      </div>
+      <div class="card-body p-5 overflow-auto">
+        <RuleResult :messages="generatedMessages" />
+      </div>
+      <div class="card-footer p-3">
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control rounded-start"
+            v-model="data.userMessage"
+            placeholder="무엇이 궁금하신가요?"
+            @input="remember('userMessage', data.userMessage)"
+          />
+          <button class="btn btn-outline-secondary rounded-end" type="button" @click="run">
+            <!-- <IconSearch :width="23" :height="23" :color="'#666666'" />  -->
+          </button> 
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script setup>
+import { computed, reactive,watch } from 'vue';
+import RuleResult from './components/RuleResult.vue';
+import {
+  createCompletion,
+  createClient,
+  ROLE_ASSISTANT,
+  ROLE_SYSTEM,
+  ROLE_USER,
+} from '@/common/api/openaiApi';
+
+const DEFAULT_SYSTEM_MESSAGE = '어서오세요。\n';
+const DEFAULT_USER_MESSAGE = '';
+const DEFAULT_DELAY_SECONDS = 1;
+
+// 로컬 스토리지에서 `generatedMessages`만 불러오는 함수
+const loadGeneratedMessagesFromLocalStorage = () => {
+  const storedGeneratedMessages = JSON.parse(localStorage.getItem('generatedMessages')) || [];
+  return storedGeneratedMessages.map(msg => new Message(msg.role, msg.content));
+};
+
+// 데이터 저장 함수 (`generatedMessages`만 저장)
+const saveGeneratedMessagesToLocalStorage = () => {
+  localStorage.setItem('generatedMessages', JSON.stringify(data.generatedMessages));
+};
+
+const data = reactive({
+  error: '',
+  key: 'sec_ksARBi5NqYI2LMk1PXzFF2uupbMFZfmc',
+  systemMessage: localStorage.getItem('systemMessage') || DEFAULT_SYSTEM_MESSAGE,
+  userMessage: DEFAULT_USER_MESSAGE,
+  delaySeconds:  DEFAULT_DELAY_SECONDS,
+  generatedMessages: loadGeneratedMessagesFromLocalStorage(),
+  loads: false,
+});
+
+function Message(role, content) {
+  this.role = role;
+  this.content = content.trim();
+}
+
+const initMessages = computed(() => [
+  new Message(ROLE_SYSTEM, data.systemMessage),
+]);
+
+const generatedMessages = computed(() => initMessages.value.concat(data.generatedMessages));
+
+const remember = (key, value) => localStorage.setItem(key, value);
+
+const rememberKey = () => localStorage.setItem('key', window.btoa(data.key));
+
+// `generatedMessages` 변경 시 로컬 스토리지에 저장
+watch(() => data.generatedMessages, saveGeneratedMessagesToLocalStorage, { deep: true });
+
+
+const run = async () => {
+  data.loads = true;
+  const client = createClient(data.key);
+  try {
+
+    const userMessage = data.userMessage.trim();
+     if (userMessage) {
+    // 사용자 메시지 배열에 새 메시지 추가
+    data.generatedMessages.push(new Message(ROLE_USER, userMessage));
+    data.userMessage = ''; // 입력 필드 비우기
+       
+        const result = await createCompletion(client)({
+        messages: [{ role: ROLE_USER, content: userMessage }],
+      });
+
+      const content = result.content; // Adjust based on actual response structure
+      console.log(content);
+      data.generatedMessages.push(new Message(ROLE_ASSISTANT, content));
+      await new Promise((resolve) => setTimeout(resolve, data.value.delaySeconds * 1000));
+      data.value.loads = false;
+    }
+      // }
+    // }
+    
+  } catch (err) {
+    data.error = err.message;
+    data.loads = false;
+  }
+};
+</script>
+
+<style scoped>
+/* 룰북 페이지 스타일 */
+.container {
+  /* max-width: 1200px; */
+  padding: 0 !important;
+  margin-top: 150px;
+  margin-bottom: 150px;
+  background-color: aliceblue;
+}
+
+.custom-input:focus {
+  border-color: #eceff1 !important;
+  box-shadow: none !important;
+  background-color: #eceff1;
+}
+
+.custom-input:hover {
+  border-color: #eceff1 !important;
+  background-color: #eceff1;
+}
+
+.custom-input {
+  border: #eceff1;
+  border-radius: 15px 0px 0px 15px;
+  background-color: #eceff1;
+}
+
+.card-footer{
   
-  <script>
-  export default {
-    name: 'Rulebook'
-  };
-  </script>
-  
-  <style scoped>
-  /* 룰북 페이지 스타일 */
-  </style>
-  
+}
+</style>

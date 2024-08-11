@@ -1,16 +1,8 @@
 <template>
   <header class="main-header" :style="{ height: height }">
     <div class="logo" @click="goHome">
-      <img
-        src="@/assets/images/SixtaleLogo.png"
-        alt="Site Logo"
-        class="logo-image"
-      />
-      <img
-        src="@/assets/images/SixtaleTitle.png"
-        alt="Site Title"
-        class="title-image"
-      />
+      <img src="@/assets/images/SixtaleLogo.png" alt="Site Logo" class="logo-image" />
+      <img src="@/assets/images/SixtaleTitle.png" alt="Site Title" class="title-image" />
     </div>
     <nav class="nav-menu">
       <ul>
@@ -21,11 +13,7 @@
       </ul>
     </nav>
     <div class="profile">
-      <img
-        src="@/assets/images/user.png"
-        alt="Profile Image"
-        class="profile-image"
-      />
+      <img src="@/assets/images/user.png" alt="Profile Image" class="profile-image" />
       <div v-if="isLoggedIn" class="dropdown">
         <button
           class="btn dropdown-toggle custom-dropdown-btn"
@@ -35,29 +23,19 @@
         ></button>
         <ul class="dropdown-menu custom-dropdown-menu">
           <li>
-            <a
-              class="dropdown-item custom-dropdown-item"
-              href="#"
-              @click="doLogout"
-              >로그아웃</a
-            >
+            <a class="dropdown-item custom-dropdown-item" href="#" @click="doLogout">로그아웃</a>
           </li>
           <li><hr class="dropdown-divider custom-divider" /></li>
           <li>
-            <a
-              class="dropdown-item custom-dropdown-item"
-              href="#"
-              @click="doDeleteAccount"
+            <a class="dropdown-item custom-dropdown-item" href="#" @click="doDeleteAccount"
               >회원탈퇴</a
             >
           </li>
           <li><hr class="dropdown-divider custom-divider" /></li>
           <li>
-            <router-link to="/mypage"><a
-              class="dropdown-item custom-dropdown-item"
-              >마이페이지</a
-            ></router-link>
-            
+            <router-link to="/mypage"
+              ><a class="dropdown-item custom-dropdown-item">마이페이지</a></router-link
+            >
           </li>
         </ul>
       </div>

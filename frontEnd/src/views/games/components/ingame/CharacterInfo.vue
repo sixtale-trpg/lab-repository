@@ -3,7 +3,7 @@
     <div class="info-section">
       <div class="left-section">
         <div class="image-container">
-          <img :src="characterData.image || defaultImage" alt="캐릭터 이미지" class="character-image">
+          <img :src="characterData.imageURL || defaultImage" alt="캐릭터 이미지" class="character-image">
         </div>
       </div>
       <div class="right-section">
@@ -24,7 +24,7 @@
           </div>
           <div class="info-box">
             <img src="@/assets/images/ingame/Button.png" alt="종족 배경" class="info-box-image">
-            <span class="info-text">{{ characterData.race }}</span>
+            <span class="info-text">{{ characterData.raceName }}</span>
           </div>
         </div>
         <div class="info-item">
@@ -34,7 +34,7 @@
           </div>
           <div class="info-box">
             <img src="@/assets/images/ingame/Button.png" alt="직업 배경" class="info-box-image">
-            <span class="info-text">{{ characterData.job }}</span>
+            <span class="info-text">{{ characterData.jobName }}</span>
           </div>
         </div>
       </div>
@@ -45,31 +45,52 @@
         <span class="history-title-text">히스토리</span>
       </div>
       <div class="history-content">
-        <p>{{ characterData.background }}</p>
+        <textarea v-model="editableBackground" class="history-textarea"></textarea>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-// 주석 처리된 부분은 부모 컴포넌트에서 데이터를 받을 때 사용합니다.
-// const props = defineProps(['characterData']);
-// const characterData = computed(() => props.characterData);
-
+import { computed, ref, watch } from 'vue';
+import { defineProps, defineEmits } from 'vue';
 import defaultImage from '@/assets/images/ingame/user1.png';
 
-const characterData = ref({
-  image: '', // 캐릭터 이미지 URL, 더미 데이터 사용
-  name: '예시 이름',
-  race: '인간',
-  job: '전사',
-  background: '이 캐릭터는 아주 특별한 배경을 가지고 있습니다...'
+const props = defineProps({
+  formData: {
+    type: Object,
+    required: true,
+  },
 });
+
+const emit = defineEmits(['update:formData']);
+
+const characterData = computed(() => ({
+  imageURL: props.formData.imageURL || defaultImage,
+  name: props.formData.name || '알 수 없음',
+  raceName: props.formData.raceName || '알 수 없음',
+  jobName: props.formData.jobName || '알 수 없음',
+  background: props.formData.background || '',
+}));
+
+const editableBackground = ref(characterData.value.background);
+
+watch(editableBackground, (newBackground) => {
+  emit('update:formData', { ...props.formData, background: newBackground });
+});
+
+watch(
+  () => props.formData.background,
+  (newBackground) => {
+    editableBackground.value = newBackground;
+  }
+);
+
 </script>
 
 
 <style scoped>
+/* 스타일은 그대로 유지 */
 .character-info-container {
   width: 100%;
   padding: 20px;
@@ -195,5 +216,15 @@ const characterData = ref({
   width: 100%;
   box-sizing: border-box;
   text-align: left;
+}
+
+.history-textarea {
+  width: 100%;
+  height: 150px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  resize: none;
 }
 </style>

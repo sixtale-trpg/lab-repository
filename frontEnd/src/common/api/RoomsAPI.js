@@ -74,6 +74,7 @@ export const getMapInfo = async (roomId, mapId) => {
   }
 };
 
+// 맵 장소 이벤트 목록 조회
 export const getMapPlace = async (roomId, mapId) => {
   try {
     const response = await axios.get(`${BASE_URL}/${roomId}/maps/${mapId}/places`, {
@@ -81,8 +82,20 @@ export const getMapPlace = async (roomId, mapId) => {
     });
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching map info:', error);
+    console.error('Error fetching map place info:', error);
     throw error;
   }
 };
 
+// 맵 NPC 이벤트 목록 조회
+export const getMapNpcs = async (roomId, mapId) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/${roomId}/maps/${mapId}/npcs`, {
+      headers: getHeaders()
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching NPC event list:', error);
+    throw error;
+  }
+};

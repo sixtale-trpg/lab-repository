@@ -105,8 +105,15 @@ const selectButtonStyle = computed(() => ({
 
 const actionCategory = computed(() => props.action.category);
 const actionName = computed(() => props.action.name);
-const actionDescription = computed(() => props.action.description);
-const formattedDescription = computed(() => props.action.description.replace(/<br>/g, '<br/>'));
+const formattedDescription = computed(() => {
+  let description = props.action.description.replace(/<br>/g, '<br/>');
+  if (props.action.actionOption && props.action.actionOption.length > 0) {
+    const optionsList = props.action.actionOption.map(option => `<li>${option.content}</li>`).join('');
+    description += `<ul>${optionsList}</ul>`;
+  }
+  return description;
+});
+
 </script>
 
 <style scoped>

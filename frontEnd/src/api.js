@@ -45,7 +45,9 @@ const translateText = async (text) => {
 };
 
 const generateImage = async (description) => {
-  const fullPrompt = `Portrait of a fantasy game character: ${description}. The character is emphasized with a plain background similar to a passport photo.`;
+  // 불필요한 공백 및 특수 문자를 제거하여 정리된 프롬프트 생성
+  const cleanedDescription = description.replace(/[^\w\s,]/g, '').trim();
+  const fullPrompt = `Portrait of a fantasy game animation character: ${cleanedDescription}. The character is emphasized with a plain background similar to a passport photo.`;
   console.log('Full Prompt:', fullPrompt);
 
   try {

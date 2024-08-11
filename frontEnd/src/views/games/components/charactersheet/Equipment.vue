@@ -64,9 +64,14 @@
 <script setup>
 import { ref, reactive, toRefs } from 'vue';
 
-const props = defineProps(['formData']);
-const { formData } = toRefs(props);
-
+const props = defineProps({
+  'form-data': {
+    type: Object,
+    required: true
+  }
+});
+// const { formData } = toRefs(props);
+const emit = defineEmits(['update:form-data']);
 const closeRangeWeapons = reactive([
   { title: '단도 (반검용, 무게 1)' },
   { title: '레이피어 (한검용, 장검, 무게 1)' },

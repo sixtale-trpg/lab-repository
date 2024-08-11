@@ -12,9 +12,6 @@ export const getScenarioList = async (
   sort,
   order
 ) => {
-  console.log("Genre", genre);
-  console.log("sort", sort);
-  console.log("order", order);
   try {
     const response = await axios.get(
       `${BASE_URL}?genre=${genre}&title=${title}&page=${page}&size=${size}&sort=${sort}&order=${order}`

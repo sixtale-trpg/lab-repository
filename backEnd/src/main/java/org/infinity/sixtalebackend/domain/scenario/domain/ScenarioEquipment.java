@@ -20,9 +20,10 @@ public class ScenarioEquipment {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id", nullable = false)
     private EquipmentType equipmentType;
 
@@ -34,13 +35,14 @@ public class ScenarioEquipment {
     @ColumnDefault("0")
     private Integer count;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     private Job job;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
 
+    @Column(name = "image_url")
     private String imageURL;
 }

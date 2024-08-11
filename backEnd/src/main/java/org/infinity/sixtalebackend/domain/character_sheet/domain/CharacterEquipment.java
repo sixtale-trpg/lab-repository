@@ -20,11 +20,11 @@ public class CharacterEquipment {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "equipment_id", nullable = false)
     private ScenarioEquipment equipment;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "play_member_id", nullable = false)
     private PlayMember playMember;
 
@@ -33,5 +33,9 @@ public class CharacterEquipment {
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer weight;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "character_sheet_id", nullable = false)
+    private CharacterSheet characterSheet;
 
 }

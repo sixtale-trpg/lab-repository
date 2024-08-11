@@ -7,6 +7,7 @@ import lombok.Getter;
 @Builder
 public class CharacterEquipmentResponse {
     private Long id;
+    private Long equipmentID;
     private String name;
     private String description;
     private Long typeID;

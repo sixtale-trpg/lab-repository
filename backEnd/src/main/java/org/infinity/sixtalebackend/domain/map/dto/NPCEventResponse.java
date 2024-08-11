@@ -8,14 +8,13 @@ import org.infinity.sixtalebackend.domain.map.domain.Map;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioNPC;
 
 @Getter
-@Setter
 @Builder
 public class NPCEventResponse {
 
     private Long id;
-    private Map map;
+    private Long mapId;
     private String description;
-    private ScenarioNPC scenarioNPC;
+    private Long scenarioNPCId;
     private Integer currentHp;
 
 }

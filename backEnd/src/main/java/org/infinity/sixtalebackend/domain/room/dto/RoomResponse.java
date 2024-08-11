@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.room.domain.RoomStatus;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,4 +30,7 @@ public class RoomResponse {
     private Long ruleId;
     private Long gmId;
     private Long scenarioId;
+    private String scenarioTitle;
+    private String scenarioImageURL;
+    private List<PlayMemberResponse> playMemberList;
 }

@@ -1,4 +1,4 @@
-package org.infinity.sixtalebackend.global.config;
+package org.infinity.sixtalebackend.infra.s3;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -20,15 +20,15 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers("/", "/members/auth/login", "/members/success", "/members/fail").permitAll()
+                                .requestMatchers("/", "/members/auth/login").permitAll()
                                 .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JWTTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2Login ->
                         oauth2Login
                                 .loginPage("/members/auth/login").permitAll()
-                                .defaultSuccessUrl("/members/success").permitAll()
-                                .failureUrl("/members/fail").permitAll()
+                                .defaultSuccessUrl("/").permitAll()
+                                .failureUrl("/").permitAll()
                 )
                 .logout(logout ->
                         logout

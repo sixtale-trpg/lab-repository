@@ -3,7 +3,9 @@ package org.infinity.sixtalebackend.domain.room.service;
 import jakarta.persistence.LockModeType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.infinity.sixtalebackend.domain.chat.service.ChatRoomService;
 import org.infinity.sixtalebackend.domain.member.domain.Calender;
+import org.infinity.sixtalebackend.domain.chat.service.ChatRoomService;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
 import org.infinity.sixtalebackend.domain.member.repository.CalendarRepository;
@@ -37,6 +39,7 @@ public class RoomServiceImpl implements RoomService{
     private final ScenarioRepository scenarioRepository;
     private final CalendarRepository calendarRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ChatRoomService chatRoomService;
 
     /**
      * 게임 방 유저 입장
@@ -81,6 +84,10 @@ public class RoomServiceImpl implements RoomService{
         // Room의 current_count 증가
         room.setCurrentCount((byte) (room.getCurrentCount() + 1));
         roomRepository.save(room);
+
+        /**
+         * 브로드캐스트로 입장 메시지 전송
+         */
 
         RoomResponse roomResponse = RoomResponse.builder()
                 .id(room.getId())
@@ -169,6 +176,12 @@ public class RoomServiceImpl implements RoomService{
                 .build();
         roomRepository.save(room);
 
+        /**
+         * 방 생성시, Redis Topic생성을 위한 로직 추가
+         */
+        chatRoomService.createChatRoom(room.getId());
+
+
         return RoomResponse.builder()
                 .id(room.getId())
                 .title(room.getTitle())
@@ -200,7 +213,8 @@ public class RoomServiceImpl implements RoomService{
 
         List<PlayMemberResponse> playMemberResponses = room.getPlayMembers().stream()
                 .map(pm -> PlayMemberResponse.builder()
-                        .playMemberID(pm.getMember().getId())
+                        .playMemberID(pm.getId())
+                        .memberID(pm.getMember().getId())
                         .playMemberNickname(pm.getMember().getNickname())
                         .playMemberImageURL(pm.getMember().getImageURL())
                         .build())
@@ -306,9 +320,23 @@ public class RoomServiceImpl implements RoomService{
                 .updatedAt(room.getUpdatedAt())
                 .playTime(room.getPlayTime())
                 .scenarioId(room.getScenario().getId())
+                .scenarioTitle(room.getScenario().getTitle())
+                .scenarioImageURL(room.getScenario().getImageURL())
                 .ruleId(room.getRule().getId())
                 .gmId(room.getGm().getId())
+                .playMemberList(mapMembersToResponse(room.getPlayMembers()))
                 .build());
+    }
+
+    private List<PlayMemberResponse> mapMembersToResponse(List<PlayMember> playMembers) {
+        return playMembers.stream()
+                .map(pm -> PlayMemberResponse.builder()
+                        .playMemberID(pm.getId())
+                        .memberID(pm.getMember().getId())
+                        .playMemberNickname(pm.getMember().getNickname())
+                        .playMemberImageURL(pm.getMember().getImageURL())
+                .build())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -364,6 +392,39 @@ public class RoomServiceImpl implements RoomService{
                     .build();
             calendarRepository.save(calender);
         }
+    }
+
+    /**
+     * 나의 플레이 방 목록 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RoomResponse> getRoomListByMemberId(Long memberId, Pageable pageable) {
+        Page<Room> rooms = roomRepository.findByMemberId(memberId, pageable);
+
+        return rooms.map(room -> RoomResponse.builder()
+                .id(room.getId())
+                .title(room.getTitle())
+                .description(room.getDescription())
+                .currentCount(room.getCurrentCount())
+                .maxCount(room.getMaxCount())
+                .isLocked(room.getIsLocked())
+                .password(room.getPassword())
+                .isShortStory(room.getIsShortStory())
+                .isVoice(room.getIsVoice())
+                .status(room.getStatus())
+                .nextPlay(room.getNextPlay())
+                .createdAt(room.getCreatedAt())
+                .updatedAt(room.getUpdatedAt())
+                .playTime(room.getPlayTime())
+                .scenarioId(room.getScenario().getId())
+                .scenarioTitle(room.getScenario().getTitle())
+                .scenarioImageURL(room.getScenario().getImageURL())
+                .ruleId(room.getRule().getId())
+                .gmId(room.getGm().getId())
+                .playMemberList(mapMembersToResponse(room.getPlayMembers()))
+                .build());
+
     }
 
 }

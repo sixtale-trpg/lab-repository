@@ -3,8 +3,8 @@
     <div class="log-modal-content">
       <h2 class="log-title">플레이 로그</h2>
       <div class="log-details">
-        <h3>00{{ room.id }}{{ room.title }}</h3>
-        <p>{{ room.scenario_name }}</p>
+        <h3>{{ formatRoomId(room.id) }} {{ room.title }}</h3>
+        <p>S# {{ room.scenarioTitle }}</p>
       </div>
       <div class="log-tabs">
         <button
@@ -16,28 +16,41 @@
           {{ tab }}
         </button>
       </div>
-      <div class="log-content">
+      <!-- <div class="log-content"> -->
+      <div
+        class="log-content"
+        :class="{ 'tab-content-active': activeTab === '대기' || activeTab === '플레이' }"
+      >
         <!-- 대기 탭 내용 -->
         <div v-if="activeTab === '대기'">
-          <p v-for="(entry, index) in logEntriesWait" :key="index" class="log-entry">
+          <div v-for="(entry, index) in logEntriesWait" :key="index" class="log-entry tab-content">
             <span :class="entry.type">{{ entry.user }}:</span> {{ entry.message }}
-          </p>
+          </div>
         </div>
         <!-- 플레이 탭 내용 -->
         <div v-if="activeTab === '플레이'">
-          <p v-for="(entry, index) in logEntriesPlay" :key="index" class="log-entry">
+          <div v-for="(entry, index) in logEntriesPlay" :key="index" class="log-entry tab-content">
             <span :class="entry.type">{{ entry.user }}:</span> {{ entry.message }}
-          </p>
+          </div>
         </div>
       </div>
-      <button class="close-button" @click="closeModal">X</button>
+      <div class="modal-footer">
+        <button class="close-button" @click="closeModal">닫기</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
-import { defineEmits } from "vue";
+import { defineProps, defineEmits } from "vue";
+
+const props = defineProps({
+  room: {
+    type: Object,
+    required: true,
+  },
+});
 
 const emit = defineEmits(["close"]);
 
@@ -49,16 +62,21 @@ const closeModal = () => {
 const activeTab = ref("대기"); // 현재 활성화된 탭
 const tabs = ref(["대기", "플레이"]); // 탭 목록
 
-// props로 데이터 받아야 함
-const room = ref({
-  id: 5,
-  title: "부서진 오벨리스크 세션",
-  scenario_name: "S# 드래곤의 전설",
-});
-//대기 탭 로그 데이터 -- 형식 봐야 함
 const logEntriesWait = ref([
   { type: "GM", user: "GM", message: "이제 던전월드로 떠나볼까요?" },
   { type: "플레이어", user: "플레이어1", message: "여행은 새로운 장소로 떠나는 것 같아요." },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
+  { type: "플레이어", user: "플레이어2", message: "동의해요!" },
   { type: "플레이어", user: "플레이어2", message: "동의해요!" },
 ]);
 // 플레이 탭 로그 데이터
@@ -67,16 +85,27 @@ const logEntriesPlay = ref([
   { type: "플레이어", user: "플레이어1", message: "탐색을 시작합니다." },
   { type: "플레이어", user: "플레이어2", message: "제가 앞장설게요." },
 ]);
+
+// 방 ID를 포맷팅하는 함수
+const formatRoomId = (id) => {
+  if (id < 10) {
+    return `00${id}`;
+  } else if (id < 100) {
+    return `0${id}`;
+  } else {
+    return `${id}`;
+  }
+};
 </script>
 
-<style>
+<style scoped>
 .log-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -84,37 +113,44 @@ const logEntriesPlay = ref([
 }
 
 .log-modal-content {
-  background-color: #3a3a3c;
+  background-color: #3c3d41;
   border-radius: 18px;
-  padding: 20px;
-  max-width: 600px;
-  width: 80%;
-  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+  padding: 30px;
+  max-width: 900px;
+  width: 100%;
+  box-shadow: inset 1px 1px 4px rgba(158, 158, 158, 0.6);
 }
 
 .log-title {
-  color: white;
-  margin-bottom: 10px;
+  color: #ffffff;
+  font-size: 1.7rem;
+  margin-bottom: 20px;
+  text-align: left;
 }
 
 .log-details h3 {
-  color: #f0f0f0;
-  margin: 0;
+  color: #bfbfc0;
+  margin: 0 0 0 8px;
+  font-size: 1.1rem;
+  text-align: left;
 }
 
 .log-details p {
   color: #bfbfc0;
-  margin: 5px 0 20px;
+  margin: 5px 0 20px 16px;
+  text-align: left;
+  font-size: 1.1rem;
 }
 
 .log-tabs {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  justify-content: flex-start;
+  width: 300px;
+  margin: 0 8px;
 }
 
 .log-tab {
-  background-color: #343434;
+  background-color: #2e2e2e;
   color: #f0f0f0;
   border: none;
   padding: 10px 20px;
@@ -125,20 +161,40 @@ const logEntriesPlay = ref([
 }
 
 .log-tab.active {
-  background-color: #007bff;
+  background-color: #4d4e51;
 }
 
 .log-content {
-  max-height: 300px;
+  text-align: left;
+  max-height: 500px;
   overflow-y: auto;
-  background-color: #2c2c2e;
-  padding: 15px;
+  background-color: #4d4e51;
+  padding: 20px;
   border-radius: 10px;
 }
+.log-content::-webkit-scrollbar {
+  width: 15px;
+}
 
+.log-content::-webkit-scrollbar-thumb {
+  background-color: #d9d9d9cf;
+  border-radius: 4px;
+}
+
+.log-content::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
+
+.tab-content {
+  background-color: #d9d9d9; /* 흰색 배경 */
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  color: #333333; /* 검정색 텍스트 */
+}
 .log-entry {
   margin-bottom: 10px;
-  color: #f0f0f0;
+  /* color: #f0f0f0; */
 }
 
 .log-entry span.GM {
@@ -148,9 +204,13 @@ const logEntriesPlay = ref([
 .log-entry span.플레이어 {
   color: #ff7f50;
 }
-
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
 .close-button {
-  background-color: #007bff;
+  background-color: #343434;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -160,9 +220,10 @@ const logEntriesPlay = ref([
   display: block;
   width: 100%;
   text-align: center;
+  width: 200px;
 }
 
 .close-button:hover {
-  background-color: #0056b3;
+  background-color: #1c1b1b;
 }
 </style>

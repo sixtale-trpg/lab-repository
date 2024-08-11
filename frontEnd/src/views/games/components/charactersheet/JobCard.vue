@@ -42,10 +42,18 @@ const props = defineProps({
   selectedBy: {
     type: String,
     default: ''
+  },
+  generatedImages: {
+    type: Array,
+    default: () => []
+  },
+  selectedImage: {
+    type: String,
+    default: ''
   }
 });
 
-const emit = defineEmits(['select-card', 'edit-card', 'delete-card']);
+const emit = defineEmits(['select-card', 'edit-card', 'delete-card', 'open-character-sheet']);
 
 const hover = ref(false);
 const borderImage = require('@/assets/images/character/character_border.png');
@@ -64,6 +72,14 @@ const borderStyle = computed(() => ({
 
 const selected = computed(() => props.selectedBy !== '');
 const selectedByMe = computed(() => props.selectedBy === 'currentUser'); // currentUser를 실제 사용자 ID로 변경
+
+const openCharacterSheet = () => {
+  emit('open-character-sheet', {
+    jobName: props.name,
+    generatedImages: props.generatedImages,
+    selectedImage: props.selectedImage
+  });
+};
 
 const selectCard = () => {
   emit('select-card', props.name);

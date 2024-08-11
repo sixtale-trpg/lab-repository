@@ -9,12 +9,13 @@
       </button>
     </div>
     <div class="profile-cards">
+      <div v-if="users.length === 0">No users available</div>
       <div class="profile-card" v-for="user in users" :key="user.playMemberID">
         <div class="profile-image">
           <img
             v-if="showAIImages"
-            :src="user.imageURL"
-            :alt="'User ' + user.name + ' AI 프로필 사진'"
+            :src="user.imageURL || require('@/assets/images/user.png')"
+            :alt="'User ' + user.playMemberNickname + ' AI 프로필 사진'"
             @click="fetchUserJob(user.playMemberID)"
           />
           <CharacterStats
@@ -32,7 +33,7 @@
         </div>
         <div class="profile-info">
           <div class="user-info">
-            <h3>{{ user.name }}</h3>
+            <h3>{{ user.playMemberNickname }}</h3>
             <span v-if="isGM">정보</span>
             <img
               v-if="isGM"
@@ -58,7 +59,7 @@ import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import CharacterStats from './CharacterStats.vue';
 import CharacterInfo from '@/views/games/components/ingame/CharacterInfoModal.vue';
 import VoiceChatButton from '../../VoiceChatButton.vue';
-import { selectedPlayMemberID, selectedUserJob } from '@/store/state.js'; // 전역 상태 가져오기
+import { selectedPlayMemberID, selectedUserJobID } from '@/store/state.js'; // 전역 상태 가져오기
 
 const route = useRoute();
 const showStats = ref(false);
@@ -78,17 +79,45 @@ const fetchCharacterSheets = async () => {
 
   try {
     const roomInfo = await getRoomInfo(roomId);
-    const currentCount = roomInfo.currentCount;
+    console.log('Room Info:', roomInfo); // roomInfo 로그 추가
 
-    for (let playMember of roomInfo.playMemberList) {
-      console.log(`Fetching character sheet for playMemberID: ${playMember.playMemberID}`);
-      const characterSheet = await getCharacterSheet(roomId, playMember.playMemberID);
-      if (characterSheet) {
-        users.value.push({ ...characterSheet, playMemberID: playMember.playMemberID });
+    if (roomInfo && Array.isArray(roomInfo.playMemberList)) {
+      users.value = []; // users 배열 초기화
+      for (let playMember of roomInfo.playMemberList) {
+        console.log(`Fetching character sheet for playMemberID: ${playMember.playMemberID}`);
+        try {
+          const characterSheet = await getCharacterSheet(roomId, playMember.playMemberID);
+          console.log('Character Sheet:', characterSheet); // characterSheet 로그 추가
+          if (characterSheet) {
+            users.value.push({ ...playMember, ...characterSheet, playMemberID: playMember.playMemberID });
+          } else {
+            users.value.push({ ...playMember, playMemberID: playMember.playMemberID }); // 기본 정보 추가
+          }
+        } catch (fetchError) {
+          console.error(`Error fetching character sheet for playMemberID ${playMember.playMemberID}:`, fetchError);
+          users.value.push({ ...playMember, playMemberID: playMember.playMemberID }); // 기본 정보 추가
+        }
       }
+      console.log('Fetched users:', users.value);
+    } else {
+      console.error('Room info or play member list is not an array:', roomInfo);
     }
   } catch (error) {
     console.error('Error fetching character sheets:', error);
+  }
+};
+
+const fetchUserJob = async (playMemberID) => {
+  console.log('선택된 플레이어 ID 설정:', playMemberID);
+  selectedPlayMemberID.value = playMemberID;
+
+  try {
+    const roomId = route.params.roomId;
+    const characterSheet = await getCharacterSheet(roomId, playMemberID);
+    selectedUserJobID.value = characterSheet.jobId; // 직업 ID를 저장
+    console.log('선택된 사용자 직업 설정:', selectedUserJobID.value);
+  } catch (error) {
+    console.error('사용자 직업 정보를 가져오는 중 오류 발생:', error);
   }
 };
 
@@ -100,20 +129,6 @@ const toggleStats = () => {
 const toggleAIImages = () => {
   showAIImages.value = true;
   showStats.value = false;
-};
-
-const fetchUserJob = async (playMemberID) => {
-  console.log('선택된 플레이어 ID 설정:', playMemberID);
-  selectedPlayMemberID.value = playMemberID;
-
-  try {
-    const roomId = route.params.roomId;
-    const characterSheet = await getCharacterSheet(roomId, playMemberID);
-    selectedUserJob.value = characterSheet.jobName;
-    console.log('선택된 사용자 직업 설정:', selectedUserJob.value);
-  } catch (error) {
-    console.error('사용자 직업 정보를 가져오는 중 오류 발생:', error);
-  }
 };
 
 const showUserInfo = (playMemberID) => {

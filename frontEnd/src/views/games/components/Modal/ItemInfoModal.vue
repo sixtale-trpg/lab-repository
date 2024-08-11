@@ -9,7 +9,7 @@
       </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="item-left">
-          <img :src="item.image" :alt="item.name" class="item-image" />
+          <img :src="item.imageURL || item.image" :alt="item.name" class="item-image" />
         </div>
         <div class="item-right">
           <div class="info-item">
@@ -19,14 +19,14 @@
             </div>
             <div class="info-text">{{ item.weight }} kg</div>
           </div>
-          <div class="info-item">
+          <div class="info-item" v-if="item.count !== -1">
             <div class="title-container">
               <img src="@/assets/images/character_sheet/nickname_light.png" alt="횟수 배경" class="title-image">
               <span class="title-text">현재 횟수</span>
             </div>
             <div class="info-text">
               <img v-if="isGM" src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseCount">
-              <span>{{ localItem.count }}</span>
+              <span>{{ localItem.currentCount }}</span>
               <img v-if="isGM" src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseCount">
             </div>
           </div>
@@ -44,7 +44,7 @@
         </div>
         <div class="footer-buttons">
           <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
-          <button v-if="isGM" class="footer-button save-button" :style="saveButtonStyle" @click="saveChanges">저장</button>
+          <button v-if="isGM && item.count !== -1" class="footer-button save-button" :style="saveButtonStyle" @click="saveChanges">저장</button>
         </div>
       </div>
     </div>
@@ -83,18 +83,18 @@ const closeModal = () => {
 };
 
 const decreaseCount = () => {
-  if (localItem.value.count > 1) {
-    localItem.value.count--;
+  if (localItem.value.currentCount > 1) {
+    localItem.value.currentCount--;
     showWarning.value = false;
   }
 };
 
 const increaseCount = () => {
-  const newWeight = props.currentWeight + (localItem.value.weight * (localItem.value.count + 1));
+  const newWeight = props.currentWeight + localItem.value.weight;
   if (newWeight > props.totalWeight) {
     showWarning.value = true;
   } else {
-    localItem.value.count++;
+    localItem.value.currentCount++;
     showWarning.value = false;
   }
 };
@@ -106,7 +106,6 @@ const saveChanges = () => {
   }
 };
 
-// Watch for changes in props.item and update localItem accordingly
 watch(
   () => props.item,
   (newItem) => {
@@ -138,13 +137,11 @@ const modalFooterStyle = computed(() => ({
   alignItems: 'center',
 }));
 
-// 닫기 버튼 스타일
 const closeButtonStyle = computed(() => ({
   background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
   backgroundSize: 'cover',
 }));
 
-// 저장 버튼 스타일
 const saveButtonStyle = computed(() => ({
   background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
   backgroundSize: 'cover',

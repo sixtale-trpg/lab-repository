@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router.js";
 import Home from "@/views/home/home";
 import Rulebook from "@/views/menu/Rulebook";
 import Scenarios from "@/views/menu/Scenarios";

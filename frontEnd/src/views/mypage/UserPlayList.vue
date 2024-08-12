@@ -4,7 +4,11 @@
     <!-- 버튼과 본문 감싸는 div -->
     <div class="pagination-wrapper">
       <!-- 왼쪽버튼 -->
-      <button class="pagination-button h-100" @click="prevPage" :disabled="currentPage === 1">
+      <button
+        class="pagination-button h-100"
+        @click="prevPage"
+        :disabled="currentPage === 1"
+      >
         <img
           src="@/assets/images/mypage/play_list/left-arrow.png"
           alt="Previous"
@@ -13,15 +17,28 @@
       </button>
       <!-- 플레이 카드 -->
       <div class="play-item-container">
-        <div class="play-item" v-for="(room, index) in paginatedRooms" :key="index">
+        <div
+          class="play-item"
+          v-for="(room, index) in paginatedRooms"
+          :key="index"
+        >
           <div class="item-header">
             <div>
               <p class="play-item-title">
                 {{ formatRoomId(room.id)
-                }}{{ room.title.length > 15 ? room.title.substring(0, 15) + "..." : room.title }}
+                }}{{
+                  room.title.length > 15
+                    ? room.title.substring(0, 15) + "..."
+                    : room.title
+                }}
               </p>
             </div>
-            <div :class="['players-box', { 'full-room': room.current_count === room.max_count }]">
+            <div
+              :class="[
+                'players-box',
+                { 'full-room': room.current_count === room.max_count },
+              ]"
+            >
               <span>{{ room.currentCount }} / {{ room.maxCount }}</span>
             </div>
           </div>
@@ -42,7 +59,10 @@
             </div>
             <div class="icon-detail">
               <div class="room-icons">
-                <img :src="getStatusImage(room.isShortStory)" alt="Room Status" />
+                <img
+                  :src="getStatusImage(room.isShortStory)"
+                  alt="Room Status"
+                />
                 <img
                   v-if="room.isLocked"
                   src="@/assets/images/lobby/Key.png"
@@ -60,7 +80,9 @@
           </div>
 
           <div class="play-item-actions">
-            <button class="log-button" @click="openLogModal(room)">로그보기</button>
+            <button class="log-button" @click="openLogModal(room)">
+              로그보기
+            </button>
             <button
               v-if="room.status == 'UPCOMING'"
               class="play-button"
@@ -73,7 +95,11 @@
         </div>
       </div>
       <!-- 오른쪽 버튼 -->
-      <button class="pagination-button" @click="nextPage" :disabled="currentPage === totalPages">
+      <button
+        class="pagination-button"
+        @click="nextPage"
+        :disabled="currentPage === totalPages"
+      >
         <img
           src="@/assets/images/mypage/play_list/right-arrow.png"
           alt="Next"
@@ -81,7 +107,11 @@
         />
       </button>
     </div>
-    <LogModal v-if="isLogModalOpen" @close="closeLogModal" :room="selectedRoom" />
+    <LogModal
+      v-if="isLogModalOpen"
+      @close="closeLogModal"
+      :room="selectedRoom"
+    />
   </div>
 </template>
 
@@ -173,15 +203,15 @@ const enterRoom = (roomId) => {
   color: white;
   margin: 0 0 20px 20px;
 }
-.content-box {
+/* .content-box {
   background-color: #3a3a3c;
   border-radius: 18px;
   padding: 10px;
-}
+} */
 .right-box {
   height: 695px; /*왼쪽 박스와 높이 끝 같게 */
   padding: 20px 10px;
-  border: 1px solid #3a3a3c;
+  /* border: 1px solid #3a3a3c; */
 }
 .pagination-wrapper {
   position: relative;
@@ -190,7 +220,9 @@ const enterRoom = (roomId) => {
   /* justify-content: space-between; */
   align-items: center;
 }
-
+/* .pagination-arrow {
+  color: white;
+} */
 .play-item-container {
   display: grid;
   /* display: flex; */

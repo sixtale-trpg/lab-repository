@@ -4,7 +4,7 @@
       <h1 class="menu-title">시나리오</h1>
       <!-- 정렬 버튼 -->
       <div class="d-flex justify-content-end">
-        <div class="mb-4" role="group">
+        <div class="mb-5" role="group">
           <button
             type="button"
             class="rounded text-white dropdown-toggle px-2"
@@ -102,10 +102,6 @@ export default {
       likedScenarios.value = await getLikedScenarioList(); //
     });
 
-    watch(likedScenarios, (newLiked) => {
-      console.log(newLiked.scenarioList);
-    });
-
     // 검색 키워드에 따른 시나리오 조회
     watch(searchKeyword, (newKeyword) => {
       showScenarios(selectedGenres.value, newKeyword);
@@ -175,7 +171,7 @@ export default {
 }
 .container {
   max-width: 1200px;
-  padding-top: 100px;
+  padding: 100px 0;
 }
 .main-container {
   max-width: 1200px;
@@ -194,7 +190,7 @@ export default {
 }
 .menu-title {
   color: white;
-  margin-top: 50px;
+  margin-top: 60px;
   margin-bottom: 40px;
 }
 .dropdown-toggle,

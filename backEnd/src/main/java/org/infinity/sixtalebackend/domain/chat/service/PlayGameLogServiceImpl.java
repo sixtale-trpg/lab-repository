@@ -6,7 +6,6 @@ import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterActionRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
 import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
-import org.infinity.sixtalebackend.domain.chat.repository.GameMessageRepository;
 import org.infinity.sixtalebackend.domain.chat.repository.PlayGameLogRepository;
 import org.infinity.sixtalebackend.domain.map.domain.Map;
 import org.infinity.sixtalebackend.domain.map.repository.MapRepository;

@@ -1,18 +1,56 @@
 <template>
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
+    <!-- NPC 리스트 패널 -->
+    <div :class="['npc-list', { 'npc-list-closed': !isNpcListOpen }]">
+      <div class="npc-list-header" @click="toggleNpcList">
+        <h3>NPC List</h3>
+        <span v-if="!isNpcListOpen">▶</span>
+        <span v-else>◀</span>
+      </div>
+      <div v-if="isNpcListOpen" class="npc-list-content">
+        <div
+          v-for="npc in npcList"
+          :key="npc.id"
+          class="npc-item"
+        >
+          <p>{{ npc.description }}</p>
+          <div class="npc-hp-bar">
+            <div
+              class="npc-hp-fill"
+              :style="{ width: (npc.currentHp / npc.maxHp) * 100 + '%' }"
+            ></div>
+          </div>
+          <p v-if="isGM">
+            <input 
+              type="number" 
+              v-model.number="npc.currentHp" 
+              @input="updateNpcHp(npc.id, npc.currentHp)"
+              class="npc-hp-input"
+            />
+            HP
+          </p>
+          <p v-else>{{ npc.currentHp }} HP</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 맵 이미지 -->
     <img v-if="mapImage" :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
+
+    <!-- 토큰들 -->
     <div
+      class="token"
       v-for="token in placedTokens"
       :key="token.id"
-      class="token"
-      :style="{ left: token.x + 'px', top: token.y + 'px' }"
+      :style="{ left: token.x + 'px', top: token.y + 'px', zIndex: token.zIndex || 2 }"
       @mousedown="startDrag(token, $event)"
       @dblclick="returnToken(token)"
     >
-      <img :src="tokenImage" :alt="token.name" />
+      <img :src="tokenImage" alt="Token" />
     </div>
 
+    <!-- 그리드 오버레이 -->
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
         <div
@@ -29,27 +67,23 @@
             @mouseleave="onLaserMouseLeave"
             @click="openModal(row, col)" 
           ></div>
-          <img
-            v-if="npcData[`${row}-${col}`]"
-            :src="npcData[`${row}-${col}`].imageUrl"
-            alt="NPC"
-            class="npc-image"
-          />
         </div>
       </div>
     </div>
 
-    <div class="info-panel" v-if="hoveredDescription.title" :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }">
+    <!-- 정보 패널 -->
+    <div class="info-panel" v-if="hoveredLaserDescription" :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }">
       <img
         class="info-background"
-        :src="hoveredDescription.nextMapUrl"
+        :src="infoBackground"
         alt="Information Background"
       />
       <div class="info-content">
-        <h3>{{ hoveredDescription.details }}</h3>
+        <h3>{{ hoveredLaserDescription.details }}</h3>
       </div>
     </div>
 
+    <!-- 모달 -->
     <div
       class="modal fade"
       id="eventModal"
@@ -109,7 +143,6 @@ import scheduleModal from '@/assets/images/ingame/map/background.png';
 import titleImage from '@/assets/images/ingame/map/title.png';
 import cancelImage from '@/assets/images/ingame/map/cancel.png';
 import okImage from '@/assets/images/ingame/map/ok.png';
-import backButtonImage from '@/assets/images/ingame/map/back_button.png';
 
 const props = defineProps({
   selectedMap: {
@@ -133,8 +166,10 @@ const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
 
-const npcData = ref({}); // NPC 정보를 저장할 객체
-const selectedMapIndex = ref(0);
+const npcList = ref([]); // NPC 리스트를 위한 ref
+const isGM = ref(false); // GM 여부를 확인하는 변수
+const isNpcListOpen = ref(true); // NPC 리스트 열림 여부
+
 const cellDescriptions = ref({});
 
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -157,7 +192,12 @@ watch(
         const roomId2 = roomId.value;
 
         const mapInfo = await getMapPlace(roomId2, mapId);
-        const npcInfo = await getMapNpcs(roomId2, mapId);  // NPC 데이터 가져오기
+        const npcData = await getMapNpcs(roomId2, mapId);  // NPC 정보 불러오기
+
+        npcList.value = npcData.npcEvents || [];
+
+        // 콘솔에 NPC 정보를 출력
+        console.log("NPC List:", npcList.value);
 
         if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
           activeLasers.value = new Set(
@@ -174,16 +214,6 @@ watch(
               details: event.description,
               nextMapId: event.nextMapId,
               nextMapUrl: event.nextMapUrl,
-            };
-          });
-        }
-
-        if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
-          npcInfo.npcEventList.forEach(npcEvent => {
-            npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
-              description: npcEvent.description,
-              currentHp: npcEvent.currentHp,
-              imageUrl: backButtonImage,
             };
           });
         }
@@ -211,28 +241,25 @@ const onLaserMouseEnter = (row, col, event) => {
     hoveredLaserDescription.value = { ...description, position: { row, col } };
 
     const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
-    const tooltipWidth = '100%'; // 툴팁의 예상 너비 (필요한 경우 조정 가능)
-    const tooltipHeight = 340; // 툴팁의 예상 높이 (필요한 경우 조정 가능)
+    const tooltipWidth = 300; // 툴팁의 예상 너비
+    const tooltipHeight = 340; // 툴팁의 예상 높이
 
     let tooltipX = event.clientX + 10;
     let tooltipY = event.clientY + 10;
 
-    // 툴팁이 맵의 오른쪽 경계를 넘어가는 경우 위치 조정
+    // 툴팁 위치 조정 로직
     if (tooltipX + tooltipWidth > mapRect.right) {
         tooltipX = mapRect.right - tooltipWidth - 10;
     }
 
-    // 툴팁이 맵의 아래쪽 경계를 넘어가는 경우 위치 조정
     if (tooltipY + tooltipHeight > mapRect.bottom) {
         tooltipY = mapRect.bottom - tooltipHeight - 10;
     }
 
-    // 툴팁이 맵의 왼쪽 경계를 넘어가는 경우 위치 조정
     if (tooltipX < mapRect.left) {
         tooltipX = mapRect.left + 10;
     }
 
-    // 툴팁이 맵의 위쪽 경계를 넘어가는 경우 위치 조정
     if (tooltipY < mapRect.top) {
         tooltipY = mapRect.top + 10;
     }
@@ -320,7 +347,11 @@ let offsetX = 0;
 let offsetY = 0;
 
 const startDrag = (token, event) => {
+  event.preventDefault(); // 기본 동작 방지
   draggingToken = token;
+  draggingToken.zIndexBackup = token.zIndex || 2; // 기존 z-index 저장
+  token.zIndex = 9999; // z-index를 가장 높게 설정
+
   const tokenRect = event.target.getBoundingClientRect();
   offsetX = event.clientX - tokenRect.left;
   offsetY = event.clientY - tokenRect.top;
@@ -342,6 +373,9 @@ const onDrag = (event) => {
 };
 
 const stopDrag = () => {
+  if (draggingToken) {
+    draggingToken.zIndex = draggingToken.zIndexBackup; // 기존 z-index 복원
+  }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mouseup", stopDrag);
@@ -375,6 +409,9 @@ const changeMap = async (description) => {
     try {
       const newMapId = description.nextMapId;
       const mapInfo = await getMapPlace(roomId.value, newMapId);
+      const npcData = await getMapNpcs(roomId.value, newMapId); // 새로운 맵의 NPC 데이터 로드
+
+      npcList.value = npcData.npcEvents || []; // NPC 리스트 업데이트
 
       if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
         activeLasers.value = new Set(
@@ -395,21 +432,25 @@ const changeMap = async (description) => {
         });
       }
 
-      if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
-        npcData.value = {};
-        npcInfo.npcEventList.forEach(npcEvent => {
-          npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
-            description: npcEvent.description,
-            currentHp: npcEvent.currentHp,
-            imageUrl: backButtonImage,
-          };
-        });
-      }
-
     } catch (error) {
       console.error("Error loading new map or NPC data:", error);
     }
   }
+};
+
+// GM 여부 설정 (임의로 true로 설정, 실제로는 인증된 GM 사용자만 true가 되도록 구현 필요)
+isGM.value = true;
+
+const updateNpcHp = (id, newHp) => {
+  const npcIndex = npcList.value.findIndex(npc => npc.id === id);
+  if (npcIndex !== -1) {
+    npcList.value[npcIndex].currentHp = newHp;
+    console.log(`Updated NPC ${id} HP to ${newHp}`);
+  }
+};
+
+const toggleNpcList = () => {
+  isNpcListOpen.value = !isNpcListOpen.value;
 };
 
 onMounted(() => {
@@ -437,8 +478,66 @@ onUnmounted(() => {
   height: 100%;
   margin: 5px;
   position: relative;
-  overflow: visible; /* 툴팁이 맵 밖으로 나갈 수 있도록 변경 */
+  overflow: visible;
   z-index: 10;
+}
+
+.npc-list {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 10px;
+  z-index: 100;
+  overflow-y: auto;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.npc-list-closed {
+  transform: translateX(-190px); /* 리스트를 숨길 때 왼쪽으로 이동 */
+}
+
+.npc-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.npc-list-content {
+  max-height: calc(100% - 40px); /* 헤더 부분 제외한 공간 활용 */
+  overflow-y: auto;
+}
+
+.npc-item {
+  margin-bottom: 10px;
+}
+
+.npc-hp-bar {
+  width: 100%;
+  background-color: #444;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.npc-hp-fill {
+  height: 100%;
+  background-color: #f00;
+}
+
+.npc-hp-input {
+  width: 50px;
+  margin-top: 5px;
+  padding: 2px;
+  border: none;
+  border-radius: 3px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
 }
 
 .renderer-container {
@@ -476,7 +575,7 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100%; /* 그리드가 밀리지 않도록 너비를 100%로 설정 */
   height: 100%;
   display: grid;
   pointer-events: none;
@@ -488,8 +587,8 @@ onUnmounted(() => {
 }
 
 .grid-cell {
-  width: 100%; /* 열의 수에 따라 너비 계산 */
-  height: 100%; /* 행의 수에 따라 높이 계산 */
+  width: 100%;
+  height: 100%;
   border: 1px solid rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -500,7 +599,6 @@ onUnmounted(() => {
   overflow: visible;
   z-index: 2;
 }
-
 
 .laser-effect {
   width: 10px;
@@ -513,17 +611,10 @@ onUnmounted(() => {
   pointer-events: auto;
 }
 
-.npc-image {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  z-index: 4; /* NPC 이미지의 z-index 설정 */
-}
-
 .info-panel {
   position: absolute;
-  width: 300px; /* 툴팁의 고정 너비를 설정 */
-  height: 220px; /* 툴팁의 고정 높이를 설정 */
+  width: 300px;
+  height: 340px;
   background-color: rgba(0, 0, 0, 0.9);
   color: white;
   border-radius: 8px;
@@ -534,16 +625,16 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 내용이 중앙에 위치하도록 설정 */
-  align-items: center; /* 내용이 중앙에 위치하도록 설정 */
+  justify-content: center;
+  align-items: center;
 }
 
 .info-background {
   width: 100%;
-  height: 330px; /* 이미지가 너무 커지지 않도록 높이를 제한 */
+  height: 330px;
   border-radius: 5px;
   margin-bottom: 5px;
-  object-fit: cover; /* 이미지가 컨테이너에 맞게 조정되도록 설정 */
+  object-fit: cover;
 }
 
 .info-content h3 {
@@ -566,24 +657,6 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-
-.debug-button {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 100;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.debug-button:hover {
-  background-color: #0056b3;
-}
-
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -599,24 +672,24 @@ onUnmounted(() => {
   }
 }
 
-/* 툴팁 스타일 */
 .tooltip {
   position: absolute;
   background-color: rgba(0, 0, 0, 0.75);
   color: #fff;
-  padding: 10px;
+  padding: 5px; /* 패딩 크기 줄이기 */
   border-radius: 5px;
-  pointer-events: none; /* 툴팁이 마우스 이벤트를 받지 않도록 설정 */
+  pointer-events: none;
   z-index: 1000;
-  max-width: 250px;
+  max-width: 150px; /* 툴팁의 최대 너비 줄이기 */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  font-size: 12px; /* 글씨 크기 줄이기 */
 }
 
 .tooltip-image {
-  width: 100%;
+  width: 80%; /* 이미지 크기를 줄이기 */
   height: auto;
   border-radius: 3px;
-  margin-bottom: 10px;
+  margin-bottom: 5px; /* 이미지 아래의 간격 줄이기 */
   background-color: transparent;
   z-index: 1001;
   position: relative;
@@ -625,17 +698,16 @@ onUnmounted(() => {
 
 .tooltip h4 {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px; /* 제목 글씨 크기 줄이기 */
   font-weight: bold;
 }
 
 .tooltip p {
   margin: 5px 0 0;
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: 12px; /* 본문 글씨 크기 줄이기 */
+  line-height: 1.2; /* 줄 간격 줄이기 */
 }
 
-/* 모달 스타일 */
 .modal-content {
   border-radius: 10px;
   padding: 20px;

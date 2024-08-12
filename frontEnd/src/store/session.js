@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { OpenVidu } from 'openvidu-browser';
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { OpenVidu } from "openvidu-browser";
 
-export const useSessionStore = defineStore('session', () => {
+export const useSessionStore = defineStore("session", () => {
   const OV = ref(new OpenVidu());
   const session = ref(null);
   const publishers = ref(Array(9).fill(null)); // 사용자별 발행자 저장
@@ -15,12 +15,12 @@ export const useSessionStore = defineStore('session', () => {
       session.value = OV.value.initSession();
 
       // 스트림 생성 이벤트 처리
-      session.value.on('streamCreated', (event) => {
-        const subUserId = parseInt(event.stream.connection.data.split('User ')[1], 10);
+      session.value.on("streamCreated", (event) => {
+        const subUserId = parseInt(event.stream.connection.data.split("User ")[1], 10);
         console.log(`Subscribing to userId: ${subUserId}`);
 
         const subscriber = session.value.subscribe(event.stream, `video-${subUserId}`);
-        subscriber.on('streamPlaying', () => {
+        subscriber.on("streamPlaying", () => {
           console.log(`Stream playing for userId: ${subUserId}`);
         });
 
@@ -28,17 +28,17 @@ export const useSessionStore = defineStore('session', () => {
       });
 
       // 스트림 제거 이벤트 처리
-      session.value.on('streamDestroyed', (event) => {
-        const subUserId = parseInt(event.stream.connection.data.split('User ')[1], 10);
+      session.value.on("streamDestroyed", (event) => {
+        const subUserId = parseInt(event.stream.connection.data.split("User ")[1], 10);
         console.log(`Stream destroyed for userId: ${subUserId}`);
         subscribers.value[subUserId - 1] = [];
       });
 
-      session.value.on('connectionCreated', (event) => {
+      session.value.on("connectionCreated", (event) => {
         console.log(`Connection created: ${event.connection.connectionId}`);
       });
 
-      session.value.on('connectionDestroyed', (event) => {
+      session.value.on("connectionDestroyed", (event) => {
         console.log(`Connection destroyed: ${event.connection.connectionId}`);
       });
     }
@@ -60,9 +60,9 @@ export const useSessionStore = defineStore('session', () => {
         videoSource: false,
         publishAudio: true,
         publishVideo: false,
-        resolution: '640x480',
+        resolution: "640x480",
         frameRate: 30,
-        insertMode: 'APPEND',
+        insertMode: "APPEND",
         mirror: false,
       });
 
@@ -72,15 +72,15 @@ export const useSessionStore = defineStore('session', () => {
       voiceStates.value[userId - 1] = true;
 
       // 오디오 트랙 이벤트 등록
-      publisherInstance.on('streamAudioVolumeChange', (event) => {
+      publisherInstance.on("streamAudioVolumeChange", (event) => {
         console.log(`Audio volume changed for userId ${userId}: `, event.newValue);
       });
 
-      publisherInstance.on('streamPlaying', () => {
+      publisherInstance.on("streamPlaying", () => {
         console.log(`Stream is playing for userId: ${userId}`);
       });
     } catch (error) {
-      console.error('Error connecting to session:', error);
+      console.error("Error connecting to session:", error);
     }
   };
 
@@ -113,29 +113,31 @@ export const useSessionStore = defineStore('session', () => {
   // 토큰을 가져오는 함수
   const getToken = async () => {
     try {
-      const response = await fetch('https://i11d108.p.ssafy.io/api/v1/sessions', {
-        method: 'POST',
+      const response = await fetch("https://i11d108.p.ssafy.io/api/v1/sessions", {
+        method: "POST",
         headers: {
-        //   Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
-          'Content-Type': 'application/json',
+          //   Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ customSessionId: 'SessionA' }),
+        body: JSON.stringify({ customSessionId: "SessionA" }),
+        mode: "no-cors",
       });
-      console.log(response.data)
+      console.log(response.data);
 
       if (response.status === 409) {
-        console.log('Session already exists, fetching token');
+        console.log("Session already exists, fetching token");
       } else if (!response.ok) {
         throw new Error(`Failed to create session: ${response.statusText}`);
       }
 
-      const tokenResponse = await fetch('https://i11d108.p.ssafy.io/api/v1/tokens', {
-        method: 'POST',
+      const tokenResponse = await fetch("https://i11d108.p.ssafy.io/api/v1/tokens", {
+        method: "POST",
         headers: {
-          Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
-          'Content-Type': 'application/json',
+          Authorization: `Basic ${btoa("OPENVIDUAPP:MY_SECRET")}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ session: 'SessionA' }),
+        body: JSON.stringify({ session: "SessionA" }),
+        mode: "no-cors",
       });
 
       if (!tokenResponse.ok) {
@@ -145,7 +147,7 @@ export const useSessionStore = defineStore('session', () => {
       const token = await tokenResponse.json();
       return token.token;
     } catch (error) {
-      console.error('Error fetching token:', error);
+      console.error("Error fetching token:", error);
       throw error;
     }
   };
@@ -154,7 +156,7 @@ export const useSessionStore = defineStore('session', () => {
   const disconnect = () => {
     if (session.value) {
       session.value.disconnect();
-      console.log('Session disconnected');
+      console.log("Session disconnected");
       session.value = null; // 세션 초기화
 
       // 모든 사용자 음성 상태 초기화

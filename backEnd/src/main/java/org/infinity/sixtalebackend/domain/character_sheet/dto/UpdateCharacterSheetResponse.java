@@ -13,4 +13,6 @@ public class UpdateCharacterSheetResponse {
     private String content;
     private String createdAt;
     private Long playMemberID;
+    private String sheetID;
+    private String characterName;
 }

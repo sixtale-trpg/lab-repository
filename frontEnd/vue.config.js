@@ -32,12 +32,12 @@ module.exports = {
     port: 8083,
     open: true,
     proxy: {
-      "/api/v1": {
-        target: "http://localhost:8888/", // 백엔드 서버 주소로 변경
-        changeOrigin: true,
+      '/api/v1': {
+        target: 'http://i11d108.p.ssafy.io:8888/', // 백엔드 서버 주소로 변경
+        changeOrigin: true
       },
-      "/ws": {
-        target: "http://localhost:8888/api/v1", // WebSocket 서버 주소
+      '/ws': {
+        target: 'http://i11d108.p.ssafy.io:8888/api/v1', // WebSocket 서버 주소
         ws: true, // WebSocket 프록시 활성화
         changeOrigin: true,
       },

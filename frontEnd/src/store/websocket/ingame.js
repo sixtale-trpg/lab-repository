@@ -9,7 +9,7 @@ class InGameWebSocketService {
   }
 
   connect() {
-    const socket = new SockJS('http://localhost:8888/api/v1/ws'); // 서버 URL
+    const socket = new SockJS('http://i11d108.p.ssafy.io:8888/api/v1/ws'); // 서버 URL
     this.stompClient = Stomp.over(socket);
 
     this.stompClient.connect({}, () => {

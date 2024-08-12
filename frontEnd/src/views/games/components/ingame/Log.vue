@@ -10,15 +10,72 @@
           전체 로그 기록
           <!-- 이곳에 로그 내용이 표시됨 -->
         </div>
+        <div class="log-content">
+      <div v-if="activeTab === 'allLogs'">
+        <div v-for="msg in messages" :key="msg.id">
+          <p>{{ msg.content }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="message-input">
+      <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+      <button @click="sendMessage">Send</button>
+    </div>
       </div>
     </div>
   </template>
   
   <script setup>
+  import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
+  import { ref, computed, onMounted } from 'vue';
+  import { useRoute } from 'vue-router';
+import { getRoomInfo } from '@/common/api/RoomsAPI';
+import { map } from 'sockjs-client/lib/transport-list';
+
+const route = useRoute();
   // 로그로직 추가해야한다 ! //
 
+  const newMessage = ref('');
+const messages = ref([]); // 모든 메시지를 저장하는 배열
+const roomId = ref(null);
 
-  import { ref } from 'vue';
+  // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
+onMounted(async () => {
+   try {
+    // 룸 id 받아옴
+    roomId.value = route.params.roomId;
+    console.log('Room ID from route:', roomId.value);
+
+    // 웹소켓 연결
+    GameLogWebSocketService.connect(roomId.value);
+
+    // Handle incoming messages
+    // 메세지 받아오는것
+    GameLogWebSocketService.onMessageReceived((message) => {
+      console.log(message);
+      messages.value.push(message);
+    });
+
+  } catch (error) {
+    console.error('Error fetching room info or connecting to WebSocket:', error);
+  }
+});
+
+const sendMessage = () => {
+  if (newMessage.value.trim() === '') return;
+
+  const messageData = {
+    gameType: 'MAP_CHANGE', 
+    roomID: roomId.value, 
+    currentMapID: 1, 
+    nextMapID: 2,
+  };
+
+  // Send the message to the server
+  GameLogWebSocketService.sendMessage(messageData); 
+  newMessage.value = ''; // Clear the input field
+};
+
   
   const activeTab = ref('allLogs');
   

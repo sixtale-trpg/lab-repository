@@ -43,3 +43,27 @@ export const getScenarioList = async (
     throw error;
   }
 };
+
+export const likeScenario = async (scenarioID) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/${scenarioID}/like`, null, {
+      headers: getHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error Scenario Like:", error);
+    throw error;
+  }
+};
+
+export const unlikeScenario = async (scenarioID) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/${scenarioID}/like`, {
+      headers: getHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error Scenario Unlike:", error);
+    throw error;
+  }
+};

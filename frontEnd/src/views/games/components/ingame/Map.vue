@@ -27,7 +27,7 @@
             class="laser-effect"
             @mouseenter="onLaserMouseEnter(row, col)"
             @mouseleave="onLaserMouseLeave(row, col)"
-            @click="openModal(row, col)" 
+            @click="openModal(row, col)"
           ></div>
           <img
             v-if="npcData[`${row}-${col}`]"
@@ -102,14 +102,16 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
-import { getMapPlace, getMapNpcs } from '@/common/api/RoomsAPI';
-import { useRoute } from 'vue-router';
+import { getMapPlace, getMapNpcs } from "@/common/api/RoomsAPI";
+import { useRoute } from "vue-router";
 
-import scheduleModal from '@/assets/images/ingame/map/background.png';
-import titleImage from '@/assets/images/ingame/map/title.png';
-import cancelImage from '@/assets/images/ingame/map/cancel.png';
-import okImage from '@/assets/images/ingame/map/ok.png';
-import backButtonImage from '@/assets/images/ingame/map/back_button.png';
+import scheduleModal from "@/assets/images/ingame/map/background.png";
+import titleImage from "@/assets/images/ingame/map/title.png";
+import cancelImage from "@/assets/images/ingame/map/cancel.png";
+import okImage from "@/assets/images/ingame/map/ok.png";
+import backButtonImage from "@/assets/images/ingame/map/back_button.png";
+
+import InGameWebSocketService from "@/store/websocket/ingame"; // WebSocket 서비스 가져오기
 
 const props = defineProps({
   selectedMap: {
@@ -137,6 +139,10 @@ const npcData = ref({}); // NPC 정보를 저장할 객체
 const selectedMapIndex = ref(0);
 const cellDescriptions = ref({});
 
+const messages = ref([]); // 모든 메시지를 저장하는 배열
+const newMessage = ref("");
+const { selectedMap, selectedToken, clearToken } = mapStore;
+
 // selectedMap prop의 변경 사항 감시
 watch(
   () => props.selectedMap,
@@ -150,11 +156,11 @@ watch(
         const roomId2 = roomId.value;
 
         const mapInfo = await getMapPlace(roomId2, mapId);
-        const npcInfo = await getMapNpcs(roomId2, mapId);  // NPC 데이터 가져오기
+        const npcInfo = await getMapNpcs(roomId2, mapId); // NPC 데이터 가져오기
 
         if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
           activeLasers.value = new Set(
-            mapInfo.placeEvents.map(event => {
+            mapInfo.placeEvents.map((event) => {
               const coord = `${event.row}-${event.col}`;
               console.log("Laser activated at:", coord);
               return coord;
@@ -162,7 +168,7 @@ watch(
           );
 
           cellDescriptions.value = {};
-          mapInfo.placeEvents.forEach(event => {
+          mapInfo.placeEvents.forEach((event) => {
             cellDescriptions.value[`${event.row}-${event.col}`] = {
               title: `Event at (${event.row}, ${event.col})`,
               details: event.description,
@@ -177,11 +183,11 @@ watch(
         }
 
         if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
-          npcInfo.npcEventList.forEach(npcEvent => {
+          npcInfo.npcEventList.forEach((npcEvent) => {
             npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
               description: npcEvent.description,
               currentHp: npcEvent.currentHp,
-              imageUrl: backButtonImage,  // 여기에 실제 NPC 이미지 경로를 설정하세요
+              imageUrl: backButtonImage, // 여기에 실제 NPC 이미지 경로를 설정하세요
             };
           });
 
@@ -189,7 +195,6 @@ watch(
         } else {
           console.warn("Invalid NPC data or npcEventList is undefined");
         }
-
       } catch (error) {
         console.error("Error loading map or NPC data:", error);
       }
@@ -277,7 +282,12 @@ const onDrop = (event) => {
         y: tokenY,
       });
 
-      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
+      console.log(
+        `Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`
+      );
+
+      // 토큰 좌표 이동 로그 전송
+      sendMessage(tokenX.toFixed(1), tokenY.toFixed(1));
 
       const removeEvent = new CustomEvent("remove-token-from-list", {
         detail: parsedToken,
@@ -287,6 +297,24 @@ const onDrop = (event) => {
   } catch (error) {
     console.error("유효하지 않은 JSON 데이터:", tokenData);
   }
+};
+
+// 토큰 드랍 시 메시지 전송
+const sendMessage = (x, y) => {
+  console.log("selectedToken", selectedToken);
+  console.log("selectedMap", selectedMap);
+
+  const messageData = {
+    gameType: "TOKEN_MOVE",
+    roomID: roomId, // 가져온 방 정보에서 roomID 사용
+    token: {
+      id: selectedToken,
+      sheetID: selectedMap,
+      updatePosition: { x, y },
+    },
+  };
+
+  InGameWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
 };
 
 const deleteTokenFromMap = (token) => {
@@ -328,7 +356,11 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   if (draggingToken) {
-    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
+    console.log(
+      `Token dropped at: (${draggingToken.x.toFixed(
+        1
+      )}, ${draggingToken.y.toFixed(1)})`
+    );
   }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
@@ -373,11 +405,11 @@ const changeMap = async (description) => {
     try {
       const newMapId = description.nextMapId;
       const mapInfo = await getMapPlace(roomId.value, newMapId);
-      const npcInfo = await getMapNpcs(roomId.value, newMapId);  // NPC 데이터도 함께 가져오기
+      const npcInfo = await getMapNpcs(roomId.value, newMapId); // NPC 데이터도 함께 가져오기
 
       if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
         activeLasers.value = new Set(
-          mapInfo.placeEvents.map(event => {
+          mapInfo.placeEvents.map((event) => {
             const coord = `${event.row}-${event.col}`;
             console.log("Laser activated at:", coord);
             return coord;
@@ -385,7 +417,7 @@ const changeMap = async (description) => {
         );
 
         cellDescriptions.value = {};
-        mapInfo.placeEvents.forEach(event => {
+        mapInfo.placeEvents.forEach((event) => {
           cellDescriptions.value[`${event.row}-${event.col}`] = {
             title: `Event at (${event.row}, ${event.col})`,
             details: event.description,
@@ -400,12 +432,12 @@ const changeMap = async (description) => {
       }
 
       if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
-        npcData.value = {};  // 기존 NPC 데이터를 초기화합니다.
-        npcInfo.npcEventList.forEach(npcEvent => {
+        npcData.value = {}; // 기존 NPC 데이터를 초기화합니다.
+        npcInfo.npcEventList.forEach((npcEvent) => {
           npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
             description: npcEvent.description,
             currentHp: npcEvent.currentHp,
-            imageUrl: backButtonImage,  // 여기에 실제 NPC 이미지 경로를 설정하세요
+            imageUrl: backButtonImage, // 여기에 실제 NPC 이미지 경로를 설정하세요
           };
         });
 
@@ -413,7 +445,6 @@ const changeMap = async (description) => {
       } else {
         console.warn("Invalid NPC data or npcEventList is undefined");
       }
-
     } catch (error) {
       console.error("Error loading new map or NPC data:", error);
     }
@@ -424,11 +455,19 @@ const changeMap = async (description) => {
 
 const modalStyle = computed(() => ({
   backgroundImage: `url(${scheduleModal})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
   zIndex: 1070,
 }));
+
+onMounted(async () => {
+  InGameWebSocketService.connect(roomId);
+  // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  InGameWebSocketService.onMessageReceived((message) => {
+    messages.value.push(message); // 메시지 목록에 추가
+  });
+});
 
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
@@ -444,7 +483,9 @@ onMounted(() => {
   if (props.selectedMap && props.selectedMap.id) {
     console.log("Initial Selected Map ID:", props.selectedMap.id);
   } else {
-    console.warn("Selected Map is null or ID is not available on initial load.");
+    console.warn(
+      "Selected Map is null or ID is not available on initial load."
+    );
   }
 });
 

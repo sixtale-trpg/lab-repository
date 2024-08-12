@@ -8,6 +8,7 @@ export const useMapStore = defineStore("map", {
     selectedMap: null, // 선택한 맵을 저장할 상태
     selectedMapImage: null, // 선택한 맵의 이미지를 저장할 상태
     selectedMapId: null, // 선택한 맵의 ID를 저장할 상태
+    selectedToken: {},
   }),
 
   actions: {
@@ -37,6 +38,14 @@ export const useMapStore = defineStore("map", {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    selectToken(token) {
+      this.selectedToken = token;
+    },
+
+    clearToken() {
+      this.selectedToken = null;
     },
   },
 });

@@ -14,7 +14,6 @@ public class NPCEventResponse {
     private Long id;
     private Long mapId;
     private String description;
-    private Long scenarioNPCId;
     private Integer currentHp;
 
 }

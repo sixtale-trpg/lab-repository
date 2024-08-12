@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @Table(name = "member")
 @AllArgsConstructor
@@ -50,15 +49,32 @@ public class Member extends BaseTimeEntity {
         this.nickname = nickName;
     }
 
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
     public void setImageURL(String imageURL) {
         this.imageURL = imageURL;
     }
 
+    public void setIsWithdrawn(boolean isWithdrawn) {
+        this.isWithdrawn = isWithdrawn;
+    }
 
-    public Member(String email, String nickname, String accessToken, Provider provider, String providerUserID, boolean isWithdrawn) {
+    @PrePersist
+    public void prePersist() {
+        if (accessToken == null) {
+            accessToken = LocalDateTime.now().toString();
+        }
+
+        if (lastLoginAt == null) {
+            lastLoginAt = LocalDateTime.now();
+        }
+    }
+
+    public Member(String email, String nickname, Provider provider, String providerUserID, boolean isWithdrawn) {
         this.email = email;
         this.nickname = nickname;
-        this.accessToken = accessToken;
         this.provider = provider;
         this.providerUserID = providerUserID;
         this.isWithdrawn = isWithdrawn;

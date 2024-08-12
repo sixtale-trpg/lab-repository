@@ -12,12 +12,12 @@ public class JobRace {
     @EmbeddedId
     private JobRaceID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("jobID")
     @JoinColumn(name = "job_id", nullable = false)
     private Job job;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("raceID")
     @JoinColumn(name = "race_id", nullable = false)
     private Race race;

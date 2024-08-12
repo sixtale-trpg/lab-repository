@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ScenarioLikeRepository extends JpaRepository<ScenarioLike, ScenarioLikeID> {
     Boolean existsByScenarioAndMember(Scenario scenario, Member member);
+
+    void deleteByScenarioAndMember(Scenario scenario, Member member);
 }

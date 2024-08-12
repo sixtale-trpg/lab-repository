@@ -127,7 +127,9 @@ public class MemberDetailServiceImpl implements MemberDetailService{
 
         // 회원 상세 정보 조회
         MemberDetail memberDetail = findMemberDetail(memberID);
-
+        if (memberDetail == null){
+            return null;
+        }
         // 장르 조회
         List<MemberGenre> memberGenres = memberGenreRepository.findMemberGenreByMember(member); // 특정 회원에 대한 장르만 조회하는 메서드 필요
 
@@ -151,7 +153,8 @@ public class MemberDetailServiceImpl implements MemberDetailService{
     }
 
     private MemberDetail findMemberDetail(Long id) {
-        return memberDetailRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("회원 상세정보가 존재하지 않습니다."));
+        return null;
+//        return memberDetailRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("회원 상세정보가 존재하지 않습니다."));
     }
 
     private Genre findGenre(Long id) {

@@ -14,6 +14,7 @@ public class CharacterEquipmentRequest {
     @NotNull
     private Long equipmentId;
 
+    @NotNull
     private Integer currentCount;
 
     @NotNull

@@ -1,11 +1,14 @@
 package org.infinity.sixtalebackend.domain.scenario.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.GenreDto;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioGenre;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioLike;
+import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioLikeID;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioGenreRepository;
@@ -16,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScenarioServiceImpl implements ScenarioService{
 
     private final ScenarioRepository scenarioRepository;
@@ -33,22 +38,25 @@ public class ScenarioServiceImpl implements ScenarioService{
     /**
      * 시나리오 목록 조회
      * @param memberID
-     * @param genreID
+     * @param genre
      * @param title
-     * @param scenarioPageable
      * @return
      */
     @Override
-    public ScenarioListResponseDto getScenarioList(Long memberID, Long genreID, String title,Pageable scenarioPageable) {
+    public ScenarioListResponseDto getScenarioList(Long memberID, List<Long> genre, String title, int page, int size, String sort, String order) {
         // 회원 처리
         Member member = (memberID == null) ? null : findMember(memberID);
 
+        // Sort 및 Pageable 객체 생성
+        Sort pageSort = Sort.by(Sort.Direction.fromString(order), sort);
+        Pageable pageable = PageRequest.of(page, size, pageSort);
+
         // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
         Page<Scenario> scenarioPage;
-        if (genreID == null) { // 장르 ID가 없으면 전체 장르 조회
-            scenarioPage = scenarioRepository.findByTitleContaining(title, scenarioPageable);
+        if (genre.isEmpty()) { // 장르 ID가 없으면 전체 장르 조회
+            scenarioPage = scenarioRepository.findByTitleContaining(title, pageable);
         } else {
-            scenarioPage = scenarioRepository.findByGenreIdAndTitleContaining(genreID, title, scenarioPageable);
+            scenarioPage = scenarioRepository.findByGenreIdAndTitleContaining(genre, title, pageable);
             System.out.println(scenarioPage.stream().toList());
         }
 
@@ -112,4 +120,56 @@ public class ScenarioServiceImpl implements ScenarioService{
         return memberRepository.getReferenceById(id);
     }
 
+    /**
+     * 시나리오 좋아요 하기
+     */
+    @Transactional
+    public boolean likeScenario(Long scenarioID, Long memberID) {
+        Scenario scenario = scenarioRepository.findById(scenarioID)
+                .orElseThrow(() -> new IllegalArgumentException("Scenario not found with id " + scenarioID));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with id " + memberID));
+
+        // 이미 좋아요가 되어있는지 확인
+        if (scenarioLikeRepository.existsByScenarioAndMember(scenario, member)) {
+            return false;
+        }
+
+        // 좋아요 추가
+        ScenarioLike scenarioLike = ScenarioLike.builder()
+                .id(new ScenarioLikeID(scenarioID, memberID))
+                .scenario(scenario)
+                .member(member)
+                .build();
+
+        scenarioLikeRepository.save(scenarioLike);
+
+        // 좋아요수 증가
+        scenario.incrementLikes();
+
+        return true;
+    }
+
+    /**
+     * 시나리오 좋아요 취소
+     */
+    @Transactional
+    public boolean unlikeScenario(Long scenarioID, Long memberID) {
+        Scenario scenario = scenarioRepository.findById(scenarioID)
+                .orElseThrow(() -> new IllegalArgumentException("Scenario not found with id " + scenarioID));
+        Member member = memberRepository.findById(memberID)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found with id " + memberID));
+
+        // 이미 좋아요 취소가 되어있는지 확인
+        if (!scenarioLikeRepository.existsByScenarioAndMember(scenario, member)) {
+            return false;
+        }
+
+        scenarioLikeRepository.deleteByScenarioAndMember(scenario, member);
+
+        // 좋아요수 감소
+        scenario.decrementLikes();
+
+        return true;
+    }
 }

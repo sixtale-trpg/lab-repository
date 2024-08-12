@@ -17,7 +17,7 @@ public class PlaceEvent {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "map_id", nullable = false)
     private Map map;
 
@@ -27,10 +27,10 @@ public class PlaceEvent {
     @Column(nullable = false)
     private Integer col;
 
-    @Column(length = 100)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "next_map_id")
     private Map nextMap;
 

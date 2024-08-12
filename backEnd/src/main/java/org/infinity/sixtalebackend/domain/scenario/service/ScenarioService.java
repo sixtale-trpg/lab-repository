@@ -10,7 +10,10 @@ import java.util.List;
 
 public interface ScenarioService {
 
-    ScenarioListResponseDto getScenarioList(Long memberID, Long genreID, String title, Pageable diaryPageable);
+    ScenarioListResponseDto getScenarioList(Long memberID, List<Long> genre, String title, int page, int size, String sort, String order);
 
     ScenarioResponseDto getScenarioInfo(Long scenarioID, Long memberID);
+
+    boolean likeScenario(Long scenarioID, Long memberID);
+    boolean unlikeScenario(Long scenarioID, Long memberID);
 }

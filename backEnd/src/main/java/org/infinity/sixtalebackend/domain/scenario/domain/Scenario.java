@@ -24,15 +24,14 @@ public class Scenario extends BaseTimeEntity {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id", nullable = false)
     private Member writer;
 
     @Column(nullable = false, length = 512)
     private String summary;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -51,7 +50,7 @@ public class Scenario extends BaseTimeEntity {
     @ColumnDefault("true")
     private Boolean isOpen;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rule_id", nullable = false)
     private Rule rule;
 
@@ -61,4 +60,13 @@ public class Scenario extends BaseTimeEntity {
     @Column(name = "gif_url")
     private String gifURL;
 
+    // 좋아요수 증가
+    public void incrementLikes() {
+        this.likes += 1;
+    }
+
+    // 좋아요수 감소
+    public void decrementLikes() {
+        this.likes -= 1;
+    }
 }

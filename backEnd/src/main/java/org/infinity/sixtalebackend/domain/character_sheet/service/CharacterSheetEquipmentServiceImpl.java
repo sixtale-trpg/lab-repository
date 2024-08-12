@@ -18,7 +18,9 @@ import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioEquipmentR
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,6 +58,7 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
                 .collect(Collectors.toList());
 
         return CharacterSheetEquipmentResponse.builder()
+                .sheetID(characterSheet.getId())
                 .characterEquipment(characterEquipmentInfoList)
                 .commonEquipment(commonEquipmentInfoList)
                 .build();
@@ -79,7 +82,7 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
      */
     @Override
     @Transactional
-    public void addCharacterEquipment(Long roomID, Long playMemberID, CharacterEquipmentRequest equipmentRequest) {
+    public Map<String, String> addCharacterEquipment(Long roomID, Long playMemberID, CharacterEquipmentRequest equipmentRequest) {
         PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
@@ -113,6 +116,12 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
             characterSheet.setCurrentWeight(characterSheet.getCurrentWeight() + equipmentTotalWeight);
             characterSheetRepository.save(characterSheet);
         }
+        // 응답을 위한 map 생성
+        Map<String, String> result = new HashMap<>();
+        result.put("sheetID", characterSheet.getId().toString());
+        result.put("characterName", characterSheet.getName());
+
+        return result;
     }
 
     /**

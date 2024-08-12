@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.naming.AuthenticationException;
 import java.util.List;
 
 @RestController
@@ -76,10 +77,13 @@ public class ScenarioController {
     @PostMapping("/{scenarioID}/like")
     public ResponseEntity<?> likeScenario(@PathVariable Long scenarioID) {
         try {
-            Long memberID = 1L;
+            // 로그인 중인지 아닌지의 로직
+            Long memberID = AuthenticationUtil.getMemberId();
+            if (memberID == -1) throw new AuthenticationException();
+
             boolean success = scenarioService.likeScenario(scenarioID, memberID);
             if (success) {
-                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_SCENARIO_LIKE), HttpStatus.CREATED);
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_SCENARIO_LIKE), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_SCENARIO_LIKE_FAIL), HttpStatus.BAD_REQUEST);
             }
@@ -94,10 +98,13 @@ public class ScenarioController {
     @DeleteMapping("/{scenarioID}/like")
     public ResponseEntity<?> unlikeScenario(@PathVariable Long scenarioID) {
         try {
-            Long memberID = 1L;
+            // 로그인 중인지 아닌지의 로직
+            Long memberID = AuthenticationUtil.getMemberId();
+            if (memberID == -1) throw new AuthenticationException();
+
             boolean success = scenarioService.unlikeScenario(scenarioID, memberID);
             if (success) {
-                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.DELETE_SCENARIO_LIKE), HttpStatus.CREATED);
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.DELETE_SCENARIO_LIKE), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_SCENARIO_LIKE_FAIL), HttpStatus.BAD_REQUEST);
             }

@@ -143,6 +143,10 @@ public class ScenarioServiceImpl implements ScenarioService{
                 .build();
 
         scenarioLikeRepository.save(scenarioLike);
+
+        // 좋아요수 증가
+        scenario.incrementLikes();
+
         return true;
     }
 
@@ -162,6 +166,10 @@ public class ScenarioServiceImpl implements ScenarioService{
         }
 
         scenarioLikeRepository.deleteByScenarioAndMember(scenario, member);
+
+        // 좋아요수 감소
+        scenario.decrementLikes();
+
         return true;
     }
 }

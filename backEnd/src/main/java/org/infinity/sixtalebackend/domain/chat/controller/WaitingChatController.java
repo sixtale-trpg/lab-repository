@@ -3,12 +3,9 @@ package org.infinity.sixtalebackend.domain.chat.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageListResponse;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
-import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
 import org.infinity.sixtalebackend.domain.chat.service.WaitingLogService;
-import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -16,16 +13,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-@CrossOrigin(value = "*")
 public class WaitingChatController {
     private final WaitingLogService waitingLogService;
 

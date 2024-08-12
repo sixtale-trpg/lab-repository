@@ -2,6 +2,8 @@ package org.infinity.sixtalebackend.domain.member.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Setter
 @Getter
 @Builder
@@ -11,5 +13,6 @@ public class MemberResponseDto {
     @NonNull
     private String nickName;
     private String imageURL;
+    private LocalDateTime createdAt;
 
 }

@@ -26,10 +26,6 @@ const props = defineProps({
     required: true,
   },
 });
-<<<<<<< HEAD
-=======
-
->>>>>>> 3ba9fd659e87ab4a0bb54241aacb034372ee1eb2
 
 const previousIcon = require('@/assets/images/room/previous.png');
 const nextIcon = require('@/assets/images/room/next.png');

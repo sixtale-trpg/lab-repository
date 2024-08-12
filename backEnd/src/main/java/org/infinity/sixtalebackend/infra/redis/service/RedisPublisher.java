@@ -19,4 +19,5 @@ public class RedisPublisher {
     public void publish(ChannelTopic channelTopic, ChatMessageRequest chatMessageRequest){
         redisTemplate.convertAndSend(channelTopic.getTopic(), chatMessageRequest);
     }
+
 }

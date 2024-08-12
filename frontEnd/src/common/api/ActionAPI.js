@@ -45,3 +45,32 @@ export const getCharacterActions = async (roomID, playMemberID) => {
     throw error;
   }
 };
+
+// 캐릭터 액션 추가
+export const addCharacterAction = async (roomID, playMemberID, actionID, actionOptionId = null) => {
+  try {
+    const response = await axios.post(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/actions`, {
+      actionID,
+      actionOptionId
+    }, {
+      headers: getHeaders()
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error adding character action:', error);
+    throw error;
+  }
+};
+
+// 캐릭터 액션 삭제
+export const deleteCharacterAction = async (roomID, playMemberID, characterActionID) => {
+  try {
+    const response = await axios.delete(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/actions/${characterActionID}`, {
+      headers: getHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting character action:', error);
+    throw error;
+  }
+};

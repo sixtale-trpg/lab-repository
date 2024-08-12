@@ -31,7 +31,7 @@
             </div>
             <div class="info-box">
               <img :src="nameBox" alt="장르 박스" class="info-box-image">
-              <span class="info-text">{{ scenarioData.genreList }}</span>
+              <span class="info-text">{{ scenarioData.genreList[0].name }}</span>
             </div>
           </div>
           <div class="description-section">
@@ -95,22 +95,24 @@ const descriptionContentStyle = computed(() => ({
   background: `url(${tendencyBox}) no-repeat center center`,
   backgroundSize: 'cover',
   color: '#fff',
-  padding: '20px',
+  padding: '40px',
   borderRadius: '5px',
-  width: '100%',
-  height: '260px',
+  width: 'auto',
+  height: 'auto',
   boxSizing: 'border-box',
-  textAlign: 'left'
+  textAlign: 'left',
 }));
 
 const fetchScenarioData = async (scenarioId) => {
   try {
-    const response = await axios.get(`/api/scenario/${scenarioId}`);
+    console.log('Fetching scenario data...'); // 데이터 가져오기 시작 로그
+    const response = await axios.get(`/api/v1/scenarios/${scenarioId}`);
     scenarioData.value = {
-      nickname: response.data.nickname,
-      genreList: response.data.genreList,
-      description: response.data.description
+      nickname: response.data.data.nickName,
+      genreList: response.data.data.genreList,
+      description: response.data.data.description
     };
+    console.log('Scenario data fetched:', scenarioData.value.nickname); // 데이터 가져오기 완료 로그
   } catch (error) {
     console.error('시나리오 데이터를 가져오는 중 오류 발생:', error);
   }
@@ -197,6 +199,22 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   margin-top: 10px;
+  scrollbar-color: #855e2fee #201805;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #201805;
+  border-radius: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: #855e2fee;
+  border-radius: 5px;
+  border: 2px solid #201805;
 }
 
 .modal-footer {
@@ -317,8 +335,26 @@ onMounted(() => {
   padding: 20px;
   border-radius: 5px;
   width: 100%;
-  height: 245px;
+  height: auto; /* 자동 높이 설정 */
   box-sizing: border-box;
   text-align: left;
+  background-size: cover;
+  overflow-y: auto;
+  scrollbar-color: #855e2fee #201805;
+}
+
+.description-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.description-content::-webkit-scrollbar-track {
+  background: #201805;
+  border-radius: 5px;
+}
+
+.description-content::-webkit-scrollbar-thumb {
+  background-color: #855e2fee;
+  border-radius: 5px;
+  border: 2px solid #201805;
 }
 </style>

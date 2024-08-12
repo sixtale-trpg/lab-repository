@@ -1,5 +1,5 @@
 <template>
-  <header class="header">
+  <div class="header">
     <div class="header-left">
       <template v-if="isGM">
         <img src="@/assets/images/ingame/Rulebook.png" alt="Rulebook" @click="openRulebookModal" />
@@ -16,22 +16,26 @@
         <h1>{{ scenarioTitle }}</h1>
       </template>
     </div>
+    <div class="header-center">
+      <h1>{{ scenarioTitle }}</h1>
+    </div>
     <div class="header-right" v-if="isGM">
-      <img src="@/assets/images/ingame/Close.png" alt="Close" @click="openCloseModal" />
+      <div class="close-icon-container">
+        <img src="@/assets/images/ingame/Close.png" alt="Close" @click="openCloseModal" />
+      </div>
     </div>
 
     <RuleBookModal :isOpen="showRulebookModal" @close="showRulebookModal = false" />
     <ScenarioModal v-if="showScenarioModal" @close="showScenarioModal = false" />
     <MapModal v-if="showMapModal" @close="showMapModal = false" />
     <CloseRoomModal v-if="showCloseModal" @confirm="closeRoom" @close="showCloseModal = false" />
-  </header>
+  </div>
 </template>
-
-
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import { defineProps } from 'vue';
 
 import RuleBookModal from '@/views/games/components/Modal/RulebookModal.vue'; 
@@ -46,7 +50,7 @@ const props = defineProps({
   },
 });
 
-const scenarioTitle = ref('Scenario Title'); // 시나리오 제목
+const scenarioTitle = ref('Loading...'); // 시나리오 제목
 
 const showRulebookModal = ref(false);
 const showScenarioModal = ref(false);
@@ -56,6 +60,18 @@ const showMapModal = ref(false);
 const isMuteAllActive = ref(false);
 
 const router = useRouter();
+const route = useRoute();
+
+const fetchScenarioTitle = async () => {
+  try {
+    const roomId = route.params.roomId; // 라우트에서 roomId를 가져옴
+    const roomInfo = await getRoomInfo(roomId); // 방 정보 조회
+    scenarioTitle.value = roomInfo.scenarioTitle; // 시나리오 제목 설정
+  } catch (error) {
+    console.error('Failed to fetch scenario title:', error);
+    scenarioTitle.value = 'Unable to load scenario title';
+  }
+};
 
 const openRulebookModal = () => {
   console.log('Opening Rulebook Modal');
@@ -78,7 +94,6 @@ const toggleMuteAll = () => {
   } else {
     unmuteAll();
   }
-  // console.log(isMuteAllActive.value ? 'Mute All Users' : 'Unmute All Users');
 };
 
 const muteAll = () => {
@@ -97,26 +112,19 @@ const openCloseModal = () => {
 };
 
 const closeRoom = () => {
-  console.log('Close Room');
+  console.log('Closing Room');
   router.push('/lobby');
 };
 
 onMounted(() => {
-  // 백엔드에서 시나리오 제목을 요청하는 부분
-  // axios.get('/api/scenario/title')
-  //   .then(response => {
-  //     scenarioTitle.value = response.data.title;
-  //   })
-  //   .catch(error => {
-  //     console.error('Error fetching scenario title:', error);
-  //   });
+  fetchScenarioTitle(); // 컴포넌트가 마운트되면 시나리오 제목을 가져옴
 });
 </script>
 
-
 <style scoped>
+
 .header {
-  background-color: #4b3a29;
+  background-color: #382A20;
   color: white;
   display: flex;
   justify-content: space-between;
@@ -138,6 +146,16 @@ onMounted(() => {
   cursor: pointer;
 }
 
+.header-center {
+  flex: 2;
+  text-align: center;
+}
+
+.header-center h1 {
+  margin-right: 40%;
+  font-size: 2rem;
+}
+
 .header-right {
   display: flex;
   align-items: center;
@@ -150,6 +168,12 @@ onMounted(() => {
   cursor: pointer;
 }
 
+.close-icon-container {
+  background-color: white;
+  padding: 5px;
+  border-radius: 5px;
+}
+
 .active {
   filter: brightness(1.5);
 }
@@ -157,11 +181,5 @@ onMounted(() => {
 .disabled {
   opacity: 0.5;
   pointer-events: none;
-}
-
-h1 {
-  font-size: 1.5rem;
-  margin: 0;
-  color: white;
 }
 </style>

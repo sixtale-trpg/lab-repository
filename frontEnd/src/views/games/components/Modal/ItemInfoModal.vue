@@ -9,7 +9,7 @@
       </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="item-left">
-          <img :src="item.image" :alt="item.name" class="item-image" />
+          <img :src="item.imageURL || item.image" :alt="item.name" class="item-image" />
         </div>
         <div class="item-right">
           <div class="info-item">
@@ -19,14 +19,14 @@
             </div>
             <div class="info-text">{{ item.weight }} kg</div>
           </div>
-          <div class="info-item">
+          <div class="info-item" v-if="item.count !== -1">
             <div class="title-container">
               <img src="@/assets/images/character_sheet/nickname_light.png" alt="횟수 배경" class="title-image">
               <span class="title-text">현재 횟수</span>
             </div>
             <div class="info-text">
               <img v-if="isGM" src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseCount">
-              <span>{{ localItem.count }}</span>
+              <span>{{ localItem.currentCount }}</span>
               <img v-if="isGM" src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseCount">
             </div>
           </div>
@@ -44,7 +44,7 @@
         </div>
         <div class="footer-buttons">
           <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
-          <button v-if="isGM" class="footer-button save-button" :style="saveButtonStyle" @click="saveChanges">저장</button>
+          <button v-if="isGM && item.count !== -1" class="footer-button save-button" :style="saveButtonStyle" @click="saveChanges">저장</button>
         </div>
       </div>
     </div>
@@ -53,6 +53,11 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, watch } from 'vue';
+import { updateEquipmentCount } from '@/common/api/InventoryAPI.js';
+import { useRoute } from 'vue-router';
+import { selectedPlayMemberID } from '@/store/state.js';
+
+const route = useRoute();
 
 const props = defineProps({
   item: {
@@ -83,36 +88,61 @@ const closeModal = () => {
 };
 
 const decreaseCount = () => {
-  if (localItem.value.count > 1) {
-    localItem.value.count--;
+  if (localItem.value.currentCount > 1) {
+    localItem.value.currentCount--;
     showWarning.value = false;
   }
 };
 
 const increaseCount = () => {
-  const newWeight = props.currentWeight + (localItem.value.weight * (localItem.value.count + 1));
+  const newWeight = props.currentWeight + localItem.value.weight;
   if (newWeight > props.totalWeight) {
     showWarning.value = true;
   } else {
-    localItem.value.count++;
+    localItem.value.currentCount++;
     showWarning.value = false;
   }
 };
 
-const saveChanges = () => {
-  if (!showWarning.value) {
-    emit('update-item', localItem.value);
-    closeModal();
-  }
-};
-
-// Watch for changes in props.item and update localItem accordingly
 watch(
   () => props.item,
   (newItem) => {
+    console.log('Selected item:', newItem);
     localItem.value = { ...newItem };
   }
 );
+
+const saveChanges = async () => {
+  if (!showWarning.value) {
+    try {
+      const roomId = route.params.roomId;
+      const playMemberID = selectedPlayMemberID.value;
+
+      // 현재 수정 중인 아이템 확인
+      console.log('Saving changes for item:', localItem.value);
+
+      const equipmentData = {
+        equipmentId: localItem.value.equipmentID,  // 올바른 equipmentID를 사용
+        currentCount: localItem.value.currentCount, // 새로운 수량으로 대체
+      };
+
+      // 서버로 전송할 데이터 확인
+      console.log('Sending equipment data:', equipmentData);
+
+      // 수량을 덮어씌우는 작업을 위해 PUT 요청을 보냄
+      await updateEquipmentCount(roomId, playMemberID, equipmentData);
+
+      // UI 업데이트
+      emit('update-item', localItem.value); // 업데이트된 값을 바로 사용
+      closeModal();
+    } catch (error) {
+      console.error('Failed to update item count on the server:', error);
+    }
+  }
+};
+
+
+
 
 const modalContentStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
@@ -138,13 +168,11 @@ const modalFooterStyle = computed(() => ({
   alignItems: 'center',
 }));
 
-// 닫기 버튼 스타일
 const closeButtonStyle = computed(() => ({
   background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
   backgroundSize: 'cover',
 }));
 
-// 저장 버튼 스타일
 const saveButtonStyle = computed(() => ({
   background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
   backgroundSize: 'cover',
@@ -192,6 +220,17 @@ const saveButtonStyle = computed(() => ({
 .modal-title-container {
   position: relative;
   width: 100%;
+  text-align: left; 
+  padding-left: 15px; 
+}
+
+.modal-title-text {
+  position: relative; 
+  color: white;
+  font-size: 1.5rem;
+  white-space: normal; 
+  word-wrap: break-word; 
+  max-width: calc(100% - 30px); 
 }
 
 .modal-title-image {
@@ -200,14 +239,7 @@ const saveButtonStyle = computed(() => ({
   object-fit: cover;
 }
 
-.modal-title-text {
-  position: absolute;
-  top: 50%;
-  left: 15%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 1.5rem;
-}
+
 
 .modal-body {
   padding: 20px;
@@ -311,7 +343,7 @@ const saveButtonStyle = computed(() => ({
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  height: 150px; /* 크기 줄임 */
+  height: 150px;
   overflow-y: auto;
 }
 
@@ -330,7 +362,7 @@ const saveButtonStyle = computed(() => ({
 
 .footer-buttons {
   display: flex;
-  gap: 10px; /* 버튼 간의 간격 조정 */
+  gap: 10px;
 }
 
 .footer-button {
@@ -343,7 +375,7 @@ const saveButtonStyle = computed(() => ({
 }
 
 .footer-button:hover {
-  transform: translateY(-2px); /* 버튼 호버 시 살짝 위로 움직이는 효과 */
+  transform: translateY(-2px);
 }
 
 .warning-message {

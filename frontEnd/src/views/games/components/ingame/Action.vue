@@ -30,7 +30,7 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
-            @dblclick="openActionModal(action)"
+            @dblclick="openActionModal(action, $event)"
             :style="getActionItemStyle(action.id)"
             @mouseover="showTooltip"
             @mouseleave="hideTooltip"
@@ -60,22 +60,48 @@
             :key="action.id"
             :class="['action-item', { 'selected': selectedAction === action.id }]"
             @click="selectAction(action.id)"
-            @dblclick="openActionModal(action)"
+            @dblclick="openActionModal(action, $event)"
             :style="getActionItemStyle(action.id)"
             @mouseover="showTooltip"
             @mouseleave="hideTooltip"
           >
             {{ action.name }}
+            <!-- 삭제 버튼 추가 (핵심 및 고급액션에만 표시) -->
+            <button 
+              v-if="selectedTab === 'job' && (selectedSubTab === 'core' || selectedSubTab === 'advanced')" 
+              @click.stop="confirmDeleteAction(action, $event)" 
+              class="remove-action-button"
+            >
+              <img :src="require('@/assets/images/ingame/Delete.png')" alt="Delete" class="delete" />
+            </button>
             <div class="tooltip">더블 클릭시 해당 액션 정보를 볼 수 있습니다</div>
           </div>
+          <button class="add-action-button" @click="openAddActionModal">
+            <img :src="require('@/assets/images/ingame/Plus.png')" alt="추가" />
+          </button>
         </div>
       </div>
     </div>
-    <ActionModal
+    <ActionInfoModal
       v-if="isActionModalVisible"
       :action="selectedModalAction"
       @close="isActionModalVisible = false"
       @select="handleSelectAction"
+    />
+    <AddActionModal
+      v-if="isAddActionModalVisible && roomId"
+      :roomID="roomId"
+      :playMemberID="playMemberID"
+      :currentActions="currentActions" 
+      @close="closeAddActionModal"
+      @add-action="handleAddAction"
+    />
+    <ConfirmDeleteModal
+      v-if="isConfirmDeleteModalVisible"
+      :isVisible="isConfirmDeleteModalVisible"
+      :item="selectedModalAction"
+      @close="closeConfirmDeleteModal"
+      @confirm="handleActionDeleted"
     />
   </div>
 </template>
@@ -83,16 +109,32 @@
 <script>
 import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { selectedPlayMemberID, selectedUserJob } from '@/store/state';
-import { getCommonActions, getCharacterActions } from '@/common/api/ActionAPI.js';
+import { selectedPlayMemberID, selectedUserJobID } from '@/store/state';
+import { getCommonActions, addCharacterAction } from '@/common/api/ActionAPI.js';
 import { getRoomInfo } from '@/common/api/RoomsAPI.js';
-import ActionModal from '@/views/games/components/Modal/ActionModal.vue'; // ActionModal 컴포넌트 경로
+import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
+import ActionInfoModal from '@/views/games/components/Modal/ActionInfoModal.vue';
+import AddActionModal from '@/views/games/components/Modal/AddActionModal.vue';
+import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModal2.vue';
 
 export default {
   components: {
-    ActionModal
+    ActionInfoModal,
+    AddActionModal,
+    ConfirmDeleteModal
   },
   setup() {
+    const jobNames = {
+      1: '도적',
+      2: '드루이드',
+      3: '마법사',
+      4: '사냥꾼',
+      5: '사제',
+      6: '성기사',
+      7: '음유시인',
+      8: '전사'
+    };
+
     const actionAreaBackground = require('@/assets/images/ingame/Border5.png');
     const coreActionImage = require('@/assets/images/ingame/CoreAction.png');
     const advancedActionImage = require('@/assets/images/ingame/AdvancedAction.png');
@@ -120,8 +162,15 @@ export default {
 
     const tabs = ref([
       { name: 'common', label: '공통' },
-      { name: 'job', label: selectedUserJob.value || '직업' }
+      { name: 'job', label: jobNames[selectedUserJobID.value] || '직업' }
     ]);
+
+    watch(selectedUserJobID, (newJobID) => {
+      tabs.value = [
+        { name: 'common', label: '공통' },
+        { name: 'job', label: jobNames[newJobID] || '직업' }
+      ];
+    });
 
     const commonSubTabs = ref([
       { name: 'basic', label: '기본액션' },
@@ -139,10 +188,13 @@ export default {
     const currentActions = ref([]);
 
     const isActionModalVisible = ref(false);
+    const isAddActionModalVisible = ref(false);
+    const isConfirmDeleteModalVisible = ref(false);
     const selectedModalAction = ref(null);
 
     const route = useRoute();
-    const roomId = ref(route.params.roomId);
+    const roomId = ref(null); // 초기에는 null로 설정
+    const playMemberID = ref(selectedPlayMemberID.value);
     const ruleID = ref(null);
 
     const fetchRoomInfo = async () => {
@@ -158,8 +210,11 @@ export default {
     const updateCurrentActions = async () => {
       try {
         if (selectedTab.value === 'job') {
-          const jobActions = await getCharacterActions(roomId.value, selectedPlayMemberID.value);
-          currentActions.value = jobActions[selectedSubTab.value] || [];
+          const characterSheet = await getCharacterSheet(roomId.value, playMemberID.value);
+          const actions = characterSheet.characterAction.filter(action => {
+            return action.isCore ? selectedSubTab.value === 'core' : selectedSubTab.value === 'advanced';
+          });
+          currentActions.value = actions;
         } else {
           if (ruleID.value !== null) {
             const commonActions = await getCommonActions(ruleID.value);
@@ -175,7 +230,19 @@ export default {
       }
     };
 
-    const openActionModal = (action) => {
+    const handleActionDeleted = () => {
+      if (selectedModalAction.value) {
+        // 삭제된 액션을 currentActions 배열에서 제거
+        currentActions.value = currentActions.value.filter(action => action.id !== selectedModalAction.value.id);
+        // 선택된 액션도 초기화
+        selectedAction.value = null;
+        // 모달 닫기
+        closeConfirmDeleteModal();
+      }
+    };
+
+    const openActionModal = (action, event) => {
+      event.stopPropagation(); // 이벤트 버블링을 중단시켜 클릭 이벤트가 전파되지 않도록 함
       selectedModalAction.value = {
         category: selectedTab.value === 'common' ? commonSubTabs.value.find(subTab => subTab.name === selectedSubTab.value).label : jobSubTabs.value.find(subTab => subTab.name === selectedSubTab.value).label,
         ...action
@@ -183,11 +250,66 @@ export default {
       isActionModalVisible.value = true;
     };
 
-    onMounted(() => {
-      fetchRoomInfo();
+    const openAddActionModal = () => {
+      isAddActionModalVisible.value = true;
+    };
+
+    const closeAddActionModal = () => {
+      isAddActionModalVisible.value = false;
+    };
+
+    const confirmDeleteAction = (action, event) => {
+      event.stopPropagation();
+      selectedModalAction.value = action;
+      isConfirmDeleteModalVisible.value = true;
+    };
+
+    const closeConfirmDeleteModal = () => {
+      isConfirmDeleteModalVisible.value = false;
+      selectedModalAction.value = null;
+    };
+
+
+    const handleAddAction = async (action) => {
+      try {
+        currentActions.value.push(action); // 새 액션을 리스트에 추가
+        await addCharacterAction(roomId.value, playMemberID.value, action.id, action.selectedOption ? action.selectedOption.id : null);
+        await updateCurrentActions(); // 서버의 최신 데이터로 다시 불러오기
+      } catch (error) {
+        console.error('Error adding action:', error);
+      }
+    };
+
+    watch(selectedPlayMemberID, async (newID) => {
+      if (newID) {
+        playMemberID.value = newID;
+        await updateCurrentActions();
+      } else {
+        console.log('Player ID is null or undefined');
+      }
     });
 
-    watch([selectedTab, selectedSubTab], updateCurrentActions);
+    watch(route, (newRoute) => {
+      const newRoomId = newRoute.params.roomId;
+      if (newRoomId) {
+        roomId.value = newRoomId;
+        console.log('Updated roomId:', newRoomId);
+        fetchRoomInfo(); // roomId가 변경되었을 때 방 정보와 액션 목록을 업데이트
+      }
+    }, { immediate: true }); // 컴포넌트 초기화 시에도 감시자 실행
+
+    onMounted(async () => {
+      console.log('Initial roomId:', roomId.value); // roomId.value가 무엇인지 확인
+      if (roomId.value) {
+        await fetchRoomInfo();
+        if (selectedPlayMemberID.value) {
+          playMemberID.value = selectedPlayMemberID.value;
+          await updateCurrentActions();
+        } else {
+          console.log('No player selected initially');
+        }
+      }
+    });
 
     const tabStyle = (tabName) => {
       return {
@@ -260,19 +382,19 @@ export default {
     const showTooltip = (event) => {
       const tooltip = event.target.querySelector('.tooltip');
       if (tooltip) {
-        tooltip.style.visibility = 'visible';
+        tooltip.style.visibility = 'visible'; 
         tooltip.style.opacity = 1;
-        tooltip.style.top = `${event.target.offsetHeight}px`;
-        tooltip.style.left = `50%`;
-        tooltip.style.transform = `translateX(-50%)`;
+        tooltip.style.top = `${event.target.offsetHeight}px`; 
+        tooltip.style.left = `50%`; 
+        tooltip.style.transform = `translateX(-50%)`; 
       }
     };
 
     const hideTooltip = (event) => {
       const tooltip = event.target.querySelector('.tooltip');
       if (tooltip) {
-        tooltip.style.visibility = 'hidden';
-        tooltip.style.opacity = 0;
+        tooltip.style.visibility = 'hidden'; 
+        tooltip.style.opacity = 0; 
       }
     };
 
@@ -295,23 +417,36 @@ export default {
       selectAction,
       subTabStyle,
       tabStyle,
+      handleActionDeleted,
       getActionItemStyle,
       isActionModalVisible,
       selectedModalAction,
       openActionModal,
+      isAddActionModalVisible,
+      openAddActionModal,
+      closeAddActionModal,
+      confirmDeleteAction,
+      closeConfirmDeleteModal,
+      isConfirmDeleteModalVisible,
+      handleAddAction,
       handleSelectAction,
       showTooltip,
       hideTooltip,
+      jobTabName: jobNames[selectedUserJobID.value] || '직업',
+      roomId,
+      playMemberID
     };
   }
 };
 </script>
 
 <style scoped>
+
 .action-section {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .tabs {
@@ -377,10 +512,23 @@ export default {
   font-size: 1rem; 
 }
 
+.add-action-button {
+  margin-right: 50px;
+  height: 45px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
 .action-list-container {
   flex-grow: 1;
   overflow: hidden;
   height: 200px; /* 필요에 따라 높이 값을 조정 */
+  max-width: 100%;
 }
 
 .action-list {
@@ -391,6 +539,8 @@ export default {
   align-content: flex-start;
   gap: 10px;
   padding: 10px;
+  max-width: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #855e2fee #201805;
@@ -414,6 +564,23 @@ export default {
   background-repeat: no-repeat;
   box-sizing: border-box;
   position: relative;
+}
+
+.delete {
+  padding-right: 5px;
+}
+
+.remove-action-button {
+  object-fit: cover;
+  position: absolute;
+  top: 2px;
+  right: 10px;
+  background: none;
+  border: none;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  z-index: 10;
 }
 
 .tooltip {

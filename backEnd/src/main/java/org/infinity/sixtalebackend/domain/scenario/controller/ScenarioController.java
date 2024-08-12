@@ -6,6 +6,7 @@ import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioResponseDto;
 import org.infinity.sixtalebackend.domain.scenario.service.ScenarioService;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.naming.AuthenticationException;
 import java.util.List;
 
 @RestController
@@ -36,14 +38,18 @@ public class ScenarioController {
      */
     @GetMapping("")
     public ResponseEntity<?> getScenarioList(
-            @RequestParam(required = false) Long genreID,
+            @RequestParam(required = false) List<Long> genre,
             @RequestParam(required = false) String title,
-            Pageable scenarioPageable){
+            @RequestParam(required = false) int page,
+            @RequestParam(required = false) int size,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order){
         try {
-            Long memberID = 1L;
             // 로그인 중인지 아닌지의 로직
-            // Long memberId = (userPrincipal != null) ? userPrincipal.getId() : null;
-            ScenarioListResponseDto scenarioList = scenarioService.getScenarioList(memberID,genreID,title,scenarioPageable);
+            Long memberID = AuthenticationUtil.getMemberId();
+            if (memberID == -1) memberID = null;
+
+            ScenarioListResponseDto scenarioList = scenarioService.getScenarioList(memberID,genre,title,page,size,sort,order);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_SCENARIO_LIST,scenarioList), HttpStatus.OK);
         }catch(Exception e){
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -71,10 +77,13 @@ public class ScenarioController {
     @PostMapping("/{scenarioID}/like")
     public ResponseEntity<?> likeScenario(@PathVariable Long scenarioID) {
         try {
-            Long memberID = 1L;
+            // 로그인 중인지 아닌지의 로직
+            Long memberID = AuthenticationUtil.getMemberId();
+            if (memberID == -1) throw new AuthenticationException();
+
             boolean success = scenarioService.likeScenario(scenarioID, memberID);
             if (success) {
-                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_SCENARIO_LIKE), HttpStatus.CREATED);
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_SCENARIO_LIKE), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_SCENARIO_LIKE_FAIL), HttpStatus.BAD_REQUEST);
             }
@@ -89,10 +98,13 @@ public class ScenarioController {
     @DeleteMapping("/{scenarioID}/like")
     public ResponseEntity<?> unlikeScenario(@PathVariable Long scenarioID) {
         try {
-            Long memberID = 1L;
+            // 로그인 중인지 아닌지의 로직
+            Long memberID = AuthenticationUtil.getMemberId();
+            if (memberID == -1) throw new AuthenticationException();
+
             boolean success = scenarioService.unlikeScenario(scenarioID, memberID);
             if (success) {
-                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.DELETE_SCENARIO_LIKE), HttpStatus.CREATED);
+                return new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.DELETE_SCENARIO_LIKE), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_SCENARIO_LIKE_FAIL), HttpStatus.BAD_REQUEST);
             }

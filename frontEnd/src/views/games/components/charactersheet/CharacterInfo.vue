@@ -1,82 +1,144 @@
 <template>
-  <div class="top-section">
-    <div class="input-group">
-      <div class="title-container">
-        <img src="@/assets/images/character_sheet/nickname_light.png" alt="이름" class="title-image">
-        <span class="title-text">이름</span>
-      </div>
-      <div class="name-input-container">
-        <img src="@/assets/images/character_sheet/name_box.png" alt="이름 입력 배경" class="name-input-image">
-        <input type="text" v-model="formData.name" id="name" class="name-input" />
+  <div class="character-info-container">
+    <div class="left-section">
+      <div class="input-group">
+        <div class="title-container">
+          <span class="title-text">이름</span>
+        </div>
+        <div class="name-input-container">
+          <input 
+            type="text" 
+            v-model="localFormData.name" 
+            id="name" 
+            class="name-input" 
+            maxlength="8" 
+            placeholder="최대 8자" 
+            @input="emitNameChange" 
+          />
+          <img src="@/assets/images/character_sheet/name_box.png" alt="이름 입력 배경" class="name-input-image">
+        </div>
       </div>
     </div>
-    <div class="input-group">
-      <div class="title-container">
-        <img src="@/assets/images/character_sheet/nickname_light.png" alt="종족" class="title-image">
-        <span class="title-text">종족</span>
+    <div class="right-section">
+      <div class="race-title-container">
+        <span class="race-title">선택 가능한 종족</span>
       </div>
-      <div class="race-buttons">
-        <button 
-          v-for="race in races" 
-          :key="race" 
-          :class="['race-button', { active: formData.selectedRace === race }]"
-          @click="selectRace(race)">
-          <img src="@/assets/images/character_sheet/tribebutton.png" :alt="race" class="race-button-image">
-          <span class="race-button-text">{{ race }}</span>
-        </button>
+      <div class="race-cards">
+        <div 
+          v-for="race in currentOptions" 
+          :key="race.raceID" 
+          :class="['action-card', { selected: localFormData.selectedRace === race.raceName }]"
+          @click="selectRace(race.raceName)">
+          <div class="race-card-header">
+            <span class="race-card-title">{{ race.raceName }}</span>
+          </div>
+          <div class="race-card-body">
+            <p class="race-card-description">{{ race.description }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <div class="input-group history-input-group">
+  <div class="history-section">
     <div class="history-title-container">
       <img src="@/assets/images/character_sheet/Vector.png" alt="히스토리" class="history-title-image">
       <span class="history-title-text">히스토리</span>
     </div>
     <div class="history-input-container">
+      <input 
+        type="text" 
+        v-model="localFormData.history" 
+        id="history" 
+        class="history-input" 
+        maxlength="255" 
+        placeholder="최대 255자" 
+        @input="emitHistoryChange" 
+      />
       <img src="@/assets/images/character_sheet/history_box.png" alt="히스토리 입력 배경" class="history-input-image">
-      <input type="text" v-model="formData.history" id="history" class="history-input" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, toRefs } from 'vue';
+import { ref, reactive, toRefs, watch } from 'vue';
 
-const props = defineProps(['formData']);
-const { formData } = toRefs(props);
+const props = defineProps({
+  formData: Object,
+  currentOptions: Array // currentOptions를 props로 받아옵니다.
+});
 
-const races = ref(['하플링', '인간', '엘프', '드워프']); // 예시 종족 목록
+const { formData, currentOptions } = toRefs(props); // currentOptions를 toRefs로 접근
 
-function selectRace(race) {
-  formData.value.selectedRace = race;
+const emit = defineEmits(['update:name', 'update:history', 'update:selectedRace']);
+
+// 로컬 상태를 만들어 formData의 변경을 감지하고 부모에 반영
+const localFormData = reactive({ ...formData.value });
+
+// 부모 컴포넌트에서 넘어온 값이 변경될 경우 로컬 상태를 동기화
+watch(() => formData.value, (newVal) => {
+  Object.assign(localFormData, newVal);
+});
+
+function emitNameChange() {
+  emit('update:name', localFormData.name);
+}
+
+function emitHistoryChange() {
+  emit('update:history', localFormData.history);
+}
+
+function selectRace(raceName) {
+  localFormData.selectedRace = raceName;
+  emit('update:selectedRace', raceName);
 }
 </script>
 
+
+
+
 <style scoped>
-.top-section {
+.character-info-container {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px; /* 간격 조정 */
-  flex-wrap: wrap; /* 작은 화면에서도 줄 바꿈 허용 */
+  width: 100%;
+  margin-bottom: 20px; /* 히스토리와의 간격 추가 */
+}
+
+.left-section {
+  width: 33%; /* 왼쪽 1/3 영역 */
+  padding-right: 20px;
+}
+
+.right-section {
+  width: 67%; /* 오른쪽 2/3 영역 */
+  overflow-x: hidden;
+}
+
+.title-text {
+  column-rule-color: white;
+  font-size: 1.5rem;
+  align-items: center;
+  justify-content: center;
 }
 
 .input-group {
-  margin-bottom: 15px; /* 간격 조정 */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 48%; /* 너비 조정 */
+  gap: 15px;
 }
 
 .name-input-container {
   position: relative;
-  width: 200px; /* 너비 조정 */
-  height: 50px; /* 높이 조정 */
+  width: 100%;
+  height: 50px; /* 배경 이미지와 같은 높이로 설정 */
 }
 
 .name-input-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  z-index: 1;
 }
 
 .name-input {
@@ -90,66 +152,91 @@ function selectRace(race) {
   background: transparent;
   color: #fff;
   text-align: center;
-  font-size: 1rem; /* 폰트 크기 조정 */
+  z-index: 2; /* 배경 이미지 위에 텍스트가 오도록 설정 */
+  box-sizing: border-box;
 }
 
-.title-container {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 10px; /* 간격 조정 */
+.race-title-container {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.title-image {
-  width: 200px; /* 너비 조정 */
-  height: 50px; /* 높이 조정 */
-  display: block;
-}
-
-.title-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.race-title {
+  font-size: 1.5rem;
   color: #fff;
-  font-size: 1rem; /* 폰트 크기 조정 */
-  white-space: nowrap;
 }
 
-.history-input-group {
-  width: 100%;
+.race-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  overflow-x: hidden;
 }
 
-.history-title-container {
+.action-card {
+  flex: 0 0 calc(50% - 10px); /* 두 개의 카드가 한 줄에 나타나도록 설정 */
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.action-card:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.action-card.selected {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #fff;
+}
+
+.race-card-header {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+  color: #ecf0f1;
+}
+
+.race-card-body {
+  color: #bdc3c7;
+}
+
+.history-section {
+  margin-top: 70px; /* 이름 및 종족과의 간격 추가 */
   position: relative;
-  display: inline-block;
-  margin-bottom: 10px; /* 간격 조정 */
 }
 
-.history-title-image {
-  width: 200px; /* 너비 조정 */
-  height: 50px; /* 높이 조정 */
-  display: block;
+.history-title-container, .title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  position: relative;
 }
 
 .history-title-text {
   position: absolute;
-  top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
+  font-size: 1.5rem;
   color: #fff;
-  font-size: 1rem; /* 폰트 크기 조정 */
-  white-space: nowrap;
 }
 
 .history-input-container {
   position: relative;
-  width: 100%;
-  height: 300px; /* 높이 조정 */
+  width: 90%; /* 히스토리 입력 필드의 너비를 90%로 설정 */
+  margin: 0 auto; /* 중앙 정렬 */
+  height: 200px; /* 배경 이미지와 같은 높이로 설정 */
 }
 
 .history-input-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  z-index: 1;
 }
 
 .history-input {
@@ -157,48 +244,12 @@ function selectRace(race) {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%; /* 높이 조정 */
-  padding: 20px;
+  height: 100%;
+  padding: 10px;
   border: none;
   background: transparent;
   color: #fff;
-  font-size: 1rem; /* 폰트 크기 조정 */
-}
-
-.race-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.race-button {
-  position: relative;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  width: 150px; /* 너비 조정 */
-  height: 50px; /* 높이 조정 */
-  transition: transform 0.2s;
-}
-
-.race-button-image {
-  width: 100%;
-  height: 100%;
-}
-
-.race-button-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  font-size: 1rem; /* 폰트 크기 조정 */
-}
-
-.race-button.active {
-  transform: scale(1.1);
-  border: 2px solid #fff;
+  z-index: 2; /* 배경 이미지 위에 텍스트가 오도록 설정 */
+  box-sizing: border-box;
 }
 </style>

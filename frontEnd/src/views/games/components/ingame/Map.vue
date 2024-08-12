@@ -1,10 +1,6 @@
 <template>
   <div class="map-section-container" @dragover.prevent @drop="onDrop">
-    <!-- 디버그용 버튼 최상단에 위치 -->
-    <!-- <button class="debug-button" @click="logSelectedMap">Check selectedMap</button> -->
-
-    <!-- selectedMap prop을 사용하여 이미지 렌더링 -->
-    <img :src="mapImage" alt="Map" class="map-image" />
+    <img v-if="mapImage" :src="mapImage" alt="Map" class="map-image" />
     <div ref="rendererContainer" class="renderer-container"></div>
     <div
       v-for="token in placedTokens"
@@ -15,8 +11,8 @@
       @dblclick="returnToken(token)"
     >
       <img :src="tokenImage" :alt="token.name" />
-      <!-- Removed the token-coordinates span to disable tooltip display -->
     </div>
+
     <div v-if="showGrid" class="grid-overlay">
       <div v-for="row in gridRows" :key="row" class="grid-row">
         <div
@@ -31,39 +27,29 @@
             class="laser-effect"
             @mouseenter="onLaserMouseEnter(row, col)"
             @mouseleave="onLaserMouseLeave(row, col)"
-            @click="openModal"
+            @click="openModal(row, col)" 
           ></div>
+          <img
+            v-if="npcData[`${row}-${col}`]"
+            :src="npcData[`${row}-${col}`].imageUrl"
+            alt="NPC"
+            class="npc-image"
+          />
         </div>
       </div>
     </div>
+
     <div class="info-panel" v-if="hoveredDescription.title">
       <img
         class="info-background"
-        :src="infoBackground"
+        :src="hoveredDescription.nextMapUrl"
         alt="Information Background"
       />
       <div class="info-content">
-        <h3>{{ hoveredDescription.title }}</h3>
-        <p>{{ hoveredDescription.details }}</p>
+        <h3>{{ hoveredDescription.details }}</h3>
       </div>
     </div>
-    <!-- 레이저 설명을 위한 툴팁 컨테이너 -->
-    <div
-      v-if="hoveredLaserDescription && hoveredLaserDescription.title"
-      class="tooltip"
-      :style="{ top: tooltipPosition.y + 'px', left: tooltipPosition.x + 'px' }"
-    >
-      <img
-        v-if="hoveredLaserDescription.image"
-        :src="hoveredLaserDescription.image"
-        class="tooltip-image"
-        alt="Tooltip Image"
-      />
-      <h4>{{ hoveredLaserDescription.title }}</h4>
-      <p>{{ hoveredLaserDescription.details }}</p>
-    </div>
 
-    <!-- Bootstrap Modal -->
     <div
       class="modal fade"
       id="eventModal"
@@ -98,7 +84,7 @@
             <button
               type="button"
               class="btn footer-button"
-              @click="changeMap(hoveredLaserDescription.position.row, hoveredLaserDescription.position.col)"
+              @click="changeMap(hoveredLaserDescription)"
               data-bs-dismiss="modal"
             >
               <img :src="okImage" alt="저장" />
@@ -115,15 +101,16 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
-import { useMapStore } from "@/store/map/mapStore"; // 맵 스토어 사용
+import { useMapStore } from "@/store/map/mapStore";
+import { getMapPlace, getMapNpcs } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
 
-// 이미지 경로 설정
 import scheduleModal from '@/assets/images/ingame/map/background.png';
 import titleImage from '@/assets/images/ingame/map/title.png';
 import cancelImage from '@/assets/images/ingame/map/cancel.png';
 import okImage from '@/assets/images/ingame/map/ok.png';
+import backButtonImage from '@/assets/images/ingame/map/back_button.png';
 
-// 컴포넌트의 props 정의
 const props = defineProps({
   selectedMap: {
     type: Object,
@@ -134,36 +121,86 @@ const props = defineProps({
 const rendererContainer = ref(null);
 let threeJSManager = null;
 
-// 맵 스토어
 const mapStore = useMapStore();
-mapStore.loadDummyData(); // 더미 데이터 로드
+const route = useRoute();
+const roomId = ref(route.params.roomId);
 
 const tokenImage = require("@/assets/images/ingame/Token.png");
 const defaultMapImage = require("@/assets/images/maps/map1.png");
-const mapImage = ref(defaultMapImage); // 기본 맵 이미지
-const infoBackground = ref(require("@/assets/images/hover/token_hover.png")); // 기본 정보 배경 이미지
+const mapImage = ref(defaultMapImage);
+const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
 
-// 모달 상태 변수
-const selectedMapIndex = ref(0); // 선택된 맵의 인덱스
+const npcData = ref({}); // NPC 정보를 저장할 객체
+const selectedMapIndex = ref(0);
+const cellDescriptions = ref({});
 
 // selectedMap prop의 변경 사항 감시
 watch(
   () => props.selectedMap,
-  (newMap) => {
-    // 새로운 맵의 이미지 URL로 mapImage를 업데이트
+  async (newMap) => {
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
+      console.log("Selected Map ID:", newMap.id);
+
+      try {
+        const mapId = newMap.id;
+        const roomId2 = roomId.value;
+
+        const mapInfo = await getMapPlace(roomId2, mapId);
+        const npcInfo = await getMapNpcs(roomId2, mapId);  // NPC 데이터 가져오기
+
+        if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
+          activeLasers.value = new Set(
+            mapInfo.placeEvents.map(event => {
+              const coord = `${event.row}-${event.col}`;
+              console.log("Laser activated at:", coord);
+              return coord;
+            })
+          );
+
+          cellDescriptions.value = {};
+          mapInfo.placeEvents.forEach(event => {
+            cellDescriptions.value[`${event.row}-${event.col}`] = {
+              title: `Event at (${event.row}, ${event.col})`,
+              details: event.description,
+              nextMapId: event.nextMapId,
+              nextMapUrl: event.nextMapUrl,
+            };
+          });
+
+          console.log("Map Info:", mapInfo);
+        } else {
+          console.warn("Invalid map data or placeEvents is undefined");
+        }
+
+        if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
+          npcInfo.npcEventList.forEach(npcEvent => {
+            npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
+              description: npcEvent.description,
+              currentHp: npcEvent.currentHp,
+              imageUrl: backButtonImage,  // 여기에 실제 NPC 이미지 경로를 설정하세요
+            };
+          });
+
+          console.log("NPC Info:", npcInfo);
+        } else {
+          console.warn("Invalid NPC data or npcEventList is undefined");
+        }
+
+      } catch (error) {
+        console.error("Error loading map or NPC data:", error);
+      }
     } else {
       mapImage.value = defaultMapImage;
+      console.warn("Selected Map is null or does not have an image URL.");
     }
   },
   { immediate: true }
 );
 
-// 창 크기와 그리드 크기를 기반으로 그리드 행과 열 계산
 const gridRows = computed(() =>
   Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i)
 );
@@ -171,69 +208,57 @@ const gridCols = computed(() =>
   Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i)
 );
 
-// 하드코딩된 덤프 데이터로 활성 레이저 설정
-const activeLasers = ref(new Set(["2-3", "4-5", "1-1", "6-7"]));
-const hoveredDescription = ref({ title: "", details: "" }); // 현재 마우스가 올려진 그리드 셀의 설명 저장
+const activeLasers = ref(new Set());
+const hoveredDescription = ref({ title: "", details: "" });
 
-// 툴팁 데이터와 위치
 const hoveredLaserDescription = ref(null);
 const tooltipPosition = ref({ x: 0, y: 0 });
-let tooltipTimeout = null; // 툴팁 타임아웃 변수
+let tooltipTimeout = null;
 
-// 레이저 효과 위에 마우스를 올렸을 때
 const onLaserMouseEnter = (row, col) => {
-  if (tooltipTimeout) clearTimeout(tooltipTimeout); // 이전 타임아웃 클리어
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
   const description = getDescription(row, col);
   console.log(`Mouse entered on laser at (${row}, ${col})`, description);
   hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-  // 레이저 효과에 위치한 이미지로 infoBackground 업데이트
-  if (hoveredLaserDescription.value.image) {
-    infoBackground.value = hoveredLaserDescription.value.image;
+  if (hoveredLaserDescription.value.nextMapUrl) {
+    infoBackground.value = hoveredLaserDescription.value.nextMapUrl;
   } else {
-    // 레이저에 이미지가 없을 경우 기본 이미지로 설정
     infoBackground.value = require("@/assets/images/hover/token_hover.png");
   }
 
-  console.log("Tooltip Image:", hoveredLaserDescription.value.image); // 이미지 데이터 로그 확인
+  console.log("Tooltip Image:", hoveredLaserDescription.value.nextMapUrl);
 };
 
-// 레이저 효과에서 마우스를 내렸을 때
 const onLaserMouseLeave = (row, col) => {
   console.log(`Mouse left laser at (${row}, ${col})`);
   tooltipTimeout = setTimeout(() => {
     hoveredLaserDescription.value = null;
     infoBackground.value = require("@/assets/images/hover/token_hover.png");
-  }, 1000); // 1초 후에 툴팁 제거
+  }, 1000);
 };
 
-// 마우스를 올린 그리드 셀에 대한 설명 표시
 const showDescription = (row, col) => {
   const description = getDescription(row, col);
   console.log(`Hovered on grid cell: ${row}-${col}`, description);
   hoveredDescription.value = description;
 };
 
-// 그리드 셀에서 마우스가 벗어나면 설명 숨김
 const hideDescription = () => {
   hoveredDescription.value = { title: "", details: "" };
-  if (tooltipTimeout) clearTimeout(tooltipTimeout); // 기존 타임아웃 제거
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
   tooltipTimeout = setTimeout(() => {
     hoveredLaserDescription.value = null;
-  }, 1000); // 1초 후에 툴팁 제거
+  }, 1000);
 };
 
-// 행과 열에 따라 각 그리드 셀에 대한 설명 제공
 const getDescription = (row, col) => {
-  const map = mapStore.getMapByPosition(row, col);
-  if (map) {
-    return {
-      title: map.name,
-      details: map.description,
-      image: map.imageURL,
-    };
+  const descriptionKey = `${row}-${col}`;
+  const description = cellDescriptions.value[descriptionKey];
+  if (description) {
+    return description;
   }
-  return { title: "", details: "" };
+  return { title: "Unknown Location", details: "No description available." };
 };
 
 const onDrop = (event) => {
@@ -321,39 +346,88 @@ const isLaserActive = (row, col) => {
   return activeLasers.value.has(`${row}-${col}`);
 };
 
-// 마우스 움직임에 따라 툴팁 위치 업데이트
 document.addEventListener("mousemove", (event) => {
-  tooltipPosition.value.x = event.pageX + 10; // 마우스 포인터에서 약간 떨어지도록 오프셋 추가
+  tooltipPosition.value.x = event.pageX + 10;
   tooltipPosition.value.y = event.pageY + 10;
 });
 
-const openModal = () => {
-  // 부트스트랩 모달 열기
-  const modal = new bootstrap.Modal(document.getElementById("eventModal"), {
-    backdrop: false, // 백드롭을 비활성화합니다
-  });
-  modal.show();
-};
-
-// 맵 변경 로직
-const changeMap = (row, col) => {
-  const map = mapStore.getMapByPosition(row, col);
-  if (map) {
-    mapImage.value = map.imageURL;
-    mapStore.setSelectedMap(map);
-    console.log("Map changed to:", map.name);
+const openModal = (row, col) => {
+  const description = getDescription(row, col);
+  if (description) {
+    hoveredLaserDescription.value = description;
+    const modal = new bootstrap.Modal(document.getElementById("eventModal"), {
+      backdrop: false,
+    });
+    modal.show();
+    console.log("Modal opened for position:", row, col);
   } else {
-    console.log("해당 좌표에 맵이 없습니다.");
+    console.warn("No event found for this position.");
   }
 };
 
-// 모달 스타일에 배경 이미지를 설정합니다.
+const changeMap = async (description) => {
+  if (description && description.nextMapUrl && description.nextMapId) {
+    console.log(`Changing map to URL: ${description.nextMapUrl}`);
+    mapImage.value = description.nextMapUrl;
+
+    try {
+      const newMapId = description.nextMapId;
+      const mapInfo = await getMapPlace(roomId.value, newMapId);
+      const npcInfo = await getMapNpcs(roomId.value, newMapId);  // NPC 데이터도 함께 가져오기
+
+      if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
+        activeLasers.value = new Set(
+          mapInfo.placeEvents.map(event => {
+            const coord = `${event.row}-${event.col}`;
+            console.log("Laser activated at:", coord);
+            return coord;
+          })
+        );
+
+        cellDescriptions.value = {};
+        mapInfo.placeEvents.forEach(event => {
+          cellDescriptions.value[`${event.row}-${event.col}`] = {
+            title: `Event at (${event.row}, ${event.col})`,
+            details: event.description,
+            nextMapId: event.nextMapId,
+            nextMapUrl: event.nextMapUrl,
+          };
+        });
+
+        console.log("Updated Map Info:", mapInfo);
+      } else {
+        console.warn("Invalid map data or placeEvents is undefined");
+      }
+
+      if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
+        npcData.value = {};  // 기존 NPC 데이터를 초기화합니다.
+        npcInfo.npcEventList.forEach(npcEvent => {
+          npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
+            description: npcEvent.description,
+            currentHp: npcEvent.currentHp,
+            imageUrl: backButtonImage,  // 여기에 실제 NPC 이미지 경로를 설정하세요
+          };
+        });
+
+        console.log("Updated NPC Info:", npcInfo);
+      } else {
+        console.warn("Invalid NPC data or npcEventList is undefined");
+      }
+
+    } catch (error) {
+      console.error("Error loading new map or NPC data:", error);
+    }
+  } else {
+    console.warn("No next map available for this position.");
+  }
+};
+
 const modalStyle = computed(() => ({
   backgroundImage: `url(${scheduleModal})`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  zIndex: 1070, // 모달 z-index 설정
+  zIndex: 1070,
 }));
 
 onMounted(() => {
@@ -367,8 +441,11 @@ onMounted(() => {
     deleteTokenFromMap(event.detail);
   });
 
-  // 초기 이벤트 좌표 설정
-  activeLasers.value = new Set(["2-3", "4-5", "1-1", "6-7"]);
+  if (props.selectedMap && props.selectedMap.id) {
+    console.log("Initial Selected Map ID:", props.selectedMap.id);
+  } else {
+    console.warn("Selected Map is null or ID is not available on initial load.");
+  }
 });
 
 onUnmounted(() => {
@@ -385,7 +462,7 @@ onUnmounted(() => {
   margin: 5px;
   position: relative;
   overflow: hidden;
-  z-index: 10; /* 기본 z-index 설정 */
+  z-index: 10;
 }
 
 .renderer-container {
@@ -403,7 +480,7 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   image-rendering: auto;
-  z-index: 1; /* 맵 이미지의 z-index 설정 */
+  z-index: 1;
 }
 
 .token {
@@ -411,15 +488,13 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   cursor: move;
-  z-index: 2; /* 토큰의 z-index 설정 */
+  z-index: 2;
 }
 
 .token img {
   width: 100%;
   height: 100%;
 }
-
-/* Removed the token-coordinates style since it's not needed anymore */
 
 .grid-overlay {
   position: absolute;
@@ -429,7 +504,7 @@ onUnmounted(() => {
   height: 100%;
   display: grid;
   pointer-events: none;
-  z-index: 3; /* 그리드 오버레이의 z-index 설정 */
+  z-index: 3;
 }
 
 .grid-row {
@@ -446,8 +521,8 @@ onUnmounted(() => {
   font-size: 12px;
   color: rgba(0, 0, 0, 0.6);
   position: relative;
-  overflow: visible; /* 툴팁이 보이도록 설정 */
-  z-index: 2; /* 기본 z-index 설정 */
+  overflow: visible;
+  z-index: 2;
 }
 
 .laser-effect {
@@ -457,8 +532,15 @@ onUnmounted(() => {
   background-color: red;
   box-shadow: 0 0 10px 5px red;
   animation: pulse 1s infinite;
-  z-index: 1; /* 레이저 효과의 z-index 설정 */
-  pointer-events: auto; /* 마우스 이벤트를 받을 수 있도록 설정 */
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.npc-image {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  z-index: 4; /* NPC 이미지의 z-index 설정 */
 }
 
 .info-panel {
@@ -471,7 +553,7 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
-  z-index: 5; /* 정보 패널의 z-index 설정 */
+  z-index: 5;
   transition: opacity 0.3s ease;
 }
 
@@ -496,9 +578,9 @@ onUnmounted(() => {
 
 .debug-button {
   position: absolute;
-  top: 10px; /* 화면 최상단에 위치 */
-  left: 10px; /* 왼쪽에 위치 */
-  z-index: 100; /* 다른 요소들 위에 위치하도록 설정 */
+  top: 10px;
+  left: 10px;
+  z-index: 100;
   padding: 10px 20px;
   background-color: #007bff;
   color: #fff;
@@ -534,7 +616,7 @@ onUnmounted(() => {
   padding: 10px;
   border-radius: 5px;
   pointer-events: none;
-  z-index: 1000; /* 툴팁의 z-index를 높게 설정 */
+  z-index: 1000;
   max-width: 250px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
@@ -545,9 +627,9 @@ onUnmounted(() => {
   border-radius: 3px;
   margin-bottom: 10px;
   background-color: transparent;
-  z-index: 1001; /* 이미지가 다른 요소 위에 위치하도록 */
+  z-index: 1001;
   position: relative;
-  display: block; /* 보이는 상태 유지 */
+  display: block;
 }
 
 .tooltip h4 {
@@ -566,7 +648,7 @@ onUnmounted(() => {
 .modal-content {
   border-radius: 10px;
   padding: 20px;
-  z-index: 1070; /* 모달의 z-index 설정 */
+  z-index: 1070;
   background-color: #1e1e1e;
   color: #fff;
 }
@@ -580,24 +662,24 @@ onUnmounted(() => {
 }
 
 .modal-body {
-  text-align: center; /* 텍스트를 가운데 정렬 */
+  text-align: center;
 }
 
 .modal-title-image {
   width: 100%;
   height: auto;
   position: relative;
-  display: block; /* 보이는 상태 유지 */
-  margin-top: -14%; /* 이미지를 더 위쪽으로 이동 */
+  display: block;
+  margin-top: -14%;
 }
 
 .overlay-text {
   position: absolute;
-  top: -33%; /* 필요에 따라 조정 */
+  top: -33%;
   left: 50%;
   transform: translateX(-50%);
   color: #ffffff;
-  font-size: 20px; /* 필요에 따라 조정 */
+  font-size: 20px;
   font-weight: bolder;
 }
 
@@ -612,7 +694,7 @@ onUnmounted(() => {
 
 .footer-button {
   position: relative;
-  margin: 0 10px; /* 필요에 따라 간격 조정 */
+  margin: 0 10px;
 }
 
 .footer-button img {
@@ -635,7 +717,6 @@ onUnmounted(() => {
   font-size: 20px;
 }
 
-/* 백드롭 숨기기 */
 .modal-backdrop {
   display: none !important;
 }

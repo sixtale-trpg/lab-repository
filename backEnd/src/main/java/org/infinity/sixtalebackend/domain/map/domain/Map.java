@@ -20,14 +20,14 @@ public class Map {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scenario_id", nullable = false)
     private Scenario scenario;
 
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(length = 512)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

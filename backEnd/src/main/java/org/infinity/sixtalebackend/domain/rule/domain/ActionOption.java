@@ -17,7 +17,7 @@ public class ActionOption {
     @Column(nullable = false)
     private String content;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "action_id", nullable = false)
     private JobAction jobAction;
 }

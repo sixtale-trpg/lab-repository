@@ -21,7 +21,7 @@ public class Rule {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Lob //TEXT 타입 지정
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

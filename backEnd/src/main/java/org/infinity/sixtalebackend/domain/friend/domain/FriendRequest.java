@@ -21,11 +21,11 @@ public class FriendRequest extends BaseTimeEntity {
     @Column(nullable = false)
     private FriendRequestStatus status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
     private Member sendMember;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id", nullable = false)
     private Member receiveMember;
 

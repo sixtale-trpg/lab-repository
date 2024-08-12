@@ -9,18 +9,22 @@ import org.infinity.sixtalebackend.domain.map.dto.*;
 import org.infinity.sixtalebackend.domain.map.repository.MapRepository;
 import org.infinity.sixtalebackend.domain.map.repository.NPCEventRepository;
 import org.infinity.sixtalebackend.domain.map.repository.PlaceEventRepository;
+import org.infinity.sixtalebackend.domain.room.domain.Room;
+import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
 import org.infinity.sixtalebackend.domain.scenario.domain.Scenario;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioRepository;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @AllArgsConstructor
-public class MapServiceImpl implements Mapservice {
+public class MapServiceImpl implements MapService {
 
+    private final RoomRepository roomRepository;
     private final ScenarioRepository scenarioRepository;
     private final MapRepository mapRepository;
     private final PlaceEventRepository placeEventRepository;
@@ -28,37 +32,44 @@ public class MapServiceImpl implements Mapservice {
 
     @Override
     public MapListResponse getMapList(Long roomID) {
+        try {
+            Room room = roomRepository.findById(roomID).get();
+            Scenario scenario = scenarioRepository.findById(room.getScenario().getId()).get();
+            List<Map> mapList = mapRepository.findByScenario(scenario);
 
-        Scenario scenario = scenarioRepository.findById(roomID).get();
-        List<Map> maps = mapRepository.findByScenario(scenario);
+            List<MapResponse> maps = mapList.stream()
+                    .map(m -> MapResponse.builder()
+                            .id(m.getId())
+                            .name(m.getName())
+                            .description(m.getDescription())
+                            .scenarioID(m.getScenario().getId())
+                            .isNpc(m.isNpc())
+                            .isPlace(m.isPlace())
+                            .imageURL(m.getImageURL())
+                            .bgmURL(m.getBgmURL())
+                            .build())
+                    .collect(Collectors.toList());
 
-        MapListResponse response = new MapListResponse();
-        response.setMapList(maps);
-
-        return response;
+            return MapListResponse.builder().mapList(maps).build();
+        }catch (Exception e) {
+            log.info(e.getMessage());
+        }
+        return null;
     }
 
     @Override
     public MapResponse readMap(Long roomID, Long mapID) {
-
-        System.out.println("roomID = "+ roomID+" mapID="+ mapID);
-
         Map map = mapRepository.findById(mapID).get();
-
-        System.out.println("***************map************");
-        System.out.println("id="+map.getId());
-        System.out.println("scenario="+map.getScenario());
-        System.out.println("description="+map.getDescription());
 
         MapResponse response = MapResponse.builder()
                 .id(map.getId())
-                .scenario(map.getScenario())
+                .name(map.getName())
+                .scenarioID(map.getScenario().getId())
                 .description(map.getDescription())
                 .isNpc(map.isNpc())
                 .isPlace(map.isPlace())
                 .imageURL(map.getImageURL())
                 .bgmURL(map.getBgmURL())
-                .createdAt(map.getCreatedAt())
                 .build();
 
         return response;
@@ -67,23 +78,39 @@ public class MapServiceImpl implements Mapservice {
     @Override
     public PlaceEventListResponse getPlaceEventList(Long roomID, Long mapID) {
         Map map = mapRepository.findById(mapID).get();
-        List<PlaceEvent> placeEvents = placeEventRepository.findByMap(map);
+        List<PlaceEvent> placeEventList = placeEventRepository.findByMap(map);
 
-        PlaceEventListResponse response = new PlaceEventListResponse();
-        response.setPlaceEvents(placeEvents);
+        List<PlaceEventResponse> placeEvents = placeEventList.stream()
+                .map(m -> PlaceEventResponse.builder()
+                        .id(m.getId())
+                        .mapId(m.getMap().getId())
+                        .row(m.getRow())
+                        .col(m.getCol())
+                        .description(m.getDescription())
+                        .nextMapId(m.getNextMap().getId())
+                        .nextMapUrl(m.getNextMap().getImageURL())
+                        .build())
+                .collect(Collectors.toList());
 
-        return response;
+        return PlaceEventListResponse.builder().placeEvents(placeEvents).build();
     }
 
     @Override
     public NPCEventListResponse getNPCEventList(Long roomID, Long mapID) {
         Map map = mapRepository.findById(mapID).get();
-        List<NPCEvent> npcEvents = npcEventRepository.findByMap(map);
+        List<NPCEvent> npcEventList = npcEventRepository.findByMap(map);
 
-        NPCEventListResponse response = new NPCEventListResponse();
-        response.setNpcEvents(npcEvents);
+        List<NPCEventResponse> npcEvents = npcEventList.stream()
+                .map(m -> NPCEventResponse.builder()
+                        .id(m.getId())
+                        .mapId(m.getMap().getId())
+                        .description(m.getDescription())
+                        .scenarioNPCId(m.getScenarioNPC().getId())
+                        .currentHp(m.getCurrentHp())
+                        .build())
+                .collect(Collectors.toList());
 
-        return response;
+        return NPCEventListResponse.builder().npcEvents(npcEvents).build();
     }
 
     @Override
@@ -92,11 +119,12 @@ public class MapServiceImpl implements Mapservice {
 
         PlaceEventResponse response = PlaceEventResponse.builder()
                 .id(placeEvent.getId())
-                .map(placeEvent.getMap())
+                .mapId(placeEvent.getMap().getId())
                 .row(placeEvent.getRow())
                 .col(placeEvent.getCol())
                 .description(placeEvent.getDescription())
-                .nextMap(placeEvent.getNextMap())
+                .nextMapId(placeEvent.getNextMap().getId())
+                .nextMapUrl(placeEvent.getNextMap().getImageURL())
                 .build();
 
         return response;
@@ -108,9 +136,9 @@ public class MapServiceImpl implements Mapservice {
 
         NPCEventResponse response = NPCEventResponse.builder()
                 .id(npcEvent.getId())
-                .map(npcEvent.getMap())
+                .mapId(npcEvent.getMap().getId())
                 .description(npcEvent.getDescription())
-                .scenarioNPC(npcEvent.getScenarioNPC())
+                .scenarioNPCId(npcEvent.getScenarioNPC().getId())
                 .currentHp(npcEvent.getCurrentHp())
                 .build();
 

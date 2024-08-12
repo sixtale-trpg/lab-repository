@@ -10,7 +10,7 @@
       </div>
       <div class="right-section">
         <div :style="topSectionStyle" class="top-section">
-          <Map :roomId="roomId"/>
+          <Map :roomId="roomId" :mapList="mapList" :isGM="isGM" />
           <div :style="gmCardStyle" class="gm-section">
             <div class="gm-info">
               <div :style="profileImageContainerStyle" class="profile-image-container">
@@ -25,9 +25,7 @@
         <div class="details">
           <div class="rule-scenario">
             <div :style="gameInfoStyle" class="game-info">
-              <div :style="titleStyle" class="title">
-                <div :style="vectorImage">게임 룰</div>
-              </div>
+              <div :style="vectorImage">게임 룰</div>
               <div class="content cursor" @click="openRulebookModal">
                 <div :style="gameRuleContainerStyle" class="game-rule-container">
                   <div class="game-rule-text">{{ gameRule }}</div>
@@ -67,7 +65,7 @@ import Calendar from './components/Calendar.vue';
 import RulebookModal from './components/Modal/RulebookModal.vue';
 import ScenarioModal from './components/Modal/ScenarioModal.vue';
 import Userinfo from './components/Modal/UserInfo.vue';
-import { getRoomInfo } from '@/common/api/RoomsAPI';
+import { getRoomInfo, getMapList } from '@/common/api/RoomsAPI';  // API 함수들
 import defaultImage from '@/assets/images/users/default.png';
 
 const store = useStore();
@@ -93,6 +91,8 @@ const scenarioDetails = ref({});
 const showScenarioDetails = ref(false);
 const roomId = ref(null);
 
+const mapList = ref([]);  // MapList를 저장할 상태 변수
+
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
 const showUserModal = ref(false);
@@ -106,6 +106,7 @@ const fetchRoomDetails = async () => {
   try {
     const roomId = route.params.roomId;
     const roomInfo = await getRoomInfo(roomId);
+    
     roomDetails.value.title = roomInfo.title;
     roomDetails.value.currentPlayers = roomInfo.currentCount;
     roomDetails.value.totalPlayers = roomInfo.maxCount;
@@ -115,22 +116,41 @@ const fetchRoomDetails = async () => {
     scenario.value = roomInfo.scenarioTitle;
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
+
+    // 현재 사용자가 GM인지 확인하여 설정
+    // isGM.value = roomInfo.isCurrentUserGM; // API에서 isCurrentUserGM 값을 반환한다고 가정
+
     users.value = roomInfo.playMemberList.map(member => ({
       id: member.playMemberID,
       memberId: member.memberID,
       name: member.playMemberNickname,
       profileImage: member.playMemberImageURL || defaultImage,
     }));
-    console.log('users',users.value)
+    
+    console.log('users', users.value);
   } catch (error) {
     console.error('Error fetching room details:', error);
   }
 };
 
+const fetchMapList = async () => {
+  try {
+    const fetchedMaps = await getMapList(roomId.value);
+    if (fetchedMaps.mapList && Array.isArray(fetchedMaps.mapList)) {
+      mapList.value = fetchedMaps.mapList;
+    } else {
+      console.log('No maps found or fetchedMaps.mapList is not an array.');
+    }
+  } catch (error) {
+    console.error('Error fetching map list:', error);
+  }
+};
+
+// 컴포넌트가 마운트될 때 데이터 로드
 onMounted(() => {
   roomId.value = route.params.roomId;
   fetchRoomDetails();
-  console.log('Room ID in Waiting.vue:', roomId.value);
+  fetchMapList();  // MapList 로드
 });
 
 const selectDate = (date) => {
@@ -147,7 +167,7 @@ const closeRulebookModal = () => {
 
 const openScenarioModal = () => {
   fetchScenarioDetails();
-  isScenarioModalOpen.value = true;
+  // isScenarioModalOpen.value = true;
 };
 
 const closeScenarioModal = () => {
@@ -160,14 +180,20 @@ const startGame = () => {
 };
 
 const fetchScenarioDetails = async () => {
-  // 시나리오 정보를 백엔드에서 가져오는 부분
-  scenarioDetails.value = {
-    title: '왕자와 죽음의 개',
-    writer_id: 'writer123',
-    summary: '이 시나리오는...',
-    description: '상세 설명 내용...'
-  };
-  openScenarioModal();
+  try {
+    // 시나리오 정보를 백엔드에서 가져오는 부분
+    scenarioDetails.value = {
+      title: '왕자와 죽음의 개',
+      writer_id: 'writer123',
+      summary: '이 시나리오는...',
+      description: '상세 설명 내용...'
+    };
+    
+    // 모달을 열기
+    isScenarioModalOpen.value = true;
+  } catch (error) {
+    console.error('Error fetching scenario details:', error);
+  }
 };
 
 const toggleScenarioDetails = () => {

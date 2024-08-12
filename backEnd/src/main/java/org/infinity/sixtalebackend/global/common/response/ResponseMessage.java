@@ -9,6 +9,9 @@ public class ResponseMessage {
     public static final String UPDATED_MEMBER_DETAIL = "회원 상세정보 수정 성공";
     public static final String READ_MEMBER_DETAIL = "회원 상세정보 조회 성공";
     public static final String READ_SCENARIO_LIST = "시나리오 목록 조회 성공";
+    public static final String READ_WAITING_CHAT_LOG_LIST = "대기방 일반 채팅 로그 리스트 조회 성공";
+    public static final String READ_WAITING_WHISPER_CHAT_LOG_LIST = "대기방 귓속말 채팅 로그 리스트 조회 성공";
+    public static final String READ_WAITING_ALL_CHAT_LOG_LIST = "대기방 전체 채팅 로그 리스트 조회 성공";
     public static final String BAD_REQUEST_TERMS = "회원약관 요청 에러";
     public static final String DUPLICATE_EMAIL = "이메일 중복 에러";
     public static final String VALIDATION_ERROR = "이메일 유효성 에러";
@@ -31,6 +34,15 @@ public class ResponseMessage {
     public static final String CREATE_USER_CALENDAR = "회원 일정 생성 성공";
     public static final String CREATE_USER_CALENDAR_FAIL = "회원 일정 생성 실패";
     public static final String CREATE_USER_CALENDAR_ERROR = "회원 일정 생성 시 입력 오류";
+    public static final String READ_SCENARIO_LIKE_LIST = "좋아요한 시나리오 목록 조회 성공";
+    public static final String READ_SCENARIO_LIKE_LIST_FAIL = "좋아요한 시나리오 목록 조회 실패";
+    public static final String CREATE_SCENARIO_LIKE = "시나리오 좋아요 성공";
+    public static final String CREATE_SCENARIO_LIKE_FAIL = "시나리오 좋아요 실패";
+    public static final String DELETE_SCENARIO_LIKE = "시나리오 좋아요 삭제 성공";
+    public static final String DELETE_SCENARIO_LIKE_FAIL = "시나리오 좋아요 삭제 실패";
+    
+    public static final String READ_GENRE_LIST = "장르 목록 조회 성공";
+    public static final String READ_GENRE_LIST_FAIL = "장르 목록 조회 실패";
 
     public static final String DELETE_USER_CALENDAR = "회원 일정 삭제 성공";
     public static final String DELETE_USER_CALENDAR_FAIL = "회원 일정 삭제 실패";
@@ -66,6 +78,10 @@ public class ResponseMessage {
     public static final String READ_RULE_JOB_FAIL = "룰 직업 목록 조회 실패";
     public static final String READ_JOB_OPTION = "직업에 따른 선택지 목록 조회 성공";
     public static final String READ_JOB_OPTION_FAIL = "직업에 따른 선택지 목록 조회 실패";
+    public static final String READ_COMMON_ACTION = "공통 액션 조회 성공";
+    public static final String READ_COMMON_ACTION_FAIL = "공통 액션 조회 실패";
+    public static final String READ_RULE_EQUIPMENT = "룰 장비 목록 조회 성공";
+    public static final String READ_RULE_EQUIPMENT_FAIL = "룰 장비 목록 조회 실패";
 
     public static final String READ_MAP_LIST = "맵 목록 조회 성공";
     public static final String READ_MAP_LIST_FAIL = "맵 목록 조회 실패";
@@ -82,10 +98,30 @@ public class ResponseMessage {
 
     public static final String CREATE_CHARACTER_SHEET = "캐릭터 시트 작성 성공";
     public static final String CREATE_CHARACTER_SHEET_FAIL = "캐릭터 시트 작성 실패";
-    public static final String UPDATE_CHARACTER_SHEET = "캐릭터 시트 수정 성공";
-    public static final String UPDATE_CHARACTER_SHEET_FAIL = "캐릭터 시트 수정 실패";
+    public static final String UPDATE_CHARACTER_SHEET = "캐릭터 시트 수정 성공(플레이 전)";
+    public static final String UPDATE_CHARACTER_SHEET_FAIL = "캐릭터 시트 수정 실패(플레이 전)";
+    public static final String UPDATE_CHARACTER_SHEET_IN_PLAYING = "캐릭터 시트 수정 성공(플레이 중)";
+    public static final String UPDATE_CHARACTER_SHEET_IN_PLAYING_FAIL = "캐릭터 시트 수정 실패(플레이 중)";
     public static final String READ_CHARACTER_SHEET = "작성한 캐릭터 시트 조회 성공";
     public static final String READ_CHARACTER_SHEET_FAIL = "작성한 캐릭터 시트 조회 실패";
     public static final String DELETE_CHARACTER_SHEET = "작성한 캐릭터 시트 삭제 성공";
     public static final String DELETE_CHARACTER_SHEET_FAIL = "작성한 캐릭터 시트 삭제 실패";
+    public static final String READ_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 목록 불러오기 성공";
+    public static final String READ_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 목록 불러오기 실패";
+    public static final String ADD_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 추가 성공";
+    public static final String ADD_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 추가 실패";
+    public static final String UPDATE_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 수량 수정 성공";
+    public static final String UPDATE_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 수량 수정 실패";
+    public static final String DELETE_CHARACTER_SHEET_EQUIPMENT = "캐릭터 장비 삭제 성공";
+    public static final String DELETE_CHARACTER_SHEET_EQUIPMENT_FAIL = "캐릭터 장비 삭제 실패";
+    public static final String READ_CHARACTER_SHEET_ACTION = "캐릭터 액션 목록 불러오기 성공";
+    public static final String READ_CHARACTER_SHEET_ACTION_FAIL = "캐릭터 액션 목록 불러오기 실패";
+    public static final String ADD_CHARACTER_SHEET_ACTION = "캐릭터 액션 추가 성공" ;
+    public static final String ADD_CHARACTER_SHEET_ACTION_FAIL = "캐릭터 액션 추가 실패" ;
+    public static final String DELETE_CHARACTER_SHEET_ACTION = "캐릭터 액션 삭제 성공";
+    public static final String DELETE_CHARACTER_SHEET_ACTION_FAIL = "캐릭터 액션 삭제 실패";
+    public static final String UPDATE_CHARACTER_GOLD = "캐릭터 골드 수정 성공";
+    public static final String UPDATE_CHARACTER_GOLD_FAIL = "캐릭터 골드 수정 실패";
+
+
 }

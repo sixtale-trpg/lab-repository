@@ -54,7 +54,7 @@ export const createCharacterSheet = async (roomID, characterData) => {
 // 캐릭터 시트 업데이트
 export const updateCharacterSheet = async (roomID, playMemberID, updatedData) => {
   try {
-    const response = await axios.patch(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, updatedData, {
+    const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, updatedData, {
       headers: getHeaders()
     });
     return response.data;

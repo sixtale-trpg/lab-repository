@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.scenario.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
 import org.infinity.sixtalebackend.domain.memberdetail.dto.GenreDto;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScenarioServiceImpl implements ScenarioService{
 
     private final ScenarioRepository scenarioRepository;
@@ -36,22 +38,25 @@ public class ScenarioServiceImpl implements ScenarioService{
     /**
      * 시나리오 목록 조회
      * @param memberID
-     * @param genreID
+     * @param genre
      * @param title
-     * @param scenarioPageable
      * @return
      */
     @Override
-    public ScenarioListResponseDto getScenarioList(Long memberID, Long genreID, String title,Pageable scenarioPageable) {
+    public ScenarioListResponseDto getScenarioList(Long memberID, List<Long> genre, String title, int page, int size, String sort, String order) {
         // 회원 처리
         Member member = (memberID == null) ? null : findMember(memberID);
 
+        // Sort 및 Pageable 객체 생성
+        Sort pageSort = Sort.by(Sort.Direction.fromString(order), sort);
+        Pageable pageable = PageRequest.of(page, size, pageSort);
+
         // 페이지네이션과 정렬을 포함한 Pageable 객체 생성
         Page<Scenario> scenarioPage;
-        if (genreID == null) { // 장르 ID가 없으면 전체 장르 조회
-            scenarioPage = scenarioRepository.findByTitleContaining(title, scenarioPageable);
+        if (genre.isEmpty()) { // 장르 ID가 없으면 전체 장르 조회
+            scenarioPage = scenarioRepository.findByTitleContaining(title, pageable);
         } else {
-            scenarioPage = scenarioRepository.findByGenreIdAndTitleContaining(genreID, title, scenarioPageable);
+            scenarioPage = scenarioRepository.findByGenreIdAndTitleContaining(genre, title, pageable);
             System.out.println(scenarioPage.stream().toList());
         }
 
@@ -138,6 +143,10 @@ public class ScenarioServiceImpl implements ScenarioService{
                 .build();
 
         scenarioLikeRepository.save(scenarioLike);
+
+        // 좋아요수 증가
+        scenario.incrementLikes();
+
         return true;
     }
 
@@ -157,6 +166,10 @@ public class ScenarioServiceImpl implements ScenarioService{
         }
 
         scenarioLikeRepository.deleteByScenarioAndMember(scenario, member);
+
+        // 좋아요수 감소
+        scenario.decrementLikes();
+
         return true;
     }
 }

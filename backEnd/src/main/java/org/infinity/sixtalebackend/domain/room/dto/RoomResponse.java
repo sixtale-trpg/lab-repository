@@ -30,5 +30,7 @@ public class RoomResponse {
     private Long ruleId;
     private Long gmId;
     private Long scenarioId;
+    private String scenarioTitle;
+    private String scenarioImageURL;
     private List<PlayMemberResponse> playMemberList;
 }

@@ -24,10 +24,6 @@ public class EquipmentServiceImpl implements EquipmentService {
         Rule rule = ruleRepository.findById(ruleID).get();
         List<Equipment> equipmentList = equipmentRepository.findByRule(rule);
 
-//        EquipmentListResponse response = EquipmentListResponse.builder()
-//                .equipments(equipmentList)
-//                .build();
-
         List<EquipmentResponse> equipments = equipmentList.stream()
                 .map(m -> EquipmentResponse.builder()
                         .id(m.getId())

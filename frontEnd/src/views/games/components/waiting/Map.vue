@@ -1,8 +1,8 @@
 <template>
   <div :style="mapViewStyle" class="map-view">
     <div class="map-controls" v-if="isGM">
-      <img :src="previousIcon" alt="Previous" @click="previousMap" />
-      <img :src="nextIcon" alt="Next" @click="nextMap" />
+      <img :src="previousIcon" alt="Previous" @click="previousMap" style="width: 40px; height: auto;"/>
+      <img :src="nextIcon" alt="Next" @click="nextMap" style="width: 40px; height: auto;" />
     </div>
     <img :src="currentImage" alt="Map or Game" class="map-image" />
   </div>
@@ -26,7 +26,10 @@ const props = defineProps({
     required: true,
   },
 });
+<<<<<<< HEAD
+=======
 
+>>>>>>> 3ba9fd659e87ab4a0bb54241aacb034372ee1eb2
 
 const previousIcon = require('@/assets/images/room/previous.png');
 const nextIcon = require('@/assets/images/room/next.png');
@@ -99,15 +102,15 @@ const currentImage = computed(() => {
   display: flex;
   justify-content: space-between;
   position: absolute;
-  top: 50%; 
-  left: 5px;
-  right: 5px;
-  transform: translateY(-50%); 
+  top: 47%; /* 맵 이미지 안쪽으로 조금 더 내려서 배치 */
+  left: 20px; /* 맵 이미지 안쪽으로 더 넣기 위해 left값 조정 */
+  right: 20px; /* 맵 이미지 안쪽으로 더 넣기 위해 right값 조정 */
+  transform: translateY(-50%);
 }
 
 .map-controls img {
-  width: 20px;
-  height: 20px;
+  width: 40px; /* 아이콘 크기 조정 */
+  height: auto;
   cursor: pointer;
 }
 

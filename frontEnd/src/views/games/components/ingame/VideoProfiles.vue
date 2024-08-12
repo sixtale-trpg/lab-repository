@@ -20,8 +20,19 @@
           />
           <CharacterStats
             v-else-if="showStats"
-            :playMemberID="user.playMemberID"
-            @click="fetchUserJob(user.playMemberID)"
+            :characterName="user.name"
+            :level="user.level"
+            :job="user.jobName"
+            :stats="[
+              { name: '경험치', value: user.exp },
+              { name: 'HP', value: user.currentHp },
+              { name: '근력', value: getStatValue(user.stat, 1) },
+              { name: '지능', value: getStatValue(user.stat, 2) },
+              { name: '체력', value: getStatValue(user.stat, 3) },
+              { name: '지혜', value: getStatValue(user.stat, 4) },
+              { name: '민첩성', value: getStatValue(user.stat, 5) },
+              { name: '매력', value: getStatValue(user.stat, 6) }
+            ]"
           />
           <video
             v-show="!showAIImages && !showStats"
@@ -32,22 +43,29 @@
           ></video>
         </div>
         <div class="profile-info">
-          <div class="user-info">
-            <h3>{{ user.playMemberNickname }}</h3>
-            <span v-if="isGM">정보</span>
+          <h3 class="usernickname">{{ user.playMemberNickname }}</h3>
+          <div class="user-actions">
+            <span v-if="isGM" class="user-info-icon">정보</span>
             <img
               v-if="isGM"
               src="@/assets/images/ingame/Info.png"
               alt="정보"
               class="info-icon"
-              @click="showUserInfo(user.playMemberID)"
+              @click="showUserInfo(user.playMemberID)" 
             />
+            <VoiceChatButton :userId="user.playMemberID" class="voicebutton" />
           </div>
-          <VoiceChatButton :userId="user.playMemberID" />
         </div>
       </div>
     </div>
-    <CharacterInfo v-if="showCharacterInfo" @close="closeCharacterInfo" />
+    <!-- 모달 컴포넌트 -->
+    <CharacterInfo
+      v-if="showCharacterInfo"
+      :roomID="roomID" 
+      :playMemberID="selectedCharacterData.playMemberID" 
+      :formData="selectedCharacterData" 
+      @close="closeCharacterInfo" 
+    />
   </div>
 </template>
 
@@ -59,48 +77,42 @@ import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import CharacterStats from './CharacterStats.vue';
 import CharacterInfo from '@/views/games/components/ingame/CharacterInfoModal.vue';
 import VoiceChatButton from '../../VoiceChatButton.vue';
-import { selectedPlayMemberID, selectedUserJobID } from '@/store/state.js'; // 전역 상태 가져오기
+import { selectedPlayMemberID, selectedUserJobID } from '@/store/state.js'; 
 
+// roomID를 route.params.roomId에서 가져옵니다.
 const route = useRoute();
+const roomID = ref(Number(route.params.roomId));
+
 const showStats = ref(false);
 const showAIImages = ref(true);
 const showCharacterInfo = ref(false);
 const isGM = ref(true);
 const users = ref([]);
 const videoElements = ref([]);
+const selectedCharacterData = ref(null);
 
 const fetchCharacterSheets = async () => {
-  const roomId = route.params.roomId;
-
-  if (!roomId) {
+  if (!roomID.value) {
     console.error('Room ID가 설정되지 않았습니다.');
     return;
   }
 
   try {
-    const roomInfo = await getRoomInfo(roomId);
-    console.log('Room Info:', roomInfo); // roomInfo 로그 추가
-
+    const roomInfo = await getRoomInfo(roomID.value);
     if (roomInfo && Array.isArray(roomInfo.playMemberList)) {
-      users.value = []; // users 배열 초기화
+      users.value = [];
       for (let playMember of roomInfo.playMemberList) {
-        console.log(`Fetching character sheet for playMemberID: ${playMember.playMemberID}`);
         try {
-          const characterSheet = await getCharacterSheet(roomId, playMember.playMemberID);
-          console.log('Character Sheet:', characterSheet); // characterSheet 로그 추가
+          const characterSheet = await getCharacterSheet(roomID.value, playMember.playMemberID);
           if (characterSheet) {
             users.value.push({ ...playMember, ...characterSheet, playMemberID: playMember.playMemberID });
           } else {
-            users.value.push({ ...playMember, playMemberID: playMember.playMemberID }); // 기본 정보 추가
+            users.value.push({ ...playMember, playMemberID: playMember.playMemberID }); 
           }
         } catch (fetchError) {
-          console.error(`Error fetching character sheet for playMemberID ${playMember.playMemberID}:`, fetchError);
-          users.value.push({ ...playMember, playMemberID: playMember.playMemberID }); // 기본 정보 추가
+          users.value.push({ ...playMember, playMemberID: playMember.playMemberID });
         }
       }
-      console.log('Fetched users:', users.value);
-    } else {
-      console.error('Room info or play member list is not an array:', roomInfo);
     }
   } catch (error) {
     console.error('Error fetching character sheets:', error);
@@ -108,14 +120,11 @@ const fetchCharacterSheets = async () => {
 };
 
 const fetchUserJob = async (playMemberID) => {
-  console.log('선택된 플레이어 ID 설정:', playMemberID);
   selectedPlayMemberID.value = playMemberID;
 
   try {
-    const roomId = route.params.roomId;
-    const characterSheet = await getCharacterSheet(roomId, playMemberID);
-    selectedUserJobID.value = characterSheet.jobId; // 직업 ID를 저장
-    console.log('선택된 사용자 직업 설정:', selectedUserJobID.value);
+    const characterSheet = await getCharacterSheet(roomID.value, playMemberID);
+    selectedUserJobID.value = characterSheet.jobId;
   } catch (error) {
     console.error('사용자 직업 정보를 가져오는 중 오류 발생:', error);
   }
@@ -132,11 +141,23 @@ const toggleAIImages = () => {
 };
 
 const showUserInfo = (playMemberID) => {
-  showCharacterInfo.value = true;
+  const userData = users.value.find(user => user.playMemberID === playMemberID);
+  if (userData) {
+    selectedCharacterData.value = userData; 
+    console.log('Character data being sent to CharacterInfoModal:', selectedCharacterData.value);
+    showCharacterInfo.value = true; // 모달을 열기 위해 showCharacterInfo를 true로 설정
+  } else {
+    console.error('Character data not found for playMemberID:', playMemberID);
+  }
 };
 
 const closeCharacterInfo = () => {
   showCharacterInfo.value = false;
+};
+
+const getStatValue = (statsArray, statID) => {
+  const stat = statsArray.find(stat => stat.statID === statID);
+  return stat ? stat.statValue : 0;
 };
 
 onMounted(() => {
@@ -145,6 +166,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 스타일 부분은 그대로 유지 */
 .video-profile {
   color: white;
   padding: 0;
@@ -223,21 +245,38 @@ onMounted(() => {
 
 .profile-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 5px;
+  justify-content: space-between;
   background-color: rgba(83, 78, 78, 0.5);
+  overflow: hidden;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 5px;
+  flex-shrink: 1;
+  min-width: 0;
+  margin-right: 10px;
+}
+
+.usernickname {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+  font-size: 12px;
+}
+
+.user-info-icon {
+  margin-left: 0;
+  margin-right: 0;
+  flex-shrink: 0;
 }
 
 .info-icon {
   width: 15px;
   height: 15px;
+  margin-right: 0;
   cursor: pointer;
 }
 
@@ -247,5 +286,9 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.voicebuton {
+  margin-left: 0;
 }
 </style>

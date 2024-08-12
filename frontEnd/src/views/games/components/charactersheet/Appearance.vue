@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
-import { handleGenerateImage } from '@/api';
+import { handleGenerateImage } from '@/common/api/ImageAiAPI';
 
 // 이미지 경로 import
 import titleImage from '@/assets/images/character_sheet/avatar/Title.png';

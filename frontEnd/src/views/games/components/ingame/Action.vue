@@ -101,7 +101,7 @@
       :isVisible="isConfirmDeleteModalVisible"
       :item="selectedModalAction"
       @close="closeConfirmDeleteModal"
-      @confirm="deleteAction"
+      @confirm="handleActionDeleted"
     />
   </div>
 </template>
@@ -110,12 +110,12 @@
 import { ref, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { selectedPlayMemberID, selectedUserJobID } from '@/store/state';
-import { getCommonActions, getCharacterActions, addCharacterAction, deleteCharacterAction } from '@/common/api/ActionAPI.js';
+import { getCommonActions, addCharacterAction } from '@/common/api/ActionAPI.js';
 import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
 import ActionInfoModal from '@/views/games/components/Modal/ActionInfoModal.vue';
 import AddActionModal from '@/views/games/components/Modal/AddActionModal.vue';
-import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModal.vue';
+import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModal2.vue';
 
 export default {
   components: {
@@ -230,6 +230,17 @@ export default {
       }
     };
 
+    const handleActionDeleted = () => {
+      if (selectedModalAction.value) {
+        // 삭제된 액션을 currentActions 배열에서 제거
+        currentActions.value = currentActions.value.filter(action => action.id !== selectedModalAction.value.id);
+        // 선택된 액션도 초기화
+        selectedAction.value = null;
+        // 모달 닫기
+        closeConfirmDeleteModal();
+      }
+    };
+
     const openActionModal = (action, event) => {
       event.stopPropagation(); // 이벤트 버블링을 중단시켜 클릭 이벤트가 전파되지 않도록 함
       selectedModalAction.value = {
@@ -258,16 +269,6 @@ export default {
       selectedModalAction.value = null;
     };
 
-    const deleteAction = async () => {
-      try {
-        const characterActionID = selectedModalAction.value.id;
-        await deleteCharacterAction(roomId.value, playMemberID.value, characterActionID);
-        await updateCurrentActions();
-        closeConfirmDeleteModal();
-      } catch (error) {
-        console.error('Error deleting action:', error);
-      }
-    };
 
     const handleAddAction = async (action) => {
       try {
@@ -416,6 +417,7 @@ export default {
       selectAction,
       subTabStyle,
       tabStyle,
+      handleActionDeleted,
       getActionItemStyle,
       isActionModalVisible,
       selectedModalAction,
@@ -426,7 +428,6 @@ export default {
       confirmDeleteAction,
       closeConfirmDeleteModal,
       isConfirmDeleteModalVisible,
-      deleteAction,
       handleAddAction,
       handleSelectAction,
       showTooltip,

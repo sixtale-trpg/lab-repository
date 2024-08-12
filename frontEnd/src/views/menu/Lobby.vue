@@ -2,123 +2,130 @@
   <div class="lobby-container">
     <div class="rectangle-box">
       <div class="button-container">
-        <button class="view-all-rooms-button" @click="showAllRooms" :class="{ active: isAllRooms }">
+        <button class="refresh-button" @click="refreshRooms">
+          <img src="@/assets/images/lobby/refresh.png" alt="Refresh" class="refresh-icon" />
+        </button>
+        <button 
+          class="view-all-rooms-button" 
+          @click="showAllRooms" 
+          :class="{ active: isAllRooms }"
+          :disabled="isAllRooms"
+        >
           전체 방 보기
         </button>
-        <button class="view-joined-rooms-button" @click="filterJoinedRooms" :class="{ active: !isAllRooms }">
+        <button 
+          class="view-joined-rooms-button" 
+          @click="filterJoinedRooms" 
+          :class="{ active: !isAllRooms }"
+          :disabled="!isAllRooms"
+        >
           참가중인 방 보기
         </button>
       </div>
-      <div class="rooms-container">
-        <div v-for="room in paginatedRooms" :key="room.id" class="room-card" @click="enterRoom(room.id)">
-          <div class="room-image">
-            <img :src="defaultImage" alt="Room Image" />
+      <div class="rooms-container" v-if="!isLoading && rooms.length > 0">
+      <div 
+      v-for="room in rooms" 
+      :key="room.id" 
+      class="room-card" 
+      :class="{ 'disabled': room.status === 'PLAYING' || room.currentCount === room.maxCount }"
+      @click="enterRoom(room)"
+      >
+    <div class="room-image">
+        <img :src="room.scenarioImageURL" alt="Room Image" />
+      </div>
+      <div class="room-details">
+        <div class="room-title-container">
+          <div class="room-number-box">
+            <span class="room-number">{{ room.id }}</span>
           </div>
-          <div class="room-details">
-            <div class="room-title-container">
-              <div class="room-number-box">
-                <span class="room-number">{{ room.id }}</span>
-              </div>
-              <div class="room-title-box">
-                <span class="room-title">{{ room.title }}</span>
-              </div>
-            </div>
-            <div class="room-info">
-              <div class="scenario-id-box">
-                <span class="scenario-id">S#{{ room.scenario_id }}</span>
-              </div>
-              <div class="scenario-title-box">
-                <span class="scenario-title">{{ room.scenario_name }}</span>
-              </div>
-            </div>
-            <div class="room-footer">
-              <div class="room-status">
-                <img :src="getStatusImage(room.status)" alt="Room Status" />
-              </div>
-              <div class="room-icons">
-                <img v-if="room.is_locked" src="@/assets/images/lobby/Key.png" alt="Locked Room" class="room-icon" />
-                <img v-if="room.is_voice_chat" src="@/assets/images/lobby/Voice.png" alt="Voice Chat" class="room-icon" />
-              </div>
-              <div :class="['players-box', { 'full-room': room.current_count === room.max_count }]">
-                <span>{{ room.current_count }} / {{ room.max_count }}</span>
-              </div>
-              <div class="room-type">
-                <span>{{ room.is_short_story ? '단편' : '장편' }}</span>
-              </div>
-            </div>
+          <div class="room-title-box">
+            <span class="room-title">{{ room.title }}</span>
+          </div>
+        </div>
+        <div class="room-info">
+          <div class="scenario-id-box">
+            <span class="scenario-id">S#{{ room.scenarioID }}</span>
+          </div>
+          <div class="scenario-title-box">
+            <span class="scenario-title">{{ room.scenarioTitle }}</span>
+          </div>
+        </div>
+        <div class="room-footer">
+          <div class="room-status">
+            <img :src="getStatusImage(room.status)" alt="Room Status" />
+          </div>
+          <div class="room-icons">
+            <img v-if="room.isLocked" src="@/assets/images/lobby/Key.png" alt="Locked Room" class="room-icon" />
+            <img v-if="room.isVoice" src="@/assets/images/lobby/Voice.png" alt="Voice Chat" class="room-icon" />
+          </div>
+          <div :class="['players-box', { 'full-room': room.currentCount === room.maxCount }]">
+            <span>{{ room.currentCount }} / {{ room.maxCount }}</span>
+          </div>
+          <div class="room-type">
+            <span>{{ room.isShortStory ? '단편' : '장편' }}</span>
           </div>
         </div>
       </div>
-      <div class="pagination-container">
-        <div class="pagination">
-          <button class="pagination-button" @click="prevPage" :disabled="currentPage === 1">
-            <img src="@/assets/images/lobby/Arrow_Left.png" alt="Previous" class="pagination-arrow" />
-          </button>
-          <button class="pagination-button" @click="nextPage" :disabled="currentPage === totalPages">
-            <img src="@/assets/images/lobby/Arrow_Right.png" alt="Next" class="pagination-arrow" />
-          </button>
-        </div>
-        <button class="create-room-button" @click="openCreateRoomModal">방 만들기</button>
+    </div>
+  </div>
+  <div v-if="isLoading" class="loading-message">방 목록을 불러오는 중...</div>
+      <div v-else-if="rooms.length === 0 && !isLoading" class="empty-rooms-message">
+        현재 이용 가능한 방이 없습니다.
       </div>
+  <div class="pagination-container">
+    <div class="pagination">
+      <button class="pagination-button" @click="prevPage" :disabled="currentPage === 0">
+        <img src="@/assets/images/lobby/Arrow_Left.png" alt="Previous" class="pagination-arrow" />
+      </button>
+      <span>{{ currentPage + 1 }} / {{ totalPages }}</span>
+      <button class="pagination-button" @click="nextPage" :disabled="currentPage === totalPages - 1">
+        <img src="@/assets/images/lobby/Arrow_Right.png" alt="Next" class="pagination-arrow" />
+      </button>
+    </div>
+    <button class="create-room-button" @click="openCreateRoomModal">방 만들기</button>
+  </div>
     </div>
     <CreateRoomModal v-if="isCreateRoomModalOpen" @close="closeCreateRoomModal" />
   </div>
 </template>
 
-
-
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import { getRoomList } from '@/common/api/RoomsAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
 
 const router = useRouter();
 
-const rooms = ref([
-  { id: 1, title: '방제목 1', scenario_id: 1, current_count: 8, max_count: 8, is_short_story: false, status: 'PLAYING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 2, title: '방제목 2', scenario_id: 2, current_count: 3, max_count: 6, is_short_story: true, status: 'WAITING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 3, title: '방제목 3', scenario_id: 3, current_count: 4, max_count: 7, is_short_story: false, status: 'PLAYING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: false, },
-  { id: 4, title: '방제목 4', scenario_id: 4, current_count: 2, max_count: 4, is_short_story: false, status: 'WAITING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 5, title: '방제목 5', scenario_id: 5, current_count: 6, max_count: 8, is_short_story: false, status: 'UPCOMING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: false, },
-  { id: 6, title: '방제목 6', scenario_id: 6, current_count: 6, max_count: 8, is_short_story: true, status: 'WAITING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 7, title: '방제목 7', scenario_id: 7, current_count: 6, max_count: 8, is_short_story: false, status: 'PLAYING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: false, },
-  { id: 8, title: '방제목 8', scenario_id: 8, current_count: 5, max_count: 8, is_short_story: false, status: 'UPCOMING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 9, title: '방제목 9', scenario_id: 9, current_count: 4, max_count: 7, is_short_story: true, status: 'WAITING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 10, title: '방제목 10', scenario_id: 10, current_count: 6, max_count: 6, is_short_story: false, status: 'UPCOMING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: false, },
-  { id: 11, title: '방제목 11', scenario_id: 11, current_count: 2, max_count: 5, is_short_story: true, status: 'PLAYING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 12, title: '방제목 12', scenario_id: 12, current_count: 3, max_count: 4, is_short_story: false, status: 'WAITING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 13, title: '방제목 13', scenario_id: 13, current_count: 6, max_count: 6, is_short_story: true, status: 'UPCOMING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 14, title: '방제목 14', scenario_id: 14, current_count: 5, max_count: 6, is_short_story: false, status: 'WAITING', is_locked: false, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-  { id: 15, title: '방제목 15', scenario_id: 15, current_count: 4, max_count: 8, is_short_story: true, status: 'PLAYING', is_locked: true, scenario_name: '레전드 드래곤', is_voice_chat: true, },
-]);
+const rooms = ref([]);
 const isAllRooms = ref(true);
-
-const filteredRooms = ref(rooms.value.filter(room => room.status !== 'UPCOMING'));
 const isCreateRoomModalOpen = ref(false);
-
 const defaultImage = require('@/assets/images/scenario.png');
+const defaultStatusImage = require('@/assets/images/lobby/WAITING.png');
+const isLoading = ref(true);
 
-const currentPage = ref(1);
+const currentPage = ref(0);
 const roomsPerPage = 6;
-const totalPages = computed(() => Math.ceil(filteredRooms.value.length / roomsPerPage));
+const totalElements = ref(0);
+const totalPages = ref(0);
 
-
-
-const paginatedRooms = computed(() => {
-  const start = (currentPage.value - 1) * roomsPerPage;
-  return filteredRooms.value.slice(start, start + roomsPerPage);
-});
+const refreshRooms = () => {
+  rooms.value = []; // 방 목록을 비우기
+  isLoading.value = true; // 로딩 상태를 true로 설정
+  setTimeout(fetchRooms, 500); // 0.5초 후 방 목록을 다시 불러옵니다.
+};
 
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value += 1;
+  if (currentPage.value < totalPages.value - 1) {
+    currentPage.value++;
+    fetchRooms();
   }
 };
 
 const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value -= 1;
+  if (currentPage.value > 0) {
+    currentPage.value--;
+    fetchRooms();
   }
 };
 
@@ -132,15 +139,13 @@ const closeCreateRoomModal = () => {
 
 const showAllRooms = () => {
   isAllRooms.value = true;
-  filteredRooms.value = rooms.value.filter(room => room.status !== 'UPCOMING');
+  currentPage.value = 0;
+  fetchRooms();
 };
 
 const filterJoinedRooms = () => {
   isAllRooms.value = false;
-  const joinedRoomIds = [1, 5, 10]; // 임시: 실제로는 백엔드에서 유저 ID를 통해 참가한 방 목록을 가져옵니다.
-  filteredRooms.value = rooms.value.filter(room => 
-    joinedRoomIds.includes(room.id) && (room.status === 'PLAYING' || room.status === 'UPCOMING')
-  );
+  // 참가중인 방 필터링 로직 구현 필요
 };
 
 const getStatusImage = (status) => {
@@ -149,36 +154,145 @@ const getStatusImage = (status) => {
       return require('@/assets/images/lobby/WAITING.png');
     case 'PLAYING':
       return require('@/assets/images/lobby/PLAYING.png');
+    case 'UPCOMING':
+      return require('@/assets/images/lobby/UPCOMING.png');
     default:
-      return '';
+      return defaultStatusImage;
   }
 };
 
-const enterRoom = (roomId) => {
-  router.push({ name: 'Waiting', params: { roomId } });
+const enterRoom = (room) => {
+  if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
+    alert('이미 게임이 시작된 방입니다.');
+    return;
+  }
+  router.push({ name: 'Waiting', params: { roomId: room.id } });
 };
 
-// 백엔드 API 연동 로직 (주석 처리)
-// const fetchRooms = async () => {
-//   try {
-//     const response = await axios.get('/api/rooms');
-//     rooms.value = response.data;
-//     filteredRooms.value = rooms.value.filter(room => room.status !== 'UPCOMING');
-//   } catch (error) {
-//     console.error('Error fetching rooms:', error);
-//   }
+const fetchRooms = async (filterJoined = false, userId = null) => {
+  isLoading.value = true;
+  try {
+    // 서버에서 모든 방을 가져옵니다.
+    const response = await getRoomList('', 0, 1000, ''); // 큰 size 값을 사용하여 모든 방을 가져옵니다.
+    console.log('Full API Response:', response);
+
+    if (response.statusCode === 200 && response.data && Array.isArray(response.data.content)) {
+      let allRooms = response.data.content;
+      console.log('Total rooms:', allRooms.length);
+
+      // 방 정렬: WAITING, PLAYING, UPCOMING 순서로, 각 상태 내에서는 ID 순서로
+      const statusOrder = { 'WAITING': 0, 'PLAYING': 1, 'UPCOMING': 2 };
+      allRooms = allRooms.sort((a, b) => {
+        if (statusOrder[a.status] !== statusOrder[b.status]) {
+          return statusOrder[a.status] - statusOrder[b.status];
+        }
+        return a.id - b.id;
+      });
+
+      // 만약 filterJoined가 true이고 userId가 유효하다면, 참가 중인 방만 필터링
+      if (filterJoined && userId) {
+        allRooms = allRooms.filter(room => 
+          room.playMemberList && room.playMemberList.includes(userId)
+        );
+      }
+
+      // 전체 페이지 수 계산
+      totalPages.value = Math.ceil(allRooms.length / roomsPerPage);
+
+      // 현재 페이지에 해당하는 6개의 방만 선택
+      const start = currentPage.value * roomsPerPage;
+      rooms.value = allRooms.slice(start, start + roomsPerPage).map(room => ({
+        ...room,
+        scenarioImageURL: room.scenarioImageURL || defaultImage,
+      }));
+
+      console.log('Displayed rooms:', rooms.value);
+      console.log('Current page:', currentPage.value + 1);
+      console.log('Total pages:', totalPages.value);
+    } else {
+      console.error('Invalid response structure:', response);
+      rooms.value = [];
+    }
+  } catch (error) {
+    console.error('Error fetching rooms:', error);
+    rooms.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const fetchRoomDetails = async (roomId) => {
+  try {
+    const roomInfo = await getRoomInfo(roomId);
+    console.log(`Room Info for room ${roomId}:`, roomInfo);
+
+    if (roomInfo.scenarioID) {
+      console.log(`Scenario Info for room ${roomId}:`, {
+        scenarioID: roomInfo.scenarioID,
+        scenarioTitle: roomInfo.scenarioTitle,
+        scenarioImageURL: roomInfo.scenarioImageURL
+      });
+    } else {
+      console.log(`No scenario information available for room ${roomId}`);
+    }
+  } catch (error) {
+    console.error(`Error fetching details for room ${roomId}:`, error);
+  }
+};
+
+// const filterJoinedRooms = () => {
+//   const userId = '사용자ID'; // 실제 사용자 ID로 교체
+//   fetchRooms(true, userId);
 // };
 
-// onMounted(() => {
-//   fetchRooms();
-// });
-</script>
+const fetchSingleRoomInfo = async (roomId) => {
+  try {
+    console.log(`Fetching info for room ${roomId}`);
+    const roomInfo = await getRoomInfo(roomId);
+    console.log('Single room info:', roomInfo);
+    
+    // 방 정보의 각 필드를 개별적으로 로깅
+    if (roomInfo) {
+      console.log('Room ID:', roomInfo.id);
+      console.log('Title:', roomInfo.title);
+      console.log('Description:', roomInfo.description);
+      console.log('Scenario ID:', roomInfo.scenarioID);
+      console.log('Scenario Title:', roomInfo.scenarioTitle);
+      console.log('Scenario Image URL:', roomInfo.scenarioImageURL);
+      console.log('Rule ID:', roomInfo.ruleID);
+      console.log('Rule Title:', roomInfo.ruleTitle);
+      console.log('GM ID:', roomInfo.gmID);
+      console.log('GM Nickname:', roomInfo.gmNickname);
+      console.log('Current Count:', roomInfo.currentCount);
+      console.log('Max Count:', roomInfo.maxCount);
+      console.log('Is Locked:', roomInfo.isLocked);
+      console.log('Is Short Story:', roomInfo.isShortStory);
+      console.log('Is Voice:', roomInfo.isVoice);
+      console.log('Status:', roomInfo.status);
+      console.log('Next Play:', roomInfo.nextPlay);
+      console.log('Play Time:', roomInfo.playTime);
+      console.log('Play Members:');
+      roomInfo.playMemberList.forEach((member, index) => {
+        console.log(`  Member ${index + 1}:`, member);
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching single room info:', error);
+  }
+};
 
+onMounted(() => {
+  fetchRooms();
+  fetchSingleRoomInfo(1);
+});
+</script>
 
 <style scoped>
 .lobby-container {
-  padding: 20px;
-  background: url('~@/assets/images/lobby/Background.png'); /* 배경 이미지 설정 */
+  padding: 40px;  /* 상하좌우 여백 추가 */
+  background: url('~@/assets/images/lobby/Background.png');
+  background-size: cover;  /* 배경 이미지가 컨테이너를 덮도록 설정 */
+  background-position: center;  /* 배경 이미지 중앙 정렬 */
   color: white;
   min-height: 100vh;
   display: flex;
@@ -188,16 +302,20 @@ const enterRoom = (roomId) => {
 }
 
 .rectangle-box {
-  position: relative;
-  width: 1471px;
-  height: 900px;
-  background: rgba(91, 78, 71, 0.15); /* 방 목록 박스 색상 및 투명도 설정 */
-  box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(0, 0, 0, 0.25); /* 내부 그림자 설정 */
+  width: 100%;  /* 너비를 100%로 설정 */
+  max-width: 1471px;  /* 최대 너비 설정 */
+  height: auto;  /* 높이를 자동으로 조정 */
+  min-height: 900px;  /* 최소 높이 설정 */
+  background: rgba(91, 78, 71, 0.15);
+  box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 39px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 20px;  /* 내부 여백 추가 */
+  z-index: 1;
+  
 }
 
 .rooms-container {
@@ -207,7 +325,8 @@ const enterRoom = (roomId) => {
   width: 100%;
   justify-content: center;
   margin-top: 10px; /* 상단 여백 */
-  overflow: hidden; /* 프레임을 넘어가는 내용 숨김 */
+  overflow: visible;
+  z-index: 1;
 }
 
 .room-card {
@@ -222,10 +341,22 @@ const enterRoom = (roomId) => {
   transition: transform 0.3s;
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15); /* 드롭 섀도우 및 내부 그림자 설정 */
   cursor: pointer; /* 커서가 포인터로 변경 */
+  
+  z-index: 10;
 }
 
 .room-card:hover {
   transform: scale(1.05);
+  z-index: 11;
+}
+
+.room-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.room-card.disabled:hover {
+  transform: none;
 }
 
 .room-image {
@@ -407,23 +538,36 @@ const enterRoom = (roomId) => {
   display: flex;
   align-items: center;
 }
-
 .pagination-container {
   display: flex;
-  justify-content: center; /* 가운데 정렬 */
+  justify-content: space-between;
   align-items: center;
   margin-top: 20px;
   width: 100%;
-  gap: 20px; /* 버튼 사이의 간격 설정 */
-  position: relative; /* 상대적 위치 설정 */
+  padding: 0 10%;
 }
+/* .pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  width: 100%;
+  gap: 20px;
+  position: relative;
+} */
 
 .pagination {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 20px;
-}
+} */
 
 .create-room-button {
   width: 200px;
@@ -470,7 +614,10 @@ const enterRoom = (roomId) => {
   justify-content: center; /* 가운데 정렬 */
   align-items: center;
   gap: 20px; /* 버튼 사이의 간격 설정 */
-  margin-bottom: 20px; /* 버튼과 방 목록 사이의 간격 설정 */
+  margin-top: 20px; /* 상단 여백 추가 */
+  margin-bottom: 20px; /* 하단 여백 추가 */
+  position: relative; /* z-index 적용을 위한 설정 */
+  z-index: 1; /* 높은 z-index 설정 */
 }
 
 .view-all-rooms-button,
@@ -487,9 +634,51 @@ const enterRoom = (roomId) => {
   align-items: center;
 }
 
+.loading-message,
+.empty-rooms-message {
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .view-all-rooms-button.active,
 .view-joined-rooms-button.active {
   background: rgba(150, 150, 150, 0.49);
-  color:  rgba(214, 205, 170, 0.847);
+  color:  rgba(144, 142, 136, 0.847);
+  box-shadow: none; /* 그림자 효과 제거 */
+}
+
+.view-all-rooms-button:disabled,
+.view-joined-rooms-button:disabled {
+  background: rgba(150, 150, 150, 0.3); /* 비활성화 상태의 배경색 */
+  cursor: not-allowed; /* 커서 모양을 금지 표시로 변경 */
+  box-shadow: none; /* 그림자 효과 제거 */
+}
+
+.refresh-button {
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: rgb(214, 205, 170);
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px; /* 전체 방 보기 버튼과의 간격 조정 */
+}
+
+.refresh-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
+}
+
+.refresh-icon {
+  width: 20px; /* 새로고침 아이콘의 크기 */
+  height: 20px;
 }
 </style>

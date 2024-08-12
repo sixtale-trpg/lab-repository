@@ -33,21 +33,35 @@
 
 <script setup>
 import { ref, computed, defineProps, defineEmits, watch } from 'vue';
+import { updateGold } from '@/common/api/InventoryAPI'; // 골드 수정 API 함수 임포트
+import { selectedPlayMemberID } from '@/store/state.js'; // 상태에서 직접 가져오기
 
 const props = defineProps({
-  currentGold: {
-    type: Number,
-    required: true
-  },
   isVisible: {
     type: Boolean,
+    required: true
+  },
+  isGM: {
+    type: Boolean,
+    required: true
+  },
+  roomId: {
+    type: String,
+    required: true
+  },
+  currentGold: {
+    type: Number,
     required: true
   }
 });
 
 const emit = defineEmits(['close', 'update-gold']);
-
 const goldAmount = ref(props.currentGold);
+
+// 상태에서 selectedPlayMemberID 가져오기
+const playMemberID = selectedPlayMemberID.value;
+
+console.log("GoldModal using playMemberID:", playMemberID);
 
 watch(() => props.currentGold, (newGold) => {
   goldAmount.value = newGold;
@@ -57,9 +71,14 @@ const closeModal = () => {
   emit('close');
 };
 
-const saveGold = () => {
-  emit('update-gold', goldAmount.value);
-  closeModal();
+const saveGold = async () => {
+  try {
+    await updateGold(props.roomId, playMemberID, goldAmount.value); // API 호출
+    emit('update-gold', goldAmount.value);
+    closeModal();
+  } catch (error) {
+    console.error('Failed to update gold:', error);
+  }
 };
 
 const decreaseGold = () => {
@@ -93,18 +112,19 @@ const modalFooterStyle = computed(() => ({
   backgroundSize: 'cover',
 }));
 
-// 닫기 버튼 스타일
+
 const closeButtonStyle = computed(() => ({
   background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
   backgroundSize: 'cover',
 }));
 
-// 저장 버튼 스타일
 const saveButtonStyle = computed(() => ({
   background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
   backgroundSize: 'cover',
 }));
 </script>
+
+
 
 <style scoped>
 .modal-overlay {

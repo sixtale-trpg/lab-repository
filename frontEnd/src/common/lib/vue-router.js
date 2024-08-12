@@ -12,6 +12,7 @@ import Mypage from "@/views/menu/Mypage";
 import UserPlayList from "@/views/mypage/UserPlayList";
 import UserCalendar from "@/views/mypage/UserCalendar";
 import UserInfo from "@/views/mypage/UserInfo";
+import UserEdit from "@/views/mypage/UserInfoEdit";
 import UserLikeScenario from "@/views/mypage/UserLikeScenario";
 import UserStyle from "@/views/mypage/UserStyle";
 
@@ -65,6 +66,11 @@ const routes = [
             path: "user-info",
             name: "UserInfo",
             component: UserInfo,
+          },
+          {
+            path: "user-edit",
+            name: "UserEdit",
+            component: UserEdit,
           },
           {
             path: "user-likescenario",

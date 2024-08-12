@@ -110,7 +110,7 @@ public class PlayLogServiceImpl implements PlayLogService{
                             .recipientID(null)
                             .recipientNickName(null)
                             .content(c.getContent())
-                            .type(MessageType.TALK)
+                            .type(MessageType.CHAT)
                             .roomType(RoomType.PLAY)
                             .createdAt(c.getCreatedAt().format(dateTimeFormatter)).build();
 

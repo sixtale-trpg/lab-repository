@@ -3,7 +3,7 @@
     <div class="content-wrapper">
       <div class="left-section">
         <div class="title-container">
-          <img src="@/assets/images/character_sheet/avatar/Title.png" alt="Title" class="title-image">
+          <img :src="titleImage" alt="Title" class="title-image">
           <span class="title-text">AI 캐릭터 만들기</span>
         </div>
         <div class="input-box">
@@ -15,15 +15,32 @@
         </div>
         <div class="button-container">
           <div class="button-wrapper">
-            <button @click="generateImage" class="create-button">
-              <img src="@/assets/images/character_sheet/avatar/Create_Button.png" alt="이미지 생성" />
-              <span class="button-text">이미지 생성</span>
+            <button 
+              @mousedown="onMouseDown"
+              @mouseup="onMouseUp"
+              @mouseleave="onMouseLeave"
+              @click="generateImage" 
+              class="create-button"
+              :disabled="remainingClicks === 0 || isLoading"
+              :class="{ 'not-allowed': remainingClicks === 0 || isLoading }"
+            >
+              <img 
+                :src="remainingClicks > 0 ? createButtonImage : exhaustedImage" 
+                :class="{ 'active': isButtonActive }"
+                alt="이미지 생성" 
+              />
+              <div class="button-content">
+                <div v-if="isLoading" class="loader"></div>
+                <span class="button-text">
+                  {{ isLoading ? '생성 중...' : `이미지 생성 ${remainingClicks}` }}
+                </span>
+              </div>
             </button>
             <div class="help-icon-container" 
               @mouseenter="showTooltip = true"
               @mouseleave="hideTooltip">
               <img
-                src="@/assets/images/character_sheet/avatar/Help_Icon.png"
+                :src="helpIconImage"
                 alt="도움말"
                 class="help-icon"
               />
@@ -39,7 +56,7 @@
       <div class="right-section">
         <div class="image-and-candidates">
           <div class="image-frame">
-            <img src="@/assets/images/character_sheet/avatar/Create_Avatar_Frame.png" alt="Avatar Frame" class="frame-image">
+            <img :src="avatarFrameImage" alt="Avatar Frame" class="frame-image">
             <div class="image-container">
               <img
                 v-if="generatedImageUrl"
@@ -50,7 +67,19 @@
             </div>
           </div>
           <div class="candidate-frames">
-            <img v-for="n in 3" :key="n" src="@/assets/images/character_sheet/avatar/Candidate_Frame.png" alt="Candidate Frame" class="candidate-frame">
+            <div 
+              v-for="(candidateImage, index) in candidateImages" 
+              :key="index" 
+              class="candidate-frame-wrapper"
+              :class="{ 'has-image': candidateImage }"
+              @click="selectImage(candidateImage)"
+            >
+              <img 
+                :src="candidateImage ? candidateImage : candidateFrameImage" 
+                alt="Candidate Frame" 
+                class="candidate-frame"
+              >
+            </div>
           </div>
         </div>
       </div>
@@ -60,11 +89,25 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
-import { handleGenerateImage } from '@/api';
+import { handleGenerateImage } from '@/common/api/ImageAiAPI';
+
+// 이미지 경로 import
+import titleImage from '@/assets/images/character_sheet/avatar/Title.png';
+import createButtonImage from '@/assets/images/character_sheet/avatar/Create_Button.png';
+import exhaustedImage from '@/assets/images/character_sheet/avatar/Exhausted.png';
+import helpIconImage from '@/assets/images/character_sheet/avatar/Help_Icon.png';
+import avatarFrameImage from '@/assets/images/character_sheet/avatar/Create_Avatar_Frame.png';
+import candidateFrameImage from '@/assets/images/character_sheet/avatar/Candidate_Frame.png';
 
 const props = defineProps(['formData']);
 const generatedImageUrl = ref('');
 const previousImages = ref([]);
+const remainingClicks = ref(3);  // 남은 클릭 수
+const isButtonActive = ref(false);  // 버튼 활성화 상태
+const isLoading = ref(false); // 로딩 상태
+
+// 후보 액자에 사용할 이미지 목록
+const candidateImages = reactive([null, null, null]);
 
 const showTooltip = ref(false);
 const tooltipStyle = reactive({
@@ -81,7 +124,6 @@ const updateTooltipPosition = (event) => {
   const x = event.clientX + 20;
   const y = event.clientY + 20;
 
-  // 화면 경계 확인
   const maxX = window.innerWidth - rect.width;
   const maxY = window.innerHeight - rect.height;
 
@@ -95,14 +137,44 @@ const hideTooltip = () => {
 };
 
 const generateImage = async () => {
-  try {
-    const imageUrl = await handleGenerateImage(props.formData.appearanceDescription);
-    generatedImageUrl.value = imageUrl;
-    previousImages.value.push(imageUrl);
-  } catch (error) {
-    console.error('이미지 생성 중 오류 발생:', error);
-    // 오류 처리 로직 추가
+  if (remainingClicks.value > 0 && !isLoading.value) {
+    isLoading.value = true; // 로딩 상태 시작
+    try {
+      const imageUrl = await handleGenerateImage(props.formData.appearanceDescription);
+      generatedImageUrl.value = imageUrl;
+
+      if (candidateImages[0] === null) {
+        candidateImages[0] = imageUrl;
+      } else if (candidateImages[1] === null) {
+        candidateImages[1] = imageUrl;
+      } else if (candidateImages[2] === null) {
+        candidateImages[2] = imageUrl;
+      } else {
+        console.log('모든 후보 액자가 이미 채워졌습니다.');
+      }
+
+      previousImages.value.push(imageUrl);
+      remainingClicks.value -= 1;  // 클릭 횟수 감소
+    } catch (error) {
+      console.error('이미지 생성 중 오류 발생:', error);
+    } finally {
+      isLoading.value = false; // 로딩 상태 종료
+    }
   }
+};
+
+const onMouseDown = () => {
+  if (!isLoading.value && remainingClicks.value > 0) {
+    isButtonActive.value = true;
+  }
+};
+
+const onMouseUp = () => {
+  isButtonActive.value = false;
+};
+
+const onMouseLeave = () => {
+  isButtonActive.value = false;
 };
 
 const selectImage = (image) => {
@@ -224,15 +296,49 @@ onUnmounted(() => {
   background: none;
   border: none;
   cursor: pointer;
-}
-
-.create-button img {
   width: 10vw;
   height: auto;
 }
 
-.button-text {
+.button-content {
   position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.create-button.not-allowed {
+  cursor: not-allowed; /* 클릭 불가 상태에서의 커서 모양 */
+}
+
+.create-button img {
+  width: 100%; /* 버튼의 크기에 맞게 조정 */
+  height: auto;
+}
+
+.create-button img.active {
+  filter: brightness(0.8);
+  transition: filter 0.1s ease;
+}
+
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.button-text {
   color: #fff;
   font-size: 1vw;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
@@ -265,10 +371,6 @@ onUnmounted(() => {
   box-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
-/* .help-icon-container:hover .tooltip {
-  display: block;
-} */
-
 .image-frame {
   position: relative;
   width: 60%;
@@ -294,14 +396,13 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* border-radius: 50%; */
 }
 
 .generated-image {
   object-fit: cover;
   border-radius: 50%;
-  width: 100%; /* 이미지를 부모 컨테이너에 맞게 조정 */
-  height: 100%; /* 이미지를 부모 컨테이너에 맞게 조정 */
+  width: 100%;
+  height: 100%;
 }
 
 .candidate-frames {
@@ -310,9 +411,38 @@ onUnmounted(() => {
   gap: 0.8vw;
 }
 
-.candidate-frame {
+.candidate-frame-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 5vw;
   height: 5vw;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.candidate-frame-wrapper.has-image {
+  border: 3px solid #915B33;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.candidate-frame {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
+}
+
+.candidate-frame-wrapper:hover {
+  transform: scale(1.1); /* 호버 시 이미지와 액자가 살짝 커지도록 설정 */
+}
+
+.candidate-frame-wrapper:not(.has-image) .candidate-frame {
+  border-radius: 0;
   object-fit: contain;
 }
 

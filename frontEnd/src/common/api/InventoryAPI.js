@@ -41,9 +41,9 @@ export const getInventory = async (roomID, playMemberID) => {
 };
 
 // 룰에서 장비 목록 조회
-export const getEquipmentList = async () => {
+export const getEquipmentList = async (ruleID) => {
   const headers = getHeaders();
-  const url = `/api/v1/rules/equipment`;
+  const url = `/api/v1/rules/${ruleID}/equipments`;
   console.log('Fetching equipment list:', url, headers);
 
   try {
@@ -51,7 +51,7 @@ export const getEquipmentList = async () => {
       headers
     });
     console.log('Response:', response);
-    return response.data.data;
+    return response.data.data.equipments;
   } catch (error) {
     console.error('Error fetching equipment list:', error);
     if (error.response) {
@@ -96,6 +96,51 @@ export const deleteEquipment = async (roomID, playMemberID, equipmentID) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting equipment:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+
+// 캐릭터 장비 수량 수정
+export const updateEquipmentCount = async (roomID, playMemberID, equipmentData) => {
+  const headers = getHeaders();
+  const url = `${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/equipment`;
+  
+  console.log('Updating equipment count:', url, headers, equipmentData);
+
+  try {
+    const response = await axios.put(url, equipmentData, {
+      headers
+    });
+    console.log('Response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating equipment count:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+// 골드 수정
+export const updateGold = async (roomID, playMemberID, newGoldAmount) => {
+  const headers = getHeaders();
+  const url = `${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/gold`;
+
+  console.log('Updating gold:', url, headers, newGoldAmount);
+
+  try {
+    const response = await axios.put(url, { currentMoney: newGoldAmount }, {
+      headers
+    });
+    console.log('Response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating gold:', error);
     if (error.response) {
       console.error('Response data:', error.response.data);
     }

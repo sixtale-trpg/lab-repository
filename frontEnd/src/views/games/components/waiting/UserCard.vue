@@ -13,8 +13,9 @@
       </div>
     </div>
     <div class="user-actions">
+      <!-- GM만 볼 수 있고 유저가 있는 경우에만 강퇴 버튼을 표시 -->
       <img
-        v-if="isGM && user.id"
+        v-if="isGM && memberId"
         src="@/assets/images/room/kick.png"
         alt="강퇴"
         @click="showKickModal = true"
@@ -35,13 +36,14 @@
       :user="user"
       @close="showAddFriendModal = false"
     />
+    <!-- KickModal을 호출하여 유저 정보를 전달 -->
     <KickModal
       v-if="showKickModal"
       :user="user"
       :roomId="roomId"
-      :accessToken="accessToken"
+      :memberId="memberId"
       @close="showKickModal = false"
-      @kick="kickUser"
+      @kick="handleKick"
     />
   </div>
 </template>
@@ -52,7 +54,9 @@ import Userinfo from '@/views/games/components/Modal/UserInfo.vue';
 import AddFriendModal from '@/views/games/components/Modal/AddFriendModal.vue';
 import KickModal from '@/views/games/components/Modal/KickModal.vue';
 import defaultImage from '@/assets/images/users/default.png';
-import { kickUserFromRoom } from '@/common/api/RoomsAPI';
+import avatarFrameImage from '@/assets/images/room/avatar_frame.png';
+import profileBoxImage from '@/assets/images/room/profile_box.png';
+import nameBoxImage from '@/assets/images/room/name_box.png';
 
 // props로 전달된 사용자 데이터
 const props = defineProps({
@@ -69,8 +73,8 @@ const props = defineProps({
     type: [String, Number],
     required: true
   },
-  accessToken: {
-    type: String,
+  memberId: {
+    type: [String, Number],
     required: true
   }
 });
@@ -78,11 +82,6 @@ const props = defineProps({
 const showUserModal = ref(false);
 const showAddFriendModal = ref(false);
 const showKickModal = ref(false);
-
-// 백그라운드 이미지 경로 설정
-const profileBoxImage = require('@/assets/images/room/profile_box.png');
-const nameBoxImage = require('@/assets/images/room/name_box.png');
-const avatarFrameImage = require('@/assets/images/room/avatar_frame.png');
 
 const userCardStyle = computed(() => ({
   backgroundImage: `url(${profileBoxImage})`,
@@ -109,7 +108,6 @@ const userNameStyle = computed(() => ({
   whiteSpace: 'nowrap',
 }));
 
-// 사용자 이름이 길 경우 잘라서 표시
 const truncatedName = computed(() => {
   return props.user.name.length > 10
     ? props.user.name.slice(0, 10) + '...'
@@ -123,18 +121,26 @@ const openUserProfile = () => {
   }
 };
 
-const kickUser = async () => {
-  try {
-    const response = await kickUserFromRoom(props.roomId, props.user.id, props.accessToken);
-    if (response.statusCode === 200) {
-      console.log(`사용자 강퇴: ${props.user.name}`);
-      // 강퇴 성공 시, 추가적인 동작을 여기에 작성 (예: UI 업데이트)
-    }
-  } catch (error) {
-    console.error('Error kicking user:', error);
+// 사용자가 강퇴되면 처리하는 함수
+const handleKick = (kickedUser) => {
+  console.log(`${kickedUser.name} 님이 강퇴되었습니다.`);
+  
+  // 배열에서 강퇴된 유저를 제거
+// 배열에서 강퇴된 유저를 제거
+const index = users.value.findIndex(user => user.memberId === kickedUser.memberId);
+if (index !== -1) {
+  users.value.splice(index, 1);
+}
+
+  showKickModal.value = false;
+
+  // 배열이 업데이트된 후 다음 작업을 수행
+  if (users.value.length > 0) {
+    // 다음 유저를 강퇴할 로직을 작성
+  } else {
+    console.log('더 이상 강퇴할 유저가 없습니다.');
   }
 };
-
 </script>
 
 <style scoped>

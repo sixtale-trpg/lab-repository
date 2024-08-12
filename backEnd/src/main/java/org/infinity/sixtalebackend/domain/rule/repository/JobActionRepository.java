@@ -1,7 +1,5 @@
 package org.infinity.sixtalebackend.domain.rule.repository;
 
-import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction;
-import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.rule.domain.JobAction;
 import org.infinity.sixtalebackend.domain.rule.domain.Rule;
 import org.springframework.data.jpa.repository.EntityGraph;

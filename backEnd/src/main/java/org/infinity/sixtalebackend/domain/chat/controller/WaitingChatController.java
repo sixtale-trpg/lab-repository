@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,11 +22,15 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 public class WaitingChatController {
     private final WaitingLogService waitingLogService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/waiting/chat/message")
     public void handleWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
         // 대기방 채팅 처리
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
+
+        messagingTemplate.convertAndSend("/sub/waiting/chat/room/" + chatMessageRequest.getRoomID(), chatMessageRequest);
+        System.out.println("Message sent to room: " + chatMessageRequest.getRoomID());
     }
 
     /**

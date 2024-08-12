@@ -43,12 +43,14 @@ public class WaitingLogServiceImpl implements WaitingLogService{
      */
     @Transactional
     @Override
-    public void sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
+    public ChatMessageRequest sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) {
 
         Member member = findMember(chatMessageRequest.getMemberID());
         // 닉네임 저장
+        chatMessageRequest.setMemberID(member.getId());
         chatMessageRequest.setNickName(member.getNickname());
         chatMessageRequest.setRoomType(RoomType.WAITING);
+        chatMessageRequest.setCreatedAt(String.valueOf(LocalDateTime.now()));
         findRoom(chatMessageRequest.getRoomID());
 
         if (MessageType.ENTER.equals(chatMessageRequest.getType())) {
@@ -62,7 +64,9 @@ public class WaitingLogServiceImpl implements WaitingLogService{
             handleChatMessage(chatMessageRequest.getRoomID(), member, chatMessageRequest);
         }
         // Websocket에 발행된 메시지를 redis로 발행한다(publish)
-        redisPublisher.publish(chatRoomService.getTopic(String.valueOf(chatMessageRequest.getRoomID())), chatMessageRequest);
+//        redisPublisher.publish(chatRoomService.getTopic(String.valueOf(chatMessageRequest.getRoomID())), chatMessageRequest);
+
+        return chatMessageRequest;
     }
 
     /**
@@ -94,7 +98,7 @@ public class WaitingLogServiceImpl implements WaitingLogService{
                             .recipientID(null)
                             .recipientNickName(null)
                             .content(c.getContent())
-                            .type(MessageType.TALK)
+                            .type(MessageType.CHAT)
                             .roomType(RoomType.WAITING)
                             .createdAt(c.getCreatedAt().format(dateTimeFormatter)).build();
 

@@ -19,14 +19,14 @@
           v-for="col in gridCols"
           :key="col"
           class="grid-cell"
-          @mouseenter="showDescription(row, col)"
+          @mouseenter="showDescription(row, col, $event)"
           @mouseleave="hideDescription"
         >
           <div
             v-if="isLaserActive(row, col)"
             class="laser-effect"
-            @mouseenter="onLaserMouseEnter(row, col)"
-            @mouseleave="onLaserMouseLeave(row, col)"
+            @mouseenter="onLaserMouseEnter(row, col, $event)"
+            @mouseleave="onLaserMouseLeave"
             @click="openModal(row, col)" 
           ></div>
           <img
@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <div class="info-panel" v-if="hoveredDescription.title">
+    <div class="info-panel" v-if="hoveredDescription.title" :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }">
       <img
         class="info-background"
         :src="hoveredDescription.nextMapUrl"
@@ -137,7 +137,14 @@ const npcData = ref({}); // NPC 정보를 저장할 객체
 const selectedMapIndex = ref(0);
 const cellDescriptions = ref({});
 
-// selectedMap prop의 변경 사항 감시
+const tooltipPosition = ref({ x: 0, y: 0 });
+let tooltipTimeout = null;
+
+const activeLasers = ref(new Set());
+const hoveredDescription = ref({ title: "", details: "" });
+
+const hoveredLaserDescription = ref(null);
+
 watch(
   () => props.selectedMap,
   async (newMap) => {
@@ -156,7 +163,6 @@ watch(
           activeLasers.value = new Set(
             mapInfo.placeEvents.map(event => {
               const coord = `${event.row}-${event.col}`;
-              console.log("Laser activated at:", coord);
               return coord;
             })
           );
@@ -170,10 +176,6 @@ watch(
               nextMapUrl: event.nextMapUrl,
             };
           });
-
-          console.log("Map Info:", mapInfo);
-        } else {
-          console.warn("Invalid map data or placeEvents is undefined");
         }
 
         if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
@@ -181,13 +183,9 @@ watch(
             npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
               description: npcEvent.description,
               currentHp: npcEvent.currentHp,
-              imageUrl: backButtonImage,  // 여기에 실제 NPC 이미지 경로를 설정하세요
+              imageUrl: backButtonImage,
             };
           });
-
-          console.log("NPC Info:", npcInfo);
-        } else {
-          console.warn("Invalid NPC data or npcEventList is undefined");
         }
 
       } catch (error) {
@@ -201,47 +199,68 @@ watch(
   { immediate: true }
 );
 
-const gridRows = computed(() =>
-  Array.from({ length: Math.ceil(window.innerHeight / gridSize) }, (_, i) => i)
-);
-const gridCols = computed(() =>
-  Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i)
-);
+const gridRows = computed(() => Array.from({ length: 10 }, (_, i) => i));
+const gridCols = computed(() => Array.from({ length: 15 }, (_, i) => i));
 
-const activeLasers = ref(new Set());
-const hoveredDescription = ref({ title: "", details: "" });
+const gridCellWidth = computed(() => mapImage.value ? mapImage.value.width / 15 : 0);
+const gridCellHeight = computed(() => mapImage.value ? mapImage.value.height / 10 : 0);
 
-const hoveredLaserDescription = ref(null);
-const tooltipPosition = ref({ x: 0, y: 0 });
-let tooltipTimeout = null;
+const onLaserMouseEnter = (row, col, event) => {
+    if (tooltipTimeout) clearTimeout(tooltipTimeout);
+    const description = getDescription(row, col);
+    hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-const onLaserMouseEnter = (row, col) => {
-  if (tooltipTimeout) clearTimeout(tooltipTimeout);
-  const description = getDescription(row, col);
-  console.log(`Mouse entered on laser at (${row}, ${col})`, description);
-  hoveredLaserDescription.value = { ...description, position: { row, col } };
+    const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
+    const tooltipWidth = '100%'; // 툴팁의 예상 너비 (필요한 경우 조정 가능)
+    const tooltipHeight = 340; // 툴팁의 예상 높이 (필요한 경우 조정 가능)
 
-  if (hoveredLaserDescription.value.nextMapUrl) {
-    infoBackground.value = hoveredLaserDescription.value.nextMapUrl;
-  } else {
-    infoBackground.value = require("@/assets/images/hover/token_hover.png");
-  }
+    let tooltipX = event.clientX + 10;
+    let tooltipY = event.clientY + 10;
 
-  console.log("Tooltip Image:", hoveredLaserDescription.value.nextMapUrl);
+    // 툴팁이 맵의 오른쪽 경계를 넘어가는 경우 위치 조정
+    if (tooltipX + tooltipWidth > mapRect.right) {
+        tooltipX = mapRect.right - tooltipWidth - 10;
+    }
+
+    // 툴팁이 맵의 아래쪽 경계를 넘어가는 경우 위치 조정
+    if (tooltipY + tooltipHeight > mapRect.bottom) {
+        tooltipY = mapRect.bottom - tooltipHeight - 10;
+    }
+
+    // 툴팁이 맵의 왼쪽 경계를 넘어가는 경우 위치 조정
+    if (tooltipX < mapRect.left) {
+        tooltipX = mapRect.left + 10;
+    }
+
+    // 툴팁이 맵의 위쪽 경계를 넘어가는 경우 위치 조정
+    if (tooltipY < mapRect.top) {
+        tooltipY = mapRect.top + 10;
+    }
+
+    tooltipPosition.value = { x: tooltipX, y: tooltipY };
+
+    if (hoveredLaserDescription.value.nextMapUrl) {
+        infoBackground.value = hoveredLaserDescription.value.nextMapUrl;
+    } else {
+        infoBackground.value = require("@/assets/images/hover/token_hover.png");
+    }
 };
 
-const onLaserMouseLeave = (row, col) => {
-  console.log(`Mouse left laser at (${row}, ${col})`);
+const onLaserMouseLeave = () => {
   tooltipTimeout = setTimeout(() => {
     hoveredLaserDescription.value = null;
-    infoBackground.value = require("@/assets/images/hover/token_hover.png");
   }, 1000);
 };
 
-const showDescription = (row, col) => {
+const showDescription = (row, col, event) => {
   const description = getDescription(row, col);
-  console.log(`Hovered on grid cell: ${row}-${col}`, description);
   hoveredDescription.value = description;
+
+  // 툴팁 위치 업데이트
+  tooltipPosition.value = {
+    x: event.clientX + 10,
+    y: event.clientY + 10,
+  };
 };
 
 const hideDescription = () => {
@@ -276,8 +295,6 @@ const onDrop = (event) => {
         x: tokenX,
         y: tokenY,
       });
-
-      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
 
       const removeEvent = new CustomEvent("remove-token-from-list", {
         detail: parsedToken,
@@ -321,22 +338,16 @@ const onDrag = (event) => {
 
     draggingToken.x = newX;
     draggingToken.y = newY;
-
-    console.log(`Dragging token to: (${newX.toFixed(1)}, ${newY.toFixed(1)})`);
   }
 };
 
 const stopDrag = () => {
-  if (draggingToken) {
-    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
-  }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
 
 const handleDiceRolled = (results) => {
-  console.log("주사위 굴림 결과:", results);
   results.forEach((result) =>
     console.log(`${result.type}면체 주사위 결과: ${result.value}`)
   );
@@ -346,11 +357,6 @@ const isLaserActive = (row, col) => {
   return activeLasers.value.has(`${row}-${col}`);
 };
 
-document.addEventListener("mousemove", (event) => {
-  tooltipPosition.value.x = event.pageX + 10;
-  tooltipPosition.value.y = event.pageY + 10;
-});
-
 const openModal = (row, col) => {
   const description = getDescription(row, col);
   if (description) {
@@ -359,27 +365,21 @@ const openModal = (row, col) => {
       backdrop: false,
     });
     modal.show();
-    console.log("Modal opened for position:", row, col);
-  } else {
-    console.warn("No event found for this position.");
   }
 };
 
 const changeMap = async (description) => {
   if (description && description.nextMapUrl && description.nextMapId) {
-    console.log(`Changing map to URL: ${description.nextMapUrl}`);
     mapImage.value = description.nextMapUrl;
 
     try {
       const newMapId = description.nextMapId;
       const mapInfo = await getMapPlace(roomId.value, newMapId);
-      const npcInfo = await getMapNpcs(roomId.value, newMapId);  // NPC 데이터도 함께 가져오기
 
       if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
         activeLasers.value = new Set(
           mapInfo.placeEvents.map(event => {
             const coord = `${event.row}-${event.col}`;
-            console.log("Laser activated at:", coord);
             return coord;
           })
         );
@@ -393,42 +393,24 @@ const changeMap = async (description) => {
             nextMapUrl: event.nextMapUrl,
           };
         });
-
-        console.log("Updated Map Info:", mapInfo);
-      } else {
-        console.warn("Invalid map data or placeEvents is undefined");
       }
 
       if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
-        npcData.value = {};  // 기존 NPC 데이터를 초기화합니다.
+        npcData.value = {};
         npcInfo.npcEventList.forEach(npcEvent => {
           npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
             description: npcEvent.description,
             currentHp: npcEvent.currentHp,
-            imageUrl: backButtonImage,  // 여기에 실제 NPC 이미지 경로를 설정하세요
+            imageUrl: backButtonImage,
           };
         });
-
-        console.log("Updated NPC Info:", npcInfo);
-      } else {
-        console.warn("Invalid NPC data or npcEventList is undefined");
       }
 
     } catch (error) {
       console.error("Error loading new map or NPC data:", error);
     }
-  } else {
-    console.warn("No next map available for this position.");
   }
 };
-
-const modalStyle = computed(() => ({
-  backgroundImage: `url(${scheduleModal})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  zIndex: 1070,
-}));
 
 onMounted(() => {
   threeJSManager = new ThreeJSManager(rendererContainer.value);
@@ -440,12 +422,6 @@ onMounted(() => {
   window.addEventListener("delete-token", (event) => {
     deleteTokenFromMap(event.detail);
   });
-
-  if (props.selectedMap && props.selectedMap.id) {
-    console.log("Initial Selected Map ID:", props.selectedMap.id);
-  } else {
-    console.warn("Selected Map is null or ID is not available on initial load.");
-  }
 });
 
 onUnmounted(() => {
@@ -461,7 +437,7 @@ onUnmounted(() => {
   height: 100%;
   margin: 5px;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* 툴팁이 맵 밖으로 나갈 수 있도록 변경 */
   z-index: 10;
 }
 
@@ -512,8 +488,8 @@ onUnmounted(() => {
 }
 
 .grid-cell {
-  width: 50px;
-  height: 50px;
+  width: 100%; /* 열의 수에 따라 너비 계산 */
+  height: 100%; /* 행의 수에 따라 높이 계산 */
   border: 1px solid rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -524,6 +500,7 @@ onUnmounted(() => {
   overflow: visible;
   z-index: 2;
 }
+
 
 .laser-effect {
   width: 10px;
@@ -545,36 +522,50 @@ onUnmounted(() => {
 
 .info-panel {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 320px;
+  width: 300px; /* 툴팁의 고정 너비를 설정 */
+  height: 220px; /* 툴팁의 고정 높이를 설정 */
   background-color: rgba(0, 0, 0, 0.9);
   color: white;
   border-radius: 8px;
-  padding: 15px;
+  padding: 10px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
   z-index: 5;
   transition: opacity 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 내용이 중앙에 위치하도록 설정 */
+  align-items: center; /* 내용이 중앙에 위치하도록 설정 */
 }
 
 .info-background {
   width: 100%;
-  height: 150px;
-  object-fit: cover;
-  margin-bottom: 10px;
+  height: 330px; /* 이미지가 너무 커지지 않도록 높이를 제한 */
   border-radius: 5px;
+  margin-bottom: 5px;
+  object-fit: cover; /* 이미지가 컨테이너에 맞게 조정되도록 설정 */
 }
 
 .info-content h3 {
   margin: 0;
   font-size: 20px;
   font-weight: bold;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .info-content p {
-  font-size: 14px;
-  line-height: 1.6;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 
 .debug-button {
   position: absolute;
@@ -615,7 +606,7 @@ onUnmounted(() => {
   color: #fff;
   padding: 10px;
   border-radius: 5px;
-  pointer-events: none;
+  pointer-events: none; /* 툴팁이 마우스 이벤트를 받지 않도록 설정 */
   z-index: 1000;
   max-width: 250px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);

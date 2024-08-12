@@ -405,5 +405,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 stat.setStatWeight(statRequest.getStatWeight());
             }
         });
+        characterStatRepository.saveAll(characterSheet.getCharacterStats());
+
     }
 }

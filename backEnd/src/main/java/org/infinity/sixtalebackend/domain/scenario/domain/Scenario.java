@@ -60,4 +60,13 @@ public class Scenario extends BaseTimeEntity {
     @Column(name = "gif_url")
     private String gifURL;
 
+    // 좋아요수 증가
+    public void incrementLikes() {
+        this.likes += 1;
+    }
+
+    // 좋아요수 감소
+    public void decrementLikes() {
+        this.likes -= 1;
+    }
 }

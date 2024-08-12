@@ -320,6 +320,8 @@ public class RoomServiceImpl implements RoomService{
                 .updatedAt(room.getUpdatedAt())
                 .playTime(room.getPlayTime())
                 .scenarioId(room.getScenario().getId())
+                .scenarioTitle(room.getScenario().getTitle())
+                .scenarioImageURL(room.getScenario().getImageURL())
                 .ruleId(room.getRule().getId())
                 .gmId(room.getGm().getId())
                 .playMemberList(mapMembersToResponse(room.getPlayMembers()))
@@ -390,6 +392,39 @@ public class RoomServiceImpl implements RoomService{
                     .build();
             calendarRepository.save(calender);
         }
+    }
+
+    /**
+     * 나의 플레이 방 목록 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RoomResponse> getRoomListByMemberId(Long memberId, Pageable pageable) {
+        Page<Room> rooms = roomRepository.findByMemberId(memberId, pageable);
+
+        return rooms.map(room -> RoomResponse.builder()
+                .id(room.getId())
+                .title(room.getTitle())
+                .description(room.getDescription())
+                .currentCount(room.getCurrentCount())
+                .maxCount(room.getMaxCount())
+                .isLocked(room.getIsLocked())
+                .password(room.getPassword())
+                .isShortStory(room.getIsShortStory())
+                .isVoice(room.getIsVoice())
+                .status(room.getStatus())
+                .nextPlay(room.getNextPlay())
+                .createdAt(room.getCreatedAt())
+                .updatedAt(room.getUpdatedAt())
+                .playTime(room.getPlayTime())
+                .scenarioId(room.getScenario().getId())
+                .scenarioTitle(room.getScenario().getTitle())
+                .scenarioImageURL(room.getScenario().getImageURL())
+                .ruleId(room.getRule().getId())
+                .gmId(room.getGm().getId())
+                .playMemberList(mapMembersToResponse(room.getPlayMembers()))
+                .build());
+
     }
 
 }

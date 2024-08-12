@@ -2,50 +2,47 @@
   <div class="equipment-display-container">
     <div class="equipment-grid">
       <div 
-        class="equipment-item" 
+        class="equipment-item-card" 
         v-for="(item, index) in equipment" 
         :key="index"
         @click="selectItem(item)"
         :class="{ active: selectedItem === item }"
       >
-        <img src="@/assets/images/character_sheet/tribebutton.png" alt="아이템 배경" class="item-background">
-        <div class="item-name">{{ item.name }}</div>
+        <img :src="item.imageURL || require('@/assets/images/ingame/Gold.png')" alt="아이템 이미지" class="item-image">
+        <div class="item-details">
+          <div class="item-name">{{ item.name }}</div>
+        </div>
       </div>
     </div>
     <div class="equipment-details-container">
       <div class="equipment-details">
         <div class="details-header">장비 설명</div>
         <div class="details-content">
-          <div class="details-text">{{ selectedItem ? selectedItem.details : '장비를 선택하세요.' }}</div>
+          <div class="details-text">{{ selectedItem ? selectedItem.description : '장비를 선택하세요.' }}</div>
         </div>
       </div>
     </div>
     <div class="gold-display">
-        <div class="gold-amount">소지 골드: {{ gold }}G</div>
-      </div>
+      <div class="gold-amount">소지 골드: {{ gold }}G</div>
+    </div>
     <div class="weight-info">현재 장비 하중: {{ currentWeight }} / 한계 장비 하중: {{ maxWeight }}</div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-// 주석 처리된 부분은 부모 컴포넌트에서 데이터를 받을 때 사용합니다.
-// const props = defineProps(['equipmentData', 'gold', 'currentWeight', 'maxWeight']);
-// const equipment = computed(() => props.equipmentData);
-// const gold = computed(() => props.gold);
-// const currentWeight = computed(() => props.currentWeight);
-// const maxWeight = computed(() => props.maxWeight);
+import { ref, computed, defineProps } from 'vue';
 
-const equipment = ref([
-  { name: '레이피어', details: '한검용, 장검, 무게 1' },
-  { name: '투척용 단검 세 자루', details: '투척, 중거리, 무게 0' },
-  { name: '낡은 활', details: '중거리, 무게 1, 화살 한 다발 포함' },
-  { name: '모험 장비', details: '무게 1' }
-]);
+const props = defineProps({
+  equipmentData: Array,
+  gold: Number,
+  currentWeight: Number,
+  maxWeight: Number
+});
 
-const gold = ref(100); // 임시 데이터, 부모 컴포넌트로부터 실제 데이터를 받을 예정
-const currentWeight = ref(5); // 임시 데이터
-const maxWeight = ref(10); // 임시 데이터
+const equipment = computed(() => props.equipmentData || []);
+const gold = computed(() => props.gold || 0);
+const currentWeight = computed(() => props.currentWeight || 0);
+const maxWeight = computed(() => props.maxWeight || 0);
 const selectedItem = ref(null);
 
 const selectItem = (item) => {
@@ -62,45 +59,50 @@ const selectItem = (item) => {
 
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 그리드 형태로 표시 */
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 20px;
 }
 
-.equipment-item {
-  position: relative;
+.equipment-item-card {
+  background-color: #333;
+  border-radius: 10px;
+  overflow: hidden;
   padding: 10px;
-  cursor: pointer;
   transition: transform 0.3s;
+  cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
-.item-background {
-  position: absolute;
+.item-image {
   width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
+  height: auto;
   object-fit: cover;
-  z-index: -1; 
+}
+
+.item-details {
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  border-top: 1px solid #444;
 }
 
 .item-name {
   font-weight: bold;
   color: #fff;
-  z-index: 1;
-  text-align: center;
 }
 
-.equipment-item.active, .equipment-item:hover {
-  transform: scale(1.05); 
+.equipment-item-card.active, .equipment-item-card:hover {
+  transform: scale(1.05);
 }
 
 .equipment-details-container {
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   align-items: flex-start;
 }
 
@@ -108,8 +110,12 @@ const selectItem = (item) => {
   flex: 2;
   display: flex;
   flex-direction: column;
-  margin-right: 20px; 
+  margin-right: 20px;
   padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #855e2fee #201805;
 }
 
 .details-header {
@@ -128,18 +134,18 @@ const selectItem = (item) => {
 
 .gold-display {
   flex: 1;
-  text-align: right; 
+  text-align: right;
 }
 
 .gold-amount {
   font-size: 1.2rem;
   color: gold;
-  margin-top: 5px; 
+  margin-top: 5px;
   padding: 20px;
 }
 
 .weight-info {
-  font-size: 1.8rem; 
-  text-align: center; 
+  font-size: 1.8rem;
+  text-align: center;
 }
 </style>

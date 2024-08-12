@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.servlet.http.HttpServletRequest;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 
 public interface AuthService {

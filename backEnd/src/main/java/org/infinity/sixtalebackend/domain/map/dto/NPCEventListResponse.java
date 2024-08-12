@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.map.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.infinity.sixtalebackend.domain.map.domain.NPCEvent;
@@ -7,9 +8,9 @@ import org.infinity.sixtalebackend.domain.map.domain.NPCEvent;
 import java.util.List;
 
 @Getter
-@Setter
+@Builder
 public class NPCEventListResponse {
 
-    List<NPCEvent> npcEvents;
+    List<NPCEventResponse> npcEvents;
 
 }

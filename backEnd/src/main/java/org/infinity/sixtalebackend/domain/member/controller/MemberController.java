@@ -1,11 +1,13 @@
 package org.infinity.sixtalebackend.domain.member.controller;
 
+import com.nimbusds.oauth2.sdk.auth.JWTAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.dto.MemberResponseDto;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
 import org.infinity.sixtalebackend.domain.member.dto.MemberNicknameCheckResponse;
 import org.infinity.sixtalebackend.domain.scenario.dto.ScenarioListResponseDto;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -37,12 +39,13 @@ public class MemberController {
     }
 
     /**
-     * 회원 정보 조회(닉네임, 프로필 이미지)
+     * 회원 정보 조회(id, 닉네임, 프로필 이미지, 가입 날짜)
      */
     @GetMapping("")
     public ResponseEntity<?> getMemberInfo(){
         try {
-            Long memberId = 1L;
+            Long memberId = AuthenticationUtil.getMemberId();
+//            Long memberId = 1L;
             MemberResponseDto memberResponseDto = memberService.getMemberInfo(memberId);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){
@@ -56,7 +59,8 @@ public class MemberController {
     @PutMapping(value = "",consumes = "multipart/*")
     public ResponseEntity<?> updateMemberInfo(String nickName, @RequestPart("files")MultipartFile[] files){
         try {
-            Long memberId = 1L;
+            Long memberId = AuthenticationUtil.getMemberId();
+
             MemberResponseDto memberResponseDto = memberService.updateMemberInfo(memberId,nickName,files);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATED_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){
@@ -96,7 +100,8 @@ public class MemberController {
     @GetMapping("/liked-scenarios")
     public ResponseEntity getLikedScenarioList (Pageable scenarioPageable) {
         try {
-            Long memberID = 1L;
+            Long memberID = AuthenticationUtil.getMemberId();
+            log.info("memberID = {}", memberID);
 
             ScenarioListResponseDto scenarioList = memberService.getScenarioLikeList(memberID, scenarioPageable);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_SCENARIO_LIKE_LIST,scenarioList), HttpStatus.OK);

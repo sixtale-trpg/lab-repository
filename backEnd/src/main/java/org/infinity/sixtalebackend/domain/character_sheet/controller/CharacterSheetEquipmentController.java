@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterEquipmentRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetEquipmentResponse;
+import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterUpdateEquipmentRequest;
 import org.infinity.sixtalebackend.domain.character_sheet.dto.UpdateCharacterSheetResponse;
 import org.infinity.sixtalebackend.domain.character_sheet.service.CharacterSheetEquipmentService;
 import org.infinity.sixtalebackend.domain.character_sheet.service.CharacterSheetService;
@@ -66,6 +67,33 @@ public class CharacterSheetEquipmentController {
         }catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.ADD_CHARACTER_SHEET_EQUIPMENT_FAIL), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 캐릭터 장비 수량 수정
+     */
+    @PutMapping
+    public ResponseEntity updateCharacterSheetEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID,
+                                                     @RequestBody CharacterUpdateEquipmentRequest equipmentUpdateRequest) {
+        try {
+            characterSheetEquipmentService.updateCharacterEquipment(roomID, playMemberID, equipmentUpdateRequest);
+
+            String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            UpdateCharacterSheetResponse response = UpdateCharacterSheetResponse.builder()
+                    .roomID(roomID)
+                    .type("1")
+                    .content("플레이어가 장비 수정을 완료했습니다")
+                    .createdAt(createdAt)
+                    .playMemberID(playMemberID)
+                    .build();
+            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.UPDATE_CHARACTER_SHEET_EQUIPMENT, response), HttpStatus.CREATED);
+        }catch (IllegalArgumentException e) {
+            log.error(e.getMessage());
+            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_CHARACTER_SHEET_EQUIPMENT_FAIL), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);

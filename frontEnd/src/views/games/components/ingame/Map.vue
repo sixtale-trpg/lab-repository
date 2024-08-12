@@ -101,7 +101,9 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
-import { useMapStore } from "@/store/map/mapStore"; // 맵 스토어 사용
+import { useMapStore } from "@/store/map/mapStore";
+import { getMapPlace, getMapNpcs } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
 
 import scheduleModal from '@/assets/images/ingame/map/background.png';
 import titleImage from '@/assets/images/ingame/map/title.png';
@@ -139,7 +141,6 @@ const cellDescriptions = ref({});
 watch(
   () => props.selectedMap,
   async (newMap) => {
-    // 새로운 맵의 이미지 URL로 mapImage를 업데이트
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
       console.log("Selected Map ID:", newMap.id);
@@ -195,7 +196,6 @@ watch(
     } else {
       mapImage.value = defaultMapImage;
       console.warn("Selected Map is null or does not have an image URL.");
-      console.warn("Selected Map is null or does not have an image URL.");
     }
   },
   { immediate: true }
@@ -208,9 +208,8 @@ const gridCols = computed(() =>
   Array.from({ length: Math.ceil(window.innerWidth / gridSize) }, (_, i) => i)
 );
 
-// 하드코딩된 덤프 데이터로 활성 레이저 설정
 const activeLasers = ref(new Set());
-const hoveredDescription = ref({ title: "", details: "" }); // 현재 마우스가 올려진 그리드 셀의 설명 저장
+const hoveredDescription = ref({ title: "", details: "" });
 
 const hoveredLaserDescription = ref(null);
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -396,6 +395,7 @@ const changeMap = async (description) => {
         });
 
         console.log("Updated Map Info:", mapInfo);
+        console.log("Map Events on this map:", mapInfo.placeEvents); // 여기서 맵 이벤트 콘솔 출력
       } else {
         console.warn("Invalid map data or placeEvents is undefined");
       }
@@ -442,7 +442,6 @@ onMounted(() => {
     deleteTokenFromMap(event.detail);
   });
 
-  // selectedMap이 초기 로드 시 설정되어 있는지 확인
   if (props.selectedMap && props.selectedMap.id) {
     console.log("Initial Selected Map ID:", props.selectedMap.id);
   } else {

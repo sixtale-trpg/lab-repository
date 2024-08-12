@@ -11,5 +11,6 @@ public interface PlayLogService {
     ChatMessageListResponse getPlayChatWisperLogList(Long roomID,Long memberID,Pageable pageable);
 
     ChatMessageListResponse getPlayChatAllLogList(Long roomID,Long memberID,Pageable pageable);
+    
 
 }

@@ -6,7 +6,6 @@ import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageListResponse;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
 import org.infinity.sixtalebackend.domain.chat.service.PlayLogService;
-import org.infinity.sixtalebackend.domain.chat.service.SheetLogService;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;

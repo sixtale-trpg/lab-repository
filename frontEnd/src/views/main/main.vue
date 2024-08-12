@@ -42,6 +42,7 @@ const isHomePage = computed(() => route.name === 'home');
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(38, 38, 38, 0.87) 0%, #232428 100%);
 }
 
 .main-content {

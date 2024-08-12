@@ -5,7 +5,7 @@
         v-for="job in jobs"
         :key="job.name"
         :name="job.name"
-        :image="job.image_url"
+        :image="job.imageURL" 
         :description="job.description"
         :selectedBy="job.selectedBy"
         @select-card="openCharacterSheet"
@@ -17,33 +17,24 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted } from 'vue';
 import JobCard from './JobCard.vue';
 import CharacterSheetModal from './CharacterSheetModal.vue';
-import axios from 'axios';
+import { fetchJobList } from '@/common/api/JobAPI.js';
 
-const jobs = ref([
-  { name: '전사', image_url: require('@/assets/images/character/warrior.png'), description: '전사 설명입니다.' },
-  { name: '사냥꾼', image_url: require('@/assets/images/character/hunter.png'), description: '사냥꾼 설명입니다.' },
-  { name: '성기사', image_url: require('@/assets/images/character/paladin.png'), description: '성기사 설명입니다.' },
-  { name: '음유시인', image_url: require('@/assets/images/character/bard.png'), description: '음유시인 설명입니다.' },
-  { name: '마법사', image_url: require('@/assets/images/character/mage.png'), description: '마법사 설명입니다.' },
-  { name: '드루이드', image_url: require('@/assets/images/character/druid.png'), description: '드루이드 설명입니다.' },
-  { name: '도적', image_url: require('@/assets/images/character/rogue.png'), description: '도적 설명입니다.' },
-  { name: '사제', image_url: require('@/assets/images/character/priest.png'), description: '사제 설명입니다.' }
-]);
-
-const currentUser = ref('user123'); // 현재 사용자 아이디 (로그인된 사용자)
+const jobs = ref([]);
 const showModal = ref(false);
 const selectedJob = ref(null);
+const ruleId = ref(1); // 예시로 1번 룰 사용
 
-const fetchJobs = async () => {
+const loadJobs = async () => {
   try {
-    const response = await axios.get('/api/jobs'); // 백엔드 API 엔드포인트를 사용하세요
-    jobs.value = response.data;
+    jobs.value = await fetchJobList(ruleId.value);
+    console.log('Fetched Jobs:', jobs.value);
   } catch (error) {
-    console.error('직업 정보를 가져오는 도중 오류 발생:', error);
+    console.error('직업 목록을 불러오는 중 오류가 발생했습니다.', error);
   }
 };
 
@@ -66,8 +57,9 @@ const deleteCard = (jobName) => {
   // 삭제하기 로직 추가
 };
 
-onMounted(fetchJobs);
+onMounted(loadJobs);
 </script>
+
 
 <style scoped>
 .jobs-board {

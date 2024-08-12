@@ -1,197 +1,184 @@
 <template>
-    <div class="action-tab" :style="tabBackgroundStyle">
-      <div class="inner-tabs">
-        <button
-          class="inner-tab-button"
-          v-for="tab in innerTabs"
-          :key="tab"
-          :class="{ active: activeInnerTab === tab }"
-          @click="activeInnerTab = tab"
-          :style="getTabButtonStyle(tab)"
-        >{{ innerTabLabels[tab] }}</button>
-      </div>
-      <div class="inner-tab-content">
-        <div v-if="activeInnerTab === 'common'">
-          <div class="action-categories-horizontal">
-            <div class="action-category">
-              <h3>기본 액션</h3>
-              <div class="action-cards">
-                <div class="action-card" v-for="action in commonActions.basic" :key="action.id">
-                  <strong>{{ action.name }}</strong>: {{ action.description }}
-                </div>
+  <div class="action-tab">
+    <div class="tab-buttons">
+      <button 
+        class="tab-button" 
+        :class="{ active: activeTab === 'core' }" 
+        :style="getTabButtonStyle('core')" 
+        @click="activeTab = 'core'"
+      >
+        핵심 액션
+      </button>
+      <button 
+        class="tab-button" 
+        :class="{ active: activeTab === 'advanced' }" 
+        :style="getTabButtonStyle('advanced')" 
+        @click="activeTab = 'advanced'"
+      >
+        고급 액션
+      </button>
+    </div>
+
+    <div class="action-list">
+      <div v-if="activeTab === 'core'">
+        <div v-if="coreActions.length > 0" class="action-grid">
+          <div v-for="(action, index) in coreActions" :key="index" class="action-item">
+            <h3>{{ action.name }}</h3>
+            <p v-html="action.description" class="description"></p>
+            <div class="action-details">
+              <div class="detail-box">
+                <strong>주사위:</strong> {{ action.diceType }} x {{ action.diceCount }}
               </div>
-            </div>
-            <div class="action-category">
-              <h3>특수 액션</h3>
-              <div class="action-cards">
-                <div class="action-card" v-for="action in commonActions.special" :key="action.id">
-                  <strong>{{ action.name }}</strong>: {{ action.description }}
-                </div>
+              <div class="detail-box">
+                <strong>레벨:</strong> {{ action.level }}
+              </div>
+              <div class="detail-box" v-if="action.actionOption.length > 0">
+                <strong>옵션:</strong> {{ action.actionOption[0].content }}
               </div>
             </div>
           </div>
         </div>
-        <div v-if="activeInnerTab === 'character'">
-          <div class="action-categories-horizontal">
-            <div class="action-category">
-              <h3>핵심 액션</h3>
-              <div class="action-cards">
-                <div class="action-card" v-for="action in characterActions.core" :key="action.id">
-                  <strong>{{ action.name }}</strong>: {{ action.description }}
-                </div>
+        <div v-else>
+          <p>핵심 액션이 없습니다.</p>
+        </div>
+      </div>
+      <div v-else>
+        <div v-if="advancedActions.length > 0" class="action-grid">
+          <div v-for="(action, index) in advancedActions" :key="index" class="action-item">
+            <h3>{{ action.name }}</h3>
+            <p v-html="action.description" class="description"></p>
+            <div class="action-details">
+              <div class="detail-box">
+                <strong>주사위:</strong> {{ action.diceType }} x {{ action.diceCount }}
               </div>
-            </div>
-            <div class="action-category">
-              <h3>고급 액션</h3>
-              <div class="action-cards">
-                <div class="action-card" v-for="action in characterActions.advanced" :key="action.id">
-                  <strong>{{ action.name }}</strong>: {{ action.description }}
-                </div>
+              <div class="detail-box">
+                <strong>레벨:</strong> {{ action.level }}
+              </div>
+              <div class="detail-box" v-if="action.actionOption.length > 0">
+                <strong>옵션:</strong> {{ action.actionOption[0].content }}
               </div>
             </div>
           </div>
+        </div>
+        <div v-else>
+          <p>고급 액션이 없습니다.</p>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted, computed } from 'vue';
-  import axios from 'axios';
-  
-  const commonActions = ref({
-    basic: [
-      { id: 1, name: '기본 액션 1', description: '기본 액션 설명 1' },
-      { id: 2, name: '기본 액션 2', description: '기본 액션 설명 2' }
-    ],
-    special: [
-      { id: 3, name: '특수 액션 1', description: '특수 액션 설명 1' },
-      { id: 4, name: '특수 액션 2', description: '특수 액션 설명 2' }
-    ]
-  });
-  
-  const characterActions = ref({
-    core: [
-      { id: 5, name: '핵심 액션 1', description: '핵심 액션 설명 1' },
-      { id: 6, name: '핵심 액션 2', description: '핵심 액션 설명 2' }
-    ],
-    advanced: [
-      { id: 7, name: '고급 액션 1', description: '고급 액션 설명 1' },
-      { id: 8, name: '고급 액션 2', description: '고급 액션 설명 2' }
-    ]
-  });
-  
-  const props = defineProps(['roomID', 'playMemberID']);
-  
-  // 내부 탭 상태와 라벨 정의
-  const activeInnerTab = ref('common');
-  const innerTabs = ['common', 'character'];
-  const innerTabLabels = {
-    common: '공통 액션',
-    character: '캐릭터 액션',
-  };
-  
-  // 공통 및 캐릭터 액션 데이터 가져오기
-  // onMounted(async () => {
-  //   try {
-  //     // 공통 액션 데이터 가져오기
-  //     const commonResponse = await axios.get(`/actions/common`);
-  //     commonActions.value = {
-  //       basic: commonResponse.data.data.filter(action => action.type === 'basic'),
-  //       special: commonResponse.data.data.filter(action => action.type === 'special')
-  //     };
-  
-  //     // 캐릭터 액션 데이터 가져오기
-  //     const characterResponse = await axios.get(`/actions/character/${props.playMemberID}`);
-  //     characterActions.value = {
-  //       core: characterResponse.data.data.filter(action => action.type === 'core'),
-  //       advanced: characterResponse.data.data.filter(action => action.type === 'advanced')
-  //     };
-  //   } catch (error) {
-  //     console.error('Error fetching actions:', error);
-  //   }
-  // });
-  
-  const tabBackgroundStyle = computed(() => ({
-    background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, defineProps } from 'vue';
+
+const props = defineProps({
+  actionData: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const activeTab = ref('core');
+
+const coreActions = computed(() => {
+  return (props.actionData || []).filter(action => action.isCore);
+});
+
+const advancedActions = computed(() => {
+  return (props.actionData || []).filter(action => !action.isCore);
+});
+
+function getTabButtonStyle(tab) {
+  const active = activeTab.value === tab;
+  const imagePath = active
+    ? require('@/assets/images/character_sheet/clicked_tab.png')
+    : require('@/assets/images/character_sheet/tabButton.png');
+  return {
+    background: `url(${imagePath}) no-repeat center center`,
     backgroundSize: 'cover',
-  }));
-  
-  function getTabButtonStyle(tab) {
-    const active = activeInnerTab.value === tab;
-    const imagePath = active
-      ? require('@/assets/images/character_sheet/clicked_tab.png')
-      : require('@/assets/images/character_sheet/tabButton.png');
-    return {
-      background: `url(${imagePath}) no-repeat center center`,
-      backgroundSize: 'cover',
-      color: active ? 'white' : '#ccc',
-      fontSize: '16px'
-    };
-  }
-  </script>
-  
-  <style scoped>
-  .action-tab {
-    padding: 20px;
-    color: #fff;
-  }
-  
-  .inner-tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
-  
-  .inner-tab-button {
-    padding: 20px 40px; /* 크기를 키움 */
-    border: none;
-    cursor: pointer;
-    margin: 0 10px;
-    position: relative;
-    background-size: cover;
-    color: #ccc; /* 선택되지 않은 탭 폰트 색상 */
-  }
-  
-  .inner-tab-button.active {
-    background-size: cover;
-    color: white; /* 선택된 탭 폰트 색상 */
-  }
-  
-  .inner-tab-content {
-    padding: 20px;
-    background-color: transparent; /* 바디 색상과 일치하도록 투명 처리 */
-    border-radius: 5px;
-  }
-  
-  .action-categories-horizontal {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-  }
-  
-  .action-category {
-    flex: 1;
-    background-color: transparent; /* 바디 색상과 일치하도록 투명 처리 */
-  }
-  
-  .action-cards {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .action-card {
-    background-color: #333;
-    border: 1px solid #444;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 10px;
-    color: #fff;
-  }
-  
-  h3 {
-    margin-bottom: 10px;
-    text-align: center;
-  }
-  </style>
-  
+  };
+}
+</script>
+
+<style scoped>
+.action-tab {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.action-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.action-item {
+  background-color: #1d1707;
+  padding: 15px;
+  border-radius: 5px;
+  color: #fff;
+  text-align: center;
+}
+
+.action-item h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.description {
+  text-align: left;
+  margin: 10px 0;
+}
+
+.action-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.detail-box {
+  background-color: #2a210f;
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.detail-box strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.detail-box ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 5px 0 0 0;
+}
+
+.detail-box ul li {
+  margin-bottom: 5px;
+}
+</style>

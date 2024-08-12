@@ -20,23 +20,21 @@ const getHeaders = () => {
 };
 
 // 캐릭터 시트 조회
-export const getCharacterSheet = async (roomID, playMemberID) => {
+export const getCharacterSheet = async (roomId, playMemberID) => {
   const headers = getHeaders();
-  const url = `${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`;
-  console.log('Fetching character sheet:', url, headers);
+  const url = `/api/v1/rooms/${roomId}/sheets/${playMemberID}`;
+  console.log(`Fetching character sheet from: ${url}`);
 
   try {
-    const response = await axios.get(url, {
-      headers
-    });
-    console.log('Response:', response);
+    const response = await axios.get(url, { headers });
     return response.data.data;
   } catch (error) {
     console.error('Error fetching character sheet:', error);
     if (error.response) {
       console.error('Response data:', error.response.data);
     }
-    throw error;
+    // 기본 상태 반환
+    return null;
   }
 };
 
@@ -56,7 +54,7 @@ export const createCharacterSheet = async (roomID, characterData) => {
 // 캐릭터 시트 업데이트
 export const updateCharacterSheet = async (roomID, playMemberID, updatedData) => {
   try {
-    const response = await axios.patch(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, updatedData, {
+    const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, updatedData, {
       headers: getHeaders()
     });
     return response.data;

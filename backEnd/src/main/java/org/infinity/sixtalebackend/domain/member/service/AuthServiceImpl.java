@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.domain.Provider;

@@ -1,8 +1,6 @@
 package org.infinity.sixtalebackend.domain.rule.service;
 
-import org.infinity.sixtalebackend.domain.rule.dto.CharacterActionListResponse;
-import org.infinity.sixtalebackend.domain.rule.dto.JobListResponse;
-import org.infinity.sixtalebackend.domain.rule.dto.JobOptionListResponse;
+import org.infinity.sixtalebackend.domain.rule.dto.*;
 
 public interface RuleService {
     JobListResponse readJobList(Long ruleID);
@@ -10,4 +8,6 @@ public interface RuleService {
     JobOptionListResponse readJobOptionList(Long ruleID, Long jobID);
 
     public CharacterActionListResponse getCommonActions(Long ruleID);
+
+    RuleInfoResponse readRule(Long ruleID);
 }

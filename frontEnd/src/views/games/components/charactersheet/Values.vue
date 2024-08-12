@@ -1,18 +1,15 @@
 <template>
   <div class="values-container">
-    <div class="values-buttons">
+    <div class="values-cards">
       <div 
-        v-for="(button, index) in buttons" 
-        :key="index" 
-        class="value-button" 
-        @click="handleClick(index)"
-        :class="{ active: formData.selectedValue === index }"
-        :style="getButtonStyle(formData.selectedValue === index)"
+        v-for="belief in currentOptions" 
+        :key="belief.beliefID"
+        :class="['action-card', { selected: localFormData.selectedValue === belief.beliefID }]"
+        @click="selectBelief(belief.beliefID)"
       >
-        <div class="button-content">
-          <span class="button-title">{{ button.title }}</span>
-          <img src="@/assets/images/character_sheet/Line.png" alt="line" class="button-line"/>
-          <span class="button-description">{{ button.description }}</span>
+        <div class="card-content">
+          <span class="card-title">{{ belief.beliefName }}</span>
+          <span class="card-description">{{ belief.description }}</span>
         </div>
       </div>
     </div>
@@ -20,99 +17,82 @@
 </template>
 
 <script setup>
-import { ref, reactive, toRefs } from 'vue';
+import { reactive, toRefs, watch } from 'vue';
 
-const props = defineProps(['formData']);
-const { formData } = toRefs(props);
+const props = defineProps({
+  formData: Object,
+  currentOptions: Array
+});
 
-// 버튼 정보 및 스타일 등록
-const buttons = reactive([
-  {
-    title: '혼돈',
-    description: '아무 계획 없이 위험한 상황에 뛰어듭니다.'
-  },
-  {
-    title: '중립',
-    description: '들키지 않고 움직이거나 어느 장소에 침투합니다.'
-  },
-  {
-    title: '악',
-    description: '자기에게 처한 위험이나 자기의 잘못을 남에게 전가합니다.'
-  }
-]);
+const { formData, currentOptions } = toRefs(props);
 
-const handleClick = (index) => {
-  formData.value.selectedValue = index;
-};
+const emit = defineEmits(['update:selectedBelief']);
 
-// 배경 이미지 경로 설정
-const defaultBackgroundImage = require('@/assets/images/character_sheet/value2.png');
-const activeBackgroundImage = require('@/assets/images/character_sheet/value1.png');
+// 로컬 상태를 만들어 formData의 변경을 감지하고 부모에 반영
+const localFormData = reactive({ ...formData.value });
 
-const getButtonStyle = (isActive) => {
-  return {
-    backgroundImage: `url(${isActive ? activeBackgroundImage : defaultBackgroundImage})`,
-    width: '800px',  // 적절한 너비 설정
-    height: '160px',  // 적절한 높이 설정
-    borderRadius: '20px'  // 테두리 둥글게 설정
-  };
-};
+// 부모 컴포넌트에서 넘어온 값이 변경될 경우 로컬 상태를 동기화
+watch(() => formData.value, (newVal) => {
+  Object.assign(localFormData, newVal);
+});
+
+function selectBelief(beliefID) {
+  localFormData.selectedValue = beliefID;
+  emit('update:selectedBelief', beliefID);
+}
 </script>
 
 <style scoped>
-.values-buttons {
+.values-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 100px;
+  height: 80%; 
+  overflow-y: auto; 
+}
+
+.values-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center; /* 중앙 정렬 */
+  width: 100%;
+}
+
+.action-card {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  padding: 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+  width: 200px;
+}
+
+.action-card:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.action-card.selected {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #fff;
+}
+
+.card-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;  /* 간격 조정 */
-  padding: 15px;  /* 패딩 추가 */
-}
-
-.value-button {
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;  /* 패딩 조정 */
-  color: white;
-  border-radius: 20px;  /* 테두리 둥글게 설정 */
-  width: 820px;  /* 너비 조정 */
-  height: 160px;  /* 높이 조정 */
-  transition: transform 0.3s, box-shadow 0.3s, background-image 0.3s; /* 애니메이션 추가 */
-}
-
-.value-button.active {
-  transform: scale(1.05); /* 크기 조정 */
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* 그림자 추가 */
-}
-
-.button-content {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  position: relative;
-}
-
-.button-title {
-  font-size: 1.5rem;  /* 폰트 크기 조정 */
-  flex: 1;
-  text-align: left;
-}
-
-.button-line {
-  position: absolute;
-  left: 20%;  /* 위치 조정 */
-  height: 200%;  /* 버튼 높이에 맞게 설정 */
-  margin: 0;
-}
-
-.button-description {
-  font-size: 1.2rem;  /* 폰트 크기 조정 */
-  flex: 1;
+  justify-content: center;
   text-align: center;
-  padding-left: 20px;  /* 패딩 조정 */
+}
+
+.card-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.card-description {
+  font-size: 1.2rem;
+  text-align: left; 
+  width: 100%;
 }
 </style>

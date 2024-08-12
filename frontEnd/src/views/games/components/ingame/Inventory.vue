@@ -41,6 +41,7 @@
       v-if="isAddItemModalVisible" 
       @close="closeAddItemModal" 
       @select-item="handleItemSelected"
+      @item-added="handleItemAdded"
       :current-weight="currentWeight" 
       :total-weight="limitWeight"
       :rule-id="ruleId"
@@ -304,6 +305,11 @@ const handleItemSelected = (item) => {
   items.value = [...items.value];
 
   closeAddItemModal();
+};
+
+const handleItemAdded = async (addedItem) => {
+  console.log("Item added:", addedItem);
+  await fetchUserItems(selectedPlayMemberID.value); // 서버에서 최신 데이터를 다시 가져오기
 };
 
 

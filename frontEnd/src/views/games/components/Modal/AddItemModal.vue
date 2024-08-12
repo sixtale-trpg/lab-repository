@@ -113,11 +113,12 @@ const addItem = async () => {
 
         await addEquipment(route.params.roomId, selectedPlayMemberID.value, equipmentData);
 
-        // `select-item` 이벤트가 발생하는지 확인
-        console.log("Emitting select-item with:", selectedItem.value);
-
-        // 이벤트 발생시 아이템의 전체 수량(currentCount)을 정확히 반영하여 전달합니다.
+        // select-item 이벤트 발생
         emit("select-item", { ...selectedItem.value, currentCount: selectedItem.value.count });
+
+        // item-added 이벤트 발생
+        emit("item-added", selectedItem.value);
+
         closeModal();
       } catch (error) {
         console.error("Failed to add item to the server:", error);
@@ -125,6 +126,7 @@ const addItem = async () => {
     }
   }
 };
+
 
 onMounted(() => {
   fetchEquipmentList();

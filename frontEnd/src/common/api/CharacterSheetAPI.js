@@ -51,10 +51,44 @@ export const createCharacterSheet = async (roomID, characterData) => {
   }
 };
 
-// 캐릭터 시트 업데이트
+// 캐릭터 시트 업데이트 - 플레이 전 (캐릭터 시트작성할 때)
 export const updateCharacterSheet = async (roomID, playMemberID, updatedData) => {
   try {
-    const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, updatedData, {
+    // FormData 객체 생성
+    const formData = new FormData();
+
+    // 파일이 있는 경우 추가
+    if (updatedData.files) {
+      for (let file of updatedData.files) {
+        formData.append('files', file);
+      }
+    }
+
+    // 나머지 데이터를 characterSheetRequest로 추가
+    formData.append('characterSheetRequest', new Blob([JSON.stringify(updatedData.characterSheetRequest)], {
+      type: 'application/json'
+    }));
+
+    const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, formData, {
+      headers: {
+        ...getHeaders(),
+        'Content-Type': 'multipart/form-data' // FormData에 맞는 Content-Type 설정
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating character sheet:', error);
+    throw error;
+  }
+};
+
+
+
+// 캐릭터 시트 업데이트 - 플레이 후 (스탯 수정 시)
+export const updateCharacterSheet2 = async (roomID, playMemberID, updatedData) => {
+  try {
+    const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/sheet`, updatedData, {
       headers: getHeaders()
     });
     return response.data;

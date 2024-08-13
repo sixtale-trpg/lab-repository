@@ -99,12 +99,12 @@ const backgroundStyle = ref({
 }
 
 .job-board {
-  height: 75%;
+  height: 73%;
   margin-bottom: 1vh;
 }
 
 .video-profile {
-  height: 25%;
+  height: 27%;
 }
 
 .gm-section {

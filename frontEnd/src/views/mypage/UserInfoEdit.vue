@@ -7,9 +7,10 @@
         <img
           :src="previewImage || profileImage || require('@/assets/images/mypage/user.png')"
           alt="Profile Image"
-          class="profile-avater"
+          class="profile-avatar"
         />
-        <input type="file" multiple @change="handleFileChange" />
+        <label for="file-input" class="custom-file-label">파일 선택</label>
+        <input type="file" id="file-input" multiple @change="handleFileChange" />
       </div>
       <div class="profile-info">
         <input
@@ -24,10 +25,15 @@
     <hr class="divider" />
     <div class="profile-details">
       <div class="profile-detail-item">
-        <strong>선호 룰</strong>
-        <p>{{ user.preferredRules }}</p>
+        <strong  class="detail-label">선호 룰</strong>
+        <input
+          type="text"
+          v-model="user.preferredRules"
+          :placeholder="user.preferredRules"
+          class="profile-nickname detail-input"
+        />
       </div>
-      <div class="profile-detail-item">
+      <div class="profile-detail-item ">
         <strong>선호 장르</strong>
         <p>{{ user.preferredGenres }}</p>
       </div>
@@ -51,6 +57,12 @@ const nickName = ref(""); // 수정 닉네임 정보
 const previewImage = ref(""); // 새로운 이미지 미리보기
 const profileImage = ref("");
 
+// const genres = ["", "판타지", "모험", "드라마", "호러", "스릴러", "현대", "중세", 
+// 8	활극
+// 9	SF
+// 10	히어로
+// 11	추리수사
+
 onMounted(() => {
   //회원 기본 정보
   getMemberInfo()
@@ -72,6 +84,8 @@ onMounted(() => {
     .catch((error) => {
       console.error("Failed to fetch member Detail info:", error);
     });
+    // 장르 조회
+
 });
 
 // createdAt 배열 포맷팅
@@ -140,14 +154,40 @@ const cancelEditing = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: fit-content;  /* 부모 요소의 너비를 전체로 설정 */
+  height: auto;  /* 부모 요소의 높이를 자동으로 설정 */
+  text-align: center;  /* 텍스트 정렬을 중앙으로 설정 */
 }
-.profile-avatar {
-  width: 150px;
-  height: 150px;
+/* 파일 입력 요소 숨기기 */
+input[type="file"] {
+  display: none;
+}
+/* 커스텀 레이블 스타일링 */
+.custom-file-label {
+  display: inline-block;
+  padding: 5px 10px;
+  color: #fff;
+  background-color: #474646;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+    text-align: center;
+
+}
+.custom-file-label:hover {
+  background-color: #28221E;
+}
+
+.profile-avatar  {
+  display: block;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  border: 4px solid #ffffff;
-  margin-right: 50px;
+  border: 4px solid #ffffff95;
   margin-bottom: 10px;
+  object-fit: cover;
+  max-width: 200px; /* 최대 너비 제한 */
+  max-height: 200px; /* 최대 높이 제한 */
 }
 .profile-info {
   flex-grow: 1;
@@ -157,9 +197,9 @@ const cancelEditing = () => {
   color: #ffffff;
   font-size: 1.8rem;
   margin-bottom: 20px;
-  background-color: #4c4f53;
+  background-color: #28221E;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   padding: 5px 10px;
   width: 100%;
 }
@@ -175,7 +215,16 @@ const cancelEditing = () => {
   margin-bottom: 50px;
 }
 .profile-detail-item {
+  display: flex;
   margin-bottom: 40px;
+  align-items: center; /* 세로 가운데 정렬 */
+  gap: 70px; /* 요소 간의 간격 */
+  width:1210px;
+
+
+}
+.detail-label {
+  flex-shrink: 0; /* strong 요소가 축소되지 않도록 함 */
 }
 .profile-detail-item strong {
   color: #ffffff;
@@ -187,6 +236,7 @@ const cancelEditing = () => {
   color: #bfbfc0;
   margin: 0;
 }
+
 .profile-actions {
   display: flex;
   justify-content: flex-end;
@@ -200,7 +250,7 @@ const cancelEditing = () => {
   background-color: #3a3a3c;
   border: none;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 20%;
   cursor: pointer;
   font-size: 1rem;
   text-decoration: none;

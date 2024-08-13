@@ -18,15 +18,9 @@ class WebSocketService {
       return;
     }
 
-<<<<<<< HEAD
     this.roomID = roomID;
     this.memberID = memberID;
-=======
     // WebSocket 및 STOMP 연결 설정
-    connect() {
-        const socket = new SockJS('http://i11d108.p.ssafy.io:8888/api/v1/ws'); // SockJS로 WebSocket 연결 생성
-        this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
->>>>>>> f36c987828098a6284eb09aff424fa3bbf00e7b0
 
     const socket = new SockJS("http://localhost:8888/api/v1/ws"); // SockJS로 WebSocket 연결 생성
     this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
@@ -41,9 +35,7 @@ class WebSocketService {
         this.subscribeToUrl(`/sub/waiting/chat/room/${this.roomID}`);
 
         // 귓속말 구독
-        this.subscribeToUrl(
-          `/sub/waiting/chat/whisper/${this.roomID}/${memberID}`
-        );
+        this.subscribeToUrl(`/sub/waiting/chat/whisper/${this.roomID}/${memberID}`);
       },
       (error) => {
         console.error("WebSocket connection error:", error); // 연결 오류 처리
@@ -60,11 +52,27 @@ class WebSocketService {
   sendMessage(message) {
     if (this.connected) {
       console.log("Sending message:", message);
-      this.stompClient.send(
-        "/pub/waiting/chat/message",
-        {},
-        JSON.stringify(message)
-      ); // 메시지 전송
+      this.stompClient.send("/pub/waiting/chat/message", {}, JSON.stringify(message)); // 메시지 전송
+    } else {
+      console.error("WebSocket is not connected");
+    }
+  }
+
+  // 메시지 수신 시 호출할 콜백 설정
+  onMessageReceived(callback) {
+    this.messageCallback = callback;
+  }
+
+  // 메시지를 서버로 전송
+  sendMessage(message) {
+    if (this.connected) {
+      console.log("Sending message:", message);
+      try {
+        this.stompClient.send("/pub/waiting/chat/message", {}, JSON.stringify(message)); // 메시지 전송
+        console.log("Message sent successfully");
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
     } else {
       console.error("WebSocket is not connected");
     }

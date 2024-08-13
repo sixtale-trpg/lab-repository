@@ -5,9 +5,12 @@ export const useMapStore = defineStore("map", {
     mapData: [], // API에서 가져온 맵 데이터 저장
     isLoading: false,
     error: null,
-    selectedMap: null, // 선택한 맵을 저장할 상태
+    selectedMap: {}, // 선택한 맵을 저장할 상태
     selectedMapImage: null, // 선택한 맵의 이미지를 저장할 상태
     selectedMapId: null, // 선택한 맵의 ID를 저장할 상태
+    selectedToken: {},
+    currentTokenX: -1,
+    currentTokenY: -1
   }),
 
   actions: {
@@ -25,6 +28,7 @@ export const useMapStore = defineStore("map", {
       );
       return map || null;
     },
+
     async fetchMaps(roomID, mapID) {
       this.isLoading = true;
       try {
@@ -37,6 +41,26 @@ export const useMapStore = defineStore("map", {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    setCurrentTokenX(tokenX) {
+      this.currentTokenX = tokenX;
+    },
+    
+    setCurrentTokenY(tokenY) {
+      this.currentTokenY = tokenY;
+    },
+
+    clearCurrentMap() {
+      this.selectedMap = null;
+    },
+
+    selectToken(token) {
+      this.selectedToken = token;
+    },
+
+    clearToken() {
+      this.selectedToken = null;
     },
   },
 });

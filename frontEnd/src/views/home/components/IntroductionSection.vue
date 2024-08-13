@@ -68,6 +68,7 @@
     max-width: 1200px; 
     margin: 0 auto;
     text-align: center;
+    padding-top: 150px;
   }
   
   h2 {

@@ -1,41 +1,46 @@
 <template>
-    <div class="log-section-container" :style="backgroundStyle">
-      <div class="tabs">
-        <button class="tab" :class="{ active: activeTab === 'allLogs' }" @click="selectTab('allLogs')">
-          전체 로그 기록
-        </button>
-      </div>
-      <div class="log-content" ref="logContent">
-          <div v-if="activeTab === 'allLogs'">
-            <div v-for="msg in messages" :key="msg.id">
-            <p>{{ msg.content }}</p>
-          </div>
+  <div class="log-section-container" :style="backgroundStyle">
+    <div class="tabs">
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'allLogs' }"
+        @click="selectTab('allLogs')"
+      >
+        전체 로그 기록
+      </button>
+    </div>
+    <div class="log-content">
+      <div v-if="activeTab === 'allLogs'">
+        <div v-for="msg in messages" :key="msg.id">
+          <p>{{ msg.content }}</p>
         </div>
-    <!-- <div class="message-input">
+        <!-- <div class="message-input">
       <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
       <button @click="sendMessage">Send</button>
     </div> -->
       </div>
-  <!-- <div class="message-input">
+      <!-- <div class="message-input">
     <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
     <button @click="sendMessage">Send</button>
   </div> -->
     </div>
-  </template>
-  
-  <script setup>
-  import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
-  import { ref, computed, onMounted,watch,nextTick  } from 'vue';
-  import { useRoute,useRouter } from 'vue-router';
-  import { getRoomInfo } from '@/common/api/RoomsAPI';
-  import { map } from 'sockjs-client/lib/transport-list';
-  import { useMapStore } from '@/store/map/mapStore';
-  import { getMapList } from '@/common/api/RoomsAPI';
+  </div>
+</template>
+
+<script setup>
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
+import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { getRoomInfo } from "@/common/api/RoomsAPI";
+import { map } from "sockjs-client/lib/transport-list";
+import { useMapStore } from "@/store/map/mapStore";
+import { getMapList } from "@/common/api/RoomsAPI";
+import { getCharacterSheet } from "@/common/api/CharacterSheetAPI";
 
 const route = useRoute();
 // 로그로직 추가해야한다 ! //
 const router = useRouter();
-const newMessage = ref('');
+const newMessage = ref("");
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const roomId = ref(null);
 const mapStore = useMapStore();
@@ -43,20 +48,20 @@ const mapData = ref([]);
 
 // 로컬 스토리지 저장
 const loadMessagesFromLocalStorage = () => {
-const storedMessages = localStorage.getItem(`messages-${roomId.value}`);
-if (storedMessages) {
-  messages.value = JSON.parse(storedMessages);
-}
+  const storedMessages = localStorage.getItem(`messages-${roomId.value}`);
+  if (storedMessages) {
+    messages.value = JSON.parse(storedMessages);
+  }
 };
 
 const saveMessagesToLocalStorage = () => {
-localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
+  localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
 };
 
 // 스크롤을 맨 아래로 이동시키는 함수
 const scrollToBottom = () => {
   nextTick(() => {
-    const logContent = document.querySelector('.log-content');
+    const logContent = document.querySelector(".log-content");
     if (logContent) {
       logContent.scrollTop = logContent.scrollHeight;
     }
@@ -65,16 +70,13 @@ const scrollToBottom = () => {
 
 // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
 onMounted(async () => {
- try {
-  // 룸 id 받아옴
-  roomId.value = route.params.roomId;
-  console.log('Room ID from route:', roomId.value);
-  
-  const response = await getMapList(roomId.value);
-  mapData.value = response.mapList || [];
+  try {
+    // 룸 id 받아옴
+    roomId.value = route.params.roomId;
+    console.log("Room ID from route:", roomId.value);
 
-  // 웹소켓 연결
-  GameLogWebSocketService.connect(roomId.value);
+    const response = await getMapList(roomId.value);
+    mapData.value = response.mapList || [];
 
     // 메세지 받아오는것
     GameLogWebSocketService.onMessageReceived((message) => {
@@ -108,12 +110,36 @@ onMounted(async () => {
       saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
     });
 
-   // 로컬 스토리지에서 메시지 로드
-   loadMessagesFromLocalStorage();
+    // Handle incoming messages
+    // 메세지 받아오는것
+    GameLogWebSocketService.onMessageReceived(async (message) => {
+      console.log("message!!!: ", message);
+      switch (message.gameType) {
+        case "MAP_CHANGE":
+          const selectedMap = mapData.value[message.nextMapID];
+          mapStore.setSelectedMap(selectedMap); //맵 저장
+          break;
+        case "GAME_START":
+          // 게임 시작 시 페이지 이동
+          router.push(`/game/${route.params.roomId}/in-game`);
+          break;
+        case "WEIGHT":
+          // 시트 업데이트
+          // await fetchUpdate(playMemberID);
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+      messages.value.push(message);
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
 
-} catch (error) {
-  console.error('Error fetching room info or connecting to WebSocket:', error);
-}
+    // 로컬 스토리지에서 메시지 로드
+    loadMessagesFromLocalStorage();
+  } catch (error) {
+    console.error("Error fetching room info or connecting to WebSocket:", error);
+  }
 });
 
 // 메시지 배열의 깊은 변경을 감지

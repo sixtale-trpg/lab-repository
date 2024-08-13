@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import VoiceChatButton from '../../VoiceChatButton.vue';
+import VoiceChatButton from "../../VoiceChatButton.vue";
 
 // 사용자 ID에 따라 사용자 이미지를 가져오는 함수
 const getUserImage = (n) => {
@@ -44,6 +44,7 @@ const getUserImage = (n) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 1000;
 }
 
 .profile-image {

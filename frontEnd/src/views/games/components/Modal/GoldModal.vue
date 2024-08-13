@@ -3,22 +3,40 @@
     <div class="modal-content" :style="modalContentStyle">
       <div class="modal-header">
         <div class="modal-title-container">
-          <img src="@/assets/images/character_sheet/title.png" alt="제목" class="modal-title-image">
+          <img
+            src="@/assets/images/character_sheet/title.png"
+            alt="제목"
+            class="modal-title-image"
+          />
           <h2 class="modal-title-text">골드</h2>
         </div>
       </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="gold-container">
-          <img src="@/assets/images/ingame/Gold.png" alt="골드 이미지" class="gold-image">
+          <img src="@/assets/images/ingame/Gold.png" alt="골드 이미지" class="gold-image" />
           <div class="gold-info">
             <div class="title-container">
-              <img src="@/assets/images/character_sheet/nickname_light.png" alt="골드 배경" class="title-image">
+              <img
+                src="@/assets/images/character_sheet/nickname_light.png"
+                alt="골드 배경"
+                class="title-image"
+              />
               <span class="title-text">현재 골드</span>
             </div>
             <div class="gold-control">
-              <img src="@/assets/images/ingame/Minus.png" alt="감소" class="control-button" @click="decreaseGold">
+              <img
+                src="@/assets/images/ingame/Minus.png"
+                alt="감소"
+                class="control-button"
+                @click="decreaseGold"
+              />
               <span class="gold-amount">{{ goldAmount }}</span>
-              <img src="@/assets/images/ingame/Plus.png" alt="증가" class="control-button" @click="increaseGold">
+              <img
+                src="@/assets/images/ingame/Plus.png"
+                alt="증가"
+                class="control-button"
+                @click="increaseGold"
+              />
             </div>
           </div>
         </div>
@@ -32,33 +50,33 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { updateGold } from '@/common/api/InventoryAPI'; // 골드 수정 API 함수 임포트
-import { selectedPlayMemberID } from '@/store/state.js'; // 상태에서 직접 가져오기
-import ChangeWeightWebSocketService from "@/store/websocket/changeWeight"; // WebSocket 서비스 가져오기
+import { ref, computed, defineProps, defineEmits, watch, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { updateGold } from "@/common/api/InventoryAPI"; // 골드 수정 API 함수 임포트
+import { selectedPlayMemberID } from "@/store/state.js"; // 상태에서 직접 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 const route = useRoute();
 const props = defineProps({
   isVisible: {
     type: Boolean,
-    required: true
+    required: true,
   },
   isGM: {
     type: Boolean,
-    required: true
+    required: true,
   },
   roomId: {
     type: String,
-    required: true
+    required: true,
   },
   currentGold: {
     type: Number,
-    required: true
-  }
+    required: true,
+  },
 });
 
-const emit = defineEmits(['close', 'update-gold']);
+const emit = defineEmits(["close", "update-gold"]);
 const goldAmount = ref(props.currentGold);
 
 // 상태에서 selectedPlayMemberID 가져오기
@@ -66,38 +84,42 @@ const playMemberID = selectedPlayMemberID.value;
 
 console.log("GoldModal using playMemberID:", playMemberID);
 
-watch(() => props.currentGold, (newGold) => {
-  goldAmount.value = newGold;
-});
+watch(
+  () => props.currentGold,
+  (newGold) => {
+    goldAmount.value = newGold;
+  }
+);
 
 const closeModal = () => {
-  emit('close');
+  emit("close");
 };
 // 웹소켓 마운트
 onMounted(() => {
-  ChangeWeightWebSocketService.connect(route.params.roomId);
+  GameLogWebSocketService.connect(route.params.roomId);
 });
 const saveGold = async () => {
   try {
-    //골드 수정 
+    //골드 수정
     const response = await updateGold(props.roomId, playMemberID, goldAmount.value); // API 호출
-    
-    emit('update-gold', goldAmount.value);
 
-     //웹소켓 메시지 데이터
-     const messageData = {
-          gameType: "GOLD",
-          roomID: response.data.roomID,
-          sheetID: response.data.sheetID,
-          currentGold: response.data.currentGold,
-          updateGold: response.data.updateGold,
-        };
+    emit("update-gold", goldAmount.value);
 
-      // 웹소켓 전달
-      ChangeWeightWebSocketService.sendMessage(messageData);
+    //웹소켓 메시지 데이터
+    const messageData = {
+      gameType: "GOLD",
+      roomID: parseInt(response.data.roomID, 10),
+      sheetID: parseInt(response.data.sheetID, 10),
+      // playMemberID: selectedPlayMemberID.value,
+      currentGold: response.data.currentGold,
+      updateGold: response.data.updateGold,
+    };
+
+    // 웹소켓 전달
+    GameLogWebSocketService.sendMessage(messageData);
     closeModal();
   } catch (error) {
-    console.error('Failed to update gold:', error);
+    console.error("Failed to update gold:", error);
   }
 };
 
@@ -112,39 +134,36 @@ const increaseGold = () => {
 };
 
 const modalContentStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/character_sheet/main_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 
 const modalBodyStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
-  marginTop: '10px',
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'center',
-  padding: '20px',
-  height: '150px',
+  background: `url(${require("@/assets/images/character_sheet/tab_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
+  marginTop: "10px",
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  padding: "20px",
+  height: "150px",
 }));
 
 const modalFooterStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/character_sheet/main_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 
-
 const closeButtonStyle = computed(() => ({
-  background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/maps/background/close.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 
 const saveButtonStyle = computed(() => ({
-  background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/maps/background/save.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 </script>
-
-
 
 <style scoped>
 .modal-overlay {

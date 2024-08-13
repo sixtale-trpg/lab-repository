@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("rooms/{roomID}/sheets/{playMemberID}/equipment")
@@ -53,7 +54,7 @@ public class CharacterSheetEquipmentController {
     public ResponseEntity addCharacterSheetEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID,
                                                      @RequestBody CharacterEquipmentRequest equipmentRequest) {
         try {
-            characterSheetEquipmentService.addCharacterEquipment(roomID, playMemberID, equipmentRequest);
+            Map<String, String> result = characterSheetEquipmentService.addCharacterEquipment(roomID, playMemberID, equipmentRequest);
 
             String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             UpdateCharacterSheetResponse response = UpdateCharacterSheetResponse.builder()
@@ -62,6 +63,8 @@ public class CharacterSheetEquipmentController {
                     .content("플레이어가 장비 추가를 완료했습니다")
                     .createdAt(createdAt)
                     .playMemberID(playMemberID)
+                    .sheetID(result.get("sheetID"))
+                    .characterName(result.get("characterName"))
                     .build();
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.ADD_CHARACTER_SHEET_EQUIPMENT, response), HttpStatus.CREATED);
         }catch (IllegalArgumentException e) {
@@ -106,8 +109,8 @@ public class CharacterSheetEquipmentController {
     @DeleteMapping("/{equipmentID}")
     public ResponseEntity deleteCharacterEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID, @PathVariable Long equipmentID) {
         try {
-            characterSheetEquipmentService.deleteCharacterEquipment(roomID, playMemberID, equipmentID);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_CHARACTER_SHEET_EQUIPMENT), HttpStatus.OK);
+            Map<String, String> responseData = characterSheetEquipmentService.deleteCharacterEquipment(roomID, playMemberID, equipmentID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_CHARACTER_SHEET_EQUIPMENT, responseData), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_CHARACTER_SHEET_EQUIPMENT_FAIL), HttpStatus.BAD_REQUEST);

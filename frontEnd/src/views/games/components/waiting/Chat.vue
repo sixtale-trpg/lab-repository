@@ -49,7 +49,8 @@ import { ref, computed, onMounted, defineProps } from "vue";
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
 import { getRoomInfo } from "@/common/api/RoomsAPI";
 import { getMemberInfo } from "@/common/api/mypageAPI";
-
+import {useRoute}  from "vue-router";
+const route = useRoute();
 // 이미지 동적 로드
 const background1 = require("@/assets/images/room/chat/chat_background1.png");
 const background2 = require("@/assets/images/room/chat/chat_background2.png");

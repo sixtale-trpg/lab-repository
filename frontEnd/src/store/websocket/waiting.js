@@ -18,7 +18,7 @@ class WebSocketService {
     this.memberID = memberID;
     
     // WebSocket 연결 설정
-    const wsUrl = `wss://i11d108.p.ssafy.io/api/v1/ws/${roomID}/${memberID}`; // 실제 서버 URL로 교체
+    const wsUrl = `https://i11d108.p.ssafy.io/api/v1/ws/${roomID}/${memberID}`; // 실제 서버 URL로 교체
     this.socket = new WebSocket(wsUrl);
 
     // WebSocket 이벤트 핸들러 설정

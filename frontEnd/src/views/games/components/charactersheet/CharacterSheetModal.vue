@@ -23,12 +23,17 @@
           :is="activeComponent"
           :form-data="formData"
           :current-options="currentTabOptions"
+          :job-id="jobID"
+          :rule-id="ruleID"
+          @update:job-id="(newJobId) => formData.jobId = newJobId"
+          @update:race-id="(newRaceId) => formData.raceId = newRaceId"
+          @update:belief-id="(newBeliefId) => formData.beliefId = newBeliefId"
           @update:name="(newName) => formData.name = newName"
-          @update:history="(newHistory) => formData.history = newHistory"
-          @update:selectedRace="(newRace) => formData.selectedRace = newRace"
-          @update:selectedBelief="(newBelief) => formData.selectedValue = newBelief"
-          @update:selectedEquipment="updateEquipment"
-          @update:selectedAction="updateAction"
+          @update:appearance="(newAppearance) => formData.appearance = newAppearance"
+          @update:background="(newBackground) => formData.background = newBackground"
+          @update:stats="(newStats) => formData.stat = newStats"
+          @update:character-action="(newCharacterAction) => formData.characterAction = newCharacterAction"
+          @update:character-equipment="(newEquipment) => formData.characterEquipment = newEquipment"
         ></component>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
@@ -40,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getJobSelectOption } from '@/common/api/JobAPI.js';
 import { getRoomInfo } from '@/common/api/RoomsAPI.js';
@@ -52,16 +57,21 @@ import Stats from './Stats.vue';
 import Actions from './Actions.vue';
 
 const route = useRoute();
-const roomID = ref(route.params.roomId);
+
+// Room ID는 라우터에서 가져오고 숫자형으로 변환
+const roomID = ref(Number(route.params.roomId)); 
+
+// Job ID는 부모에서 전달된 Job 객체에서 가져오며, 숫자형으로 변환
 const props = defineProps({
   job: {
     type: Object,
     required: true
   }
 });
+const jobID = ref(Number(props.job.id));
 
+// ruleID는 룸 정보를 가져오는 API에서 설정
 const ruleID = ref(null);
-const jobID = ref(props.job ? props.job.id : null);
 
 const jobOptions = ref({
   jobBeliefList: [],
@@ -84,10 +94,10 @@ const fetchRuleID = async () => {
 
 const fetchJobOptions = async () => {
   try {
-    if (ruleID.value) {
+    if (ruleID.value && jobID.value) {
       jobOptions.value = await getJobSelectOption(ruleID.value, jobID.value);
     } else {
-      console.error('Cannot fetch job options, ruleID is undefined');
+      console.error('Cannot fetch job options, ruleID or jobID is undefined');
     }
   } catch (error) {
     console.error('Error fetching job options:', error);
@@ -97,35 +107,58 @@ const fetchJobOptions = async () => {
 };
 
 const activeTab = ref('character');
-const tabs = ['character', 'values', 'equipment', 'stats', 'actions', 'appearance'];
+const tabs = ['character', 'values', 'stats',  'equipment', 'actions', 'appearance'];
 const tabLabels = {
   character: '캐릭터 정보',
   values: '가치관',
-  equipment: '장비',
   stats: '능력치',
+  equipment: '장비',
   actions: '액션',
   appearance: '외모'
 };
 
 const formData = ref({
-  name: '',
-  selectedRace: '',
-  history: '',
-  selectedCloseRangeWeapon: null,
-  selectedLongRangeWeapon: null,
-  selectedMiscellaneous: null,
-  selectedValue: null,
-  attributes: {
-    strength: '',
-    intelligence: '',
-    constitution: '',
-    wisdom: '',
-    dexterity: '',
-    charisma: ''
-  },
-  selectedAction: null,
-  appearanceDescription: ''
+    jobId: null, // 직업 ID
+    raceId: null, // 종족 ID
+    beliefId: null, // 신념 ID
+    name: '', // 캐릭터 이름
+    appearance: '', // 외모
+    background: '', // 배경 스토리
+    stat: [ // 능력치
+        {
+            statID: null,
+            statValue: null,
+            statWeight: null
+        },
+        // 추가 능력치...
+    ],
+    characterAction: [ // 액션
+        {
+            actionID: null,
+            actionOptionId: null
+        },
+        // 추가 액션...
+    ],
+    characterEquipment: [ // 장비
+        {
+            equipmentId: null,
+            currentCount: null,
+            weight: null
+        },
+        // 추가 장비...
+    ],
+    currentWeight: 0, // 현재 무게
+    currentHp: 0, // 현재 HP
+    currentMoney: 0, // 현재 소지금
+    limitWeight: 0, // 무게 한도
+    limitHp: 0, // HP 한도
+    glove: 0, // 장갑 (별도 정의 필요 시)
+    inspirationScore: 0, // 영감 점수 (별도 정의 필요 시)
+    level: 1, // 레벨
+    exp: 0, // 경험치
+    imageURL: '' // 이미지 URL
 });
+
 
 const raceOptions = computed(() => jobOptions.value.jobRaceList || []);
 const beliefOptions = computed(() => jobOptions.value.jobBeliefList || []);
@@ -171,9 +204,20 @@ function updateBelief(selectedBelief) {
   formData.value.selectedBelief = selectedBelief;
 }
 
-function updateEquipment(selectedEquipment) {
-  formData.value.selectedEquipment = selectedEquipment;
-}
+const updateAttributes = ({ key, value }) => {
+  formData.value.attributes[key] = value;
+};
+
+const updateSelectedEquipment = (selectedEquipment) => {
+  // 선택된 장비 데이터를 formData.characterEquipment에 업데이트
+  formData.value.characterEquipment = Object.keys(selectedEquipment).map(typeId => {
+    return {
+      equipmentId: selectedEquipment[typeId],
+      currentCount: 1, // 기본 값을 설정 (또는 필요한 경우 동적으로 변경 가능)
+      weight: 1 // 기본 값을 설정 (또는 필요한 경우 동적으로 변경 가능)
+    };
+  });
+};
 
 function updateAction(selectedAction) {
   formData.value.selectedAction = selectedAction;

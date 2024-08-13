@@ -157,6 +157,9 @@ const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
+ 
+const npcData = ref({}); // NPC 정보를 저장할 객체
+const selectedMapIndex = ref(0);
 
 const npcList = ref([]); // NPC 리스트를 위한 ref
 const npcInfo = ref([]); // NPC 리스트를 위한 ref
@@ -282,22 +285,22 @@ const onLaserMouseEnter = (row, col, event) => {
   let tooltipX = event.clientX + 10;
   let tooltipY = event.clientY + 10;
 
-  // 툴팁 위치 조정 로직
-  if (tooltipX + tooltipWidth > mapRect.right) {
-    tooltipX = mapRect.right - tooltipWidth - 10;
-  }
+    // 툴팁 위치 조정 로직
+    if (tooltipX + tooltipWidth > window.innerWidth) {
+        tooltipX = window.innerWidth - tooltipWidth - 10;
+    }
 
-  if (tooltipY + tooltipHeight > mapRect.bottom) {
-    tooltipY = mapRect.bottom - tooltipHeight - 10;
-  }
+    if (tooltipY + tooltipHeight > window.innerHeight) {
+        tooltipY = window.innerHeight - tooltipHeight - 10;
+    }
 
-  if (tooltipX < mapRect.left) {
-    tooltipX = mapRect.left + 10;
-  }
+    if (tooltipX < 0) {
+        tooltipX = 10;
+    }
 
-  if (tooltipY < mapRect.top) {
-    tooltipY = mapRect.top + 10;
-  }
+    if (tooltipY < 0) {
+        tooltipY = 10;
+    }
 
   tooltipPosition.value = { x: tooltipX, y: tooltipY };
 
@@ -466,14 +469,16 @@ const changeMap = async (description) => {
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
 
-    // 웹소켓 메시지 전송
-    // Log the map change event
-    // const messageData = {
-    //   gameType: 'MAP_CHANGE',
-    //   roomID: roomId.value,
-    //   currentMapID: 0,// 현재 선택된 맵 ID
-    //   nextMapID: newMapId, // 실제 다음 맵 ID로 업데이트 필요
-    // };
+      // 웹소켓 메시지 전송
+      // Log the map change event
+      const messageData = {
+        gameType: 'MAP_CHANGE',
+        roomID: parseInt(roomId.value, 10),
+        currentMapID: 0,// 현재 선택된 맵 ID
+        nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
+      };
+
+      GameLogWebSocketService.sendMessage(messageData);
 
     // GameLogWebSocketService.sendMessage(messageData);
 
@@ -705,8 +710,8 @@ onUnmounted(() => {
 
 .info-panel {
   position: absolute;
-  width: 300px;
-  height: 340px;
+  width: 30%;
+  height: 'auto';
   background-color: rgba(0, 0, 0, 0.9);
   color: white;
   border-radius: 8px;
@@ -723,7 +728,7 @@ onUnmounted(() => {
 
 .info-background {
   width: 100%;
-  height: 330px;
+  height: 100%;
   border-radius: 5px;
   margin-bottom: 5px;
   object-fit: cover;
@@ -768,20 +773,20 @@ onUnmounted(() => {
   position: absolute;
   background-color: rgba(0, 0, 0, 0.75);
   color: #fff;
-  padding: 5px; /* 패딩 크기 줄이기 */
-  border-radius: 5px;
+  padding: 3px; /* 패딩 크기 줄이기 */
+  border-radius: 4px;
   pointer-events: none;
   z-index: 1000;
-  max-width: 150px; /* 툴팁의 최대 너비 줄이기 */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  font-size: 12px; /* 글씨 크기 줄이기 */
+  max-width: 120px; /* 툴팁의 최대 너비 줄이기 */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  font-size: 10px; /* 글씨 크기 줄이기 */
 }
 
 .tooltip-image {
-  width: 80%; /* 이미지 크기를 줄이기 */
+  width: 70%; /* 이미지 크기를 줄이기 */
   height: auto;
   border-radius: 3px;
-  margin-bottom: 5px; /* 이미지 아래의 간격 줄이기 */
+  margin-bottom: 3px; /* 이미지 아래의 간격 줄이기 */
   background-color: transparent;
   z-index: 1001;
   position: relative;
@@ -790,15 +795,16 @@ onUnmounted(() => {
 
 .tooltip h4 {
   margin: 0;
-  font-size: 14px; /* 제목 글씨 크기 줄이기 */
+  font-size: 12px; /* 제목 글씨 크기 줄이기 */
   font-weight: bold;
 }
 
 .tooltip p {
-  margin: 5px 0 0;
-  font-size: 12px; /* 본문 글씨 크기 줄이기 */
-  line-height: 1.2; /* 줄 간격 줄이기 */
+  margin: 3px 0 0;
+  font-size: 10px; /* 본문 글씨 크기 줄이기 */
+  line-height: 1.1; /* 줄 간격 줄이기 */
 }
+
 
 .modal-content {
   border-radius: 10px;

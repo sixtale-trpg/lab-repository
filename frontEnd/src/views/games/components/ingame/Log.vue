@@ -78,8 +78,37 @@ onMounted(async () => {
     const response = await getMapList(roomId.value);
     mapData.value = response.mapList || [];
 
-    // 웹소켓 연결
-    GameLogWebSocketService.connect(roomId.value);
+    // 메세지 받아오는것
+    GameLogWebSocketService.onMessageReceived((message) => {
+      switch(message.gameType){
+        case "MAP_CHANGE":
+          // 현재 선택된 맵의 데이터 가져오기
+          let selectedMap = mapData.value[message.nextMapID];
+          console.log(typeof selectedMap)
+          // selectedMap이 숫자가 아닌 경우, 숫자로 변환 (문자열 등일 경우)
+          if (typeof selectedMap === 'string') {
+            selectedMap = parseInt(selectedMap, 10);
+          }
+          // selectedMap이 숫자인지 확인
+          if (typeof selectedMap === 'number') {
+            // selectedMap의 값을 1 감소시키기
+            const newSelectedMap = selectedMap - 1;
+            // 감소시킨 값을 저장하기
+            mapStore.setSelectedMap(newSelectedMap);
+          }
+          break;
+        case "GAME_START":
+          // 게임 시작 시 페이지 이동
+          router.push(`/game/${route.params.roomId}/in-game`);
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
 
     // Handle incoming messages
     // 메세지 받아오는것
@@ -114,102 +143,100 @@ onMounted(async () => {
 });
 
 // 메시지 배열의 깊은 변경을 감지
-watch(
-  messages,
-  (newMessages) => {
-    scrollToBottom();
-  },
-  { deep: true }
-);
+watch(messages, (newMessages) => {
+  scrollToBottom();
+}, { deep: true });
 
 // const sendMessage = () => {
-// if (newMessage.value.trim() === '') return;
+//   if (newMessage.value.trim() === '') return;
 
-// const messageData = {
-//   gameType: 'MAP_CHANGE',
-//   roomID: roomId.value,
-//   currentMapID: 1,
-//   nextMapID: 2,
+//   const messageData = {
+//     gameType: 'MAP_CHANGE', 
+//     roomID: roomId.value, 
+//     currentMapID: 1, 
+//     nextMapID: 2,
+//   };
+
+//   // Send the message to the server
+//   GameLogWebSocketService.sendMessage(messageData); 
+//   newMessage.value = ''; // Clear the input field
 // };
 
-// // Send the message to the server
-// GameLogWebSocketService.sendMessage(messageData);
-// newMessage.value = ''; // Clear the input field
-// };
+  
+  const activeTab = ref('allLogs');
+  
+  // 이미지 경로 설정
+  const backgroundImage = require('@/assets/images/ingame/Border7.png');
+  
+  // 배경 스타일 설정
+  const backgroundStyle = {
+    backgroundImage: `url(${backgroundImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    padding: '10px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%'
+  };
+  
+  const selectTab = (key) => {
+    activeTab.value = key;
+  };
+  </script>
+  
+  <style scoped>
+  .log-section-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px !important;
+    max-height: 300px !important;
+  }
+  
+  .tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+  }
+  
+  .tab {
+    flex: 1;
+    padding: 5px; /* 높이를 줄임 */
+    cursor: pointer;
+    border: 1px solid #333;
+    color: white;
+    background: linear-gradient(to bottom, #1A4E23, #102F12); 
+    text-align: center; /* 텍스트 중앙 배치 */
+  }
+  
+  .tab.active {
+    background-color: #555;
+    color: #fff;
+  }
+  
+  .log-content {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    border: 1px solid #444;
+    color: white;
 
-const activeTab = ref("allLogs");
-
-// 이미지 경로 설정
-const backgroundImage = require("@/assets/images/ingame/Border7.png");
-
-// 배경 스타일 설정
-const backgroundStyle = {
-  backgroundImage: `url(${backgroundImage})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  padding: "10px",
-  boxSizing: "border-box",
-  display: "flex",
-  flexDirection: "column",
-  height: "100%",
-};
-
-const selectTab = (key) => {
-  activeTab.value = key;
-};
-</script>
-
-<style scoped>
-.log-section-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 300px !important;
-  max-height: 300px !important;
-}
-
-.tabs {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 0;
-}
-
-.tab {
-  flex: 1;
-  padding: 5px; /* 높이를 줄임 */
-  cursor: pointer;
-  border: 1px solid #333;
-  color: white;
-  background: linear-gradient(to bottom, #1a4e23, #102f12);
-  text-align: center; /* 텍스트 중앙 배치 */
-}
-
-.tab.active {
-  background-color: #555;
-  color: #fff;
-}
-
-.log-content {
-  flex: 1;
-  padding: 10px;
-  overflow-y: auto;
-  border: 1px solid #444;
-  color: white;
-}
-
-/* 스크롤바 스타일링 */
-.log-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.log-content::-webkit-scrollbar-track {
-  background: #a56722;
-  border-radius: 5px;
-}
-
-.log-content::-webkit-scrollbar-thumb {
-  background-color: #274e13;
-  border-radius: 5px;
-  border: 1px solid #a56722;
-}
-</style>
+  }
+  
+  /* 스크롤바 스타일링 */
+  .log-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .log-content::-webkit-scrollbar-track {
+    background: #a56722;
+    border-radius: 5px;
+  }
+  
+  .log-content::-webkit-scrollbar-thumb {
+    background-color: #274e13;
+    border-radius: 5px;
+    border: 1px solid #a56722;
+  }
+  </style>
+  

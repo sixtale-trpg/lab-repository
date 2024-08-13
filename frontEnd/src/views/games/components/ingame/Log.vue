@@ -81,22 +81,22 @@ onMounted(async () => {
         router.push(`/game/${route.params.roomId}/in-game`);
         break;
       case "WEIGHT":
-      try {
-            // 캐릭터 시트 조회
-            const characterSheet = await getCharacterSheet(roomId.value, message.playMemberID);
+        try {
+              // 캐릭터 시트 조회
+              const characterSheet = await getCharacterSheet(roomId.value, message.playMemberID);
 
-            // 조회된 캐릭터 시트를 WebSocket을 통해 다른 클라이언트에게 브로드캐스트
-            const broadcastMessage = {
-              gameType: "CHARACTER_SHEET_UPDATE",
-              roomID: roomId.value,
-              playMemberID: message.playMemberID,
-              characterSheet: characterSheet, // 전송할 캐릭터 시트 데이터
-            };
+              // 조회된 캐릭터 시트를 WebSocket을 통해 다른 클라이언트에게 브로드캐스트
+              const broadcastMessage = {
+                gameType: "CHARACTER_SHEET_UPDATE",
+                roomID: roomId.value,
+                playMemberID: message.playMemberID, // playMemberId로 수정해야함!!!!!!
+                characterSheet: characterSheet, // 전송할 캐릭터 시트 데이터
+              };
 
-            GameLogWebSocketService.sendMessage(broadcastMessage);
-          } catch (error) {
-            console.error('Error broadcasting character sheet:', error);
-          }
+              GameLogWebSocketService.sendMessage(broadcastMessage);
+            } catch (error) {
+              console.error('Error broadcasting character sheet:', error);
+            }
         break;
       default:
         // 다른 메시지 타입의 처리 로직

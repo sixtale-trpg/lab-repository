@@ -40,10 +40,10 @@ public class RoomController {
     public ResponseEntity addPlayerToRoom(@PathVariable Long roomID, @RequestBody AddPlayerRequest addPlayerRequest) {
         try {
             // 로그인 유저 아이디 가져오기
-//            Long memberId = AuthenticationUtil.getMemberId();
+            Long gmID = AuthenticationUtil.getMemberId();
             // id = 1 유저 가정
-            Long memberID = 1L;
-            RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, memberID, addPlayerRequest.getPassword());
+//            Long memberID = 11L;
+            RoomResponse roomResponse = roomServiceImpl.addPlayerToRoom(roomID, gmID, addPlayerRequest.getPassword());
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.ENTER_USER, roomResponse), HttpStatus.CREATED);
         } catch (IncorrectPasswordException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.UNAUTHORIZED, ResponseMessage.INCORRECT_PASSWORD), HttpStatus.UNAUTHORIZED);
@@ -62,9 +62,9 @@ public class RoomController {
     public ResponseEntity deletePlayerFromRoom(@PathVariable Long roomID) {
         try {
             // 로그인 유저 아이디 가져오기
-//            Long memberId = AuthenticationUtil.getMemberId();
-            Long memberID = 1L;
-            roomServiceImpl.deletePlayerFromRoom(roomID, memberID);
+            Long gmID = AuthenticationUtil.getMemberId();
+//            Long memberID = 11L;
+            roomServiceImpl.deletePlayerFromRoom(roomID, gmID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.EXIT_USER), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.EXIT_USER_FAIL), HttpStatus.BAD_REQUEST);
@@ -95,8 +95,8 @@ public class RoomController {
     public ResponseEntity createRoom(@RequestBody RoomCreateRequest roomCreateRequest) {
         try {
             // 로그인 유저 아이디 가져오기
-//            Long gmId = AuthenticationUtil.getMemberId();
-            Long gmID = 1L;
+            Long gmID = AuthenticationUtil.getMemberId();
+//            Long gmID = 11L;
             RoomResponse roomResponse = roomServiceImpl.createRoom(roomCreateRequest, gmID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_ROOM, roomResponse), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
@@ -128,8 +128,8 @@ public class RoomController {
     public ResponseEntity updateRoom(@PathVariable Long roomID, @RequestBody RoomUpdateRequest roomUpdateRequest) {
         try {
             // 로그인 유저 아이디 가져오기
-//            Long memberId = AuthenticationUtil.getMemberId();
-            Long gmID = 1L;
+            Long gmID = AuthenticationUtil.getMemberId();
+//            Long gmID = 1L;
             RoomUpdateResponse roomResponse = roomServiceImpl.updateRoom(roomID, gmID, roomUpdateRequest);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_ROOM, roomResponse), HttpStatus.OK);
         } catch (IllegalArgumentException e) {

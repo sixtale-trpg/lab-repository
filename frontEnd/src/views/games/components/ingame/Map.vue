@@ -133,7 +133,7 @@ const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
-
+ 
 const npcData = ref({}); // NPC 정보를 저장할 객체
 const selectedMapIndex = ref(0);
 const cellDescriptions = ref({});
@@ -375,14 +375,14 @@ const changeMap = async (description) => {
 
       // 웹소켓 메시지 전송
       // Log the map change event
-      // const messageData = {
-      //   gameType: 'MAP_CHANGE',
-      //   roomID: roomId.value,
-      //   currentMapID: 0,// 현재 선택된 맵 ID
-      //   nextMapID: newMapId, // 실제 다음 맵 ID로 업데이트 필요
-      // };
+      const messageData = {
+        gameType: 'MAP_CHANGE',
+        roomID: parseInt(roomId.value, 10),
+        currentMapID: 0,// 현재 선택된 맵 ID
+        nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
+      };
 
-      // GameLogWebSocketService.sendMessage(messageData);
+      GameLogWebSocketService.sendMessage(messageData);
 
 
     try {

@@ -1,9 +1,9 @@
 <template>
   <div class="token-area" :style="backgroundStyle">
-    <div 
-      class="token-slot" 
-      v-for="token in tokens" 
-      :key="token.id" 
+    <div
+      class="token-slot"
+      v-for="token in tokens"
+      :key="token.id"
       draggable="true"
       @dragstart="dragStart(token, $event)"
       @mouseover="showTooltip"
@@ -19,8 +19,16 @@
       <img :src="trashIcon" alt="Delete Token" class="delete-icon" />
     </div>
     <div v-if="inputVisible" class="input-container" @click.self="closeInput">
-      <input v-model="newTokenName" @keyup.enter="addToken" placeholder="Enter token name" />
-      <textarea v-model="newTokenInfo" placeholder="Enter token info" rows="3"></textarea>
+      <input
+        v-model="newTokenName"
+        @keyup.enter="addToken"
+        placeholder="Enter token name"
+      />
+      <textarea
+        v-model="newTokenInfo"
+        placeholder="Enter token info"
+        rows="3"
+      ></textarea>
       <div>
         <button @click="addToken">Add</button>
         <button @click="closeInput">Cancel</button>
@@ -37,37 +45,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { getRoomInfo } from '@/common/api/RoomsAPI'; // 방 정보 조회 API
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useMapStore } from "@/store/map/mapStore";
+import { getRoomInfo } from '@/common/api/RoomsAPI';  // API 함수들
+
+
+const mapStore = useMapStore();
+const { selectedToken, selectToken, setCurrentTokenX, setCurrentTokenY, currentTokenX, currentTokenY } = mapStore;
 
 const tokens = ref([]);
-const tokenImage = require('@/assets/images/ingame/Token.png');
-const plusIcon = require('@/assets/images/ingame/Plus.png');
-const trashIcon = require('@/assets/images/ingame/Trash.png');
-const tokenAreaBackground = require('@/assets/images/ingame/Border3.png');
+const tokenImage = require("@/assets/images/ingame/Token.png");
+const plusIcon = require("@/assets/images/ingame/Plus.png");
+const trashIcon = require("@/assets/images/ingame/Trash.png");
+const tokenAreaBackground = require("@/assets/images/ingame/Border3.png");
 
 const backgroundStyle = {
   backgroundImage: `url(${tokenAreaBackground})`,
-  backgroundSize: '100% 100%',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
-  gap: '5px',
-  padding: '10px',
-  margin: '5px',
-  boxSizing: 'border-box',
-  width: '100%',
-  height: '100%',
-  position: 'relative'
+  backgroundSize: "100% 100%",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "center",
+  display: "grid",
+  gridTemplateColumns: "repeat(2, 1fr)",
+  gap: "5px",
+  padding: "10px",
+  margin: "5px",
+  boxSizing: "border-box",
+  width: "100%",
+  height: "100%",
+  position: "relative",
 };
 
-const newTokenName = ref('');
-const newTokenInfo = ref('');
+const newTokenName = ref("");
+const newTokenInfo = ref("");
 const inputVisible = ref(false);
 const modalVisible = ref(false);
-const selectedToken = ref({});
+// const selectedToken = ref({});
 let nextTokenId = ref(1); // 고유 ID를 추적하기 위해 사용
 
 const route = useRoute(); // 현재 라우트 정보를 가져옴
@@ -78,13 +91,13 @@ const showInput = () => {
 
 const addToken = () => {
   if (newTokenName.value) {
-    tokens.value.push({ 
-      id: nextTokenId.value++, 
+    tokens.value.push({
+      id: nextTokenId.value++,
       name: newTokenName.value,
-      info: newTokenInfo.value || `This is the token for ${newTokenName.value}`
+      info: newTokenInfo.value || `This is the token for ${newTokenName.value}`,
     });
-    newTokenName.value = '';
-    newTokenInfo.value = '';
+    newTokenName.value = "";
+    newTokenInfo.value = "";
     inputVisible.value = false;
   }
 };
@@ -94,26 +107,38 @@ const closeInput = () => {
 };
 
 const dragStart = (token, event) => {
-  event.dataTransfer.setData('text/plain', JSON.stringify(token));
+  const mouseX = event.clientX;
+  const mouseY = event.clientY;
+
+  setCurrentTokenX(mouseX);
+  setCurrentTokenY(mouseY);
+
+  selectedToken.value = token;
+  selectToken(token);
+  event.dataTransfer.setData("text/plain", JSON.stringify(token));
 };
 
 const deleteToken = (event) => {
-  const tokenData = event.dataTransfer.getData('text/plain');
+  const tokenData = event.dataTransfer.getData("text/plain");
   try {
     const parsedToken = JSON.parse(tokenData);
-    tokens.value = tokens.value.filter(t => t.id !== parsedToken.id);
-    window.dispatchEvent(new CustomEvent('remove-token-from-list', { detail: parsedToken }));
+    tokens.value = tokens.value.filter((t) => t.id !== parsedToken.id);
+    window.dispatchEvent(
+      new CustomEvent("remove-token-from-list", { detail: parsedToken })
+    );
   } catch (error) {
     console.error("Invalid JSON data:", tokenData);
   }
 };
 
 const showTooltip = (event) => {
-  const tooltip = event.target.closest('.token-slot').querySelector('.tooltip');
+  const tooltip = event.target.closest(".token-slot").querySelector(".tooltip");
   if (tooltip) {
-    tooltip.style.visibility = 'visible';
-    tooltip.style.opacity = '1';
-    const slotRect = event.target.closest('.token-slot').getBoundingClientRect();
+    tooltip.style.visibility = "visible";
+    tooltip.style.opacity = "1";
+    const slotRect = event.target
+      .closest(".token-slot")
+      .getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
     const top = slotRect.top + slotRect.height + 5; // 토큰 슬롯 아래에 5px 간격
     const left = slotRect.left + slotRect.width - tooltipRect.width; // 오른쪽 하단에 정렬
@@ -123,10 +148,10 @@ const showTooltip = (event) => {
 };
 
 const hideTooltip = (event) => {
-  const tooltip = event.target.closest('.token-slot').querySelector('.tooltip');
+  const tooltip = event.target.closest(".token-slot").querySelector(".tooltip");
   if (tooltip) {
-    tooltip.style.visibility = 'hidden';
-    tooltip.style.opacity = '0';
+    tooltip.style.visibility = "hidden";
+    tooltip.style.opacity = "0";
   }
 };
 
@@ -140,13 +165,13 @@ const closeModal = () => {
 };
 
 const handleTokenReturn = (token) => {
-  if (!tokens.value.find(t => t.id === token.id)) {
+  if (!tokens.value.find((t) => t.id === token.id)) {
     tokens.value.push(token);
   }
 };
 
 const handleTokenRemove = (token) => {
-  tokens.value = tokens.value.filter(t => t.id !== token.id);
+  tokens.value = tokens.value.filter((t) => t.id !== token.id);
 };
 
 const fetchTokens = async () => {
@@ -157,34 +182,34 @@ const fetchTokens = async () => {
     tokens.value = roomInfo.playMemberList.map((participant) => ({
       id: participant.playMemberID,
       name: participant.playMemberNickname,
-      info: `${participant.playMemberNickname}의 토큰입니다.`
+      info: `${participant.playMemberNickname}의 토큰입니다.`,
     }));
 
     nextTokenId.value = tokens.value.length + 1;
   } catch (error) {
-    console.error('Failed to fetch room info:', error);
+    console.error("Failed to fetch room info:", error);
   }
 };
 
 onMounted(async () => {
   await fetchTokens();
 
-  window.addEventListener('remove-token-from-list', (event) => {
+  window.addEventListener("remove-token-from-list", (event) => {
     const token = event.detail;
     handleTokenRemove(token);
   });
 
-  window.addEventListener('add-token-to-list', (event) => {
+  window.addEventListener("add-token-to-list", (event) => {
     const token = event.detail;
     handleTokenReturn(token);
   });
 
-  window.addEventListener('drop-token-on-map', (event) => {
+  window.addEventListener("drop-token-on-map", (event) => {
     const token = event.detail;
     handleTokenRemove(token);
   });
 
-  window.addEventListener('return-token-to-list', (event) => {
+  window.addEventListener("return-token-to-list", (event) => {
     const token = event.detail;
     handleTokenReturn(token);
   });
@@ -193,7 +218,7 @@ onMounted(async () => {
 
 <style scoped>
 .token-area {
-  height: 100%;  /* 부모의 100% 높이를 사용 */
+  height: 100%; /* 부모의 100% 높이를 사용 */
 }
 
 .token-slot {
@@ -229,7 +254,7 @@ onMounted(async () => {
   background-color: white;
   padding: 10px;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .input-container input,
@@ -254,7 +279,7 @@ onMounted(async () => {
 }
 
 .tooltip::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -5px;
   left: 50%;
@@ -272,7 +297,7 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0,0,0,0.4);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;

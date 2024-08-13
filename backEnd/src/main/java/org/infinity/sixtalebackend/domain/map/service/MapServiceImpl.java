@@ -105,7 +105,6 @@ public class MapServiceImpl implements MapService {
                         .id(m.getId())
                         .mapId(m.getMap().getId())
                         .description(m.getDescription())
-                        .scenarioNPCId(m.getScenarioNPC().getId())
                         .currentHp(m.getCurrentHp())
                         .build())
                 .collect(Collectors.toList());
@@ -138,7 +137,6 @@ public class MapServiceImpl implements MapService {
                 .id(npcEvent.getId())
                 .mapId(npcEvent.getMap().getId())
                 .description(npcEvent.getDescription())
-                .scenarioNPCId(npcEvent.getScenarioNPC().getId())
                 .currentHp(npcEvent.getCurrentHp())
                 .build();
 

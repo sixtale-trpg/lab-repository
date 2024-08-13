@@ -37,8 +37,10 @@ public class CharacterStat {
     private CharacterSheet characterSheet;
 
     public void setStatValue(Integer statValue) {
+        this.statValue = statValue;
     }
 
     public void setStatWeight(Integer statWeight) {
+        this.statWeight = statWeight;
     }
 }

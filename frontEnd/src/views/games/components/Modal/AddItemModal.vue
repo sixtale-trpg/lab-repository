@@ -4,20 +4,28 @@
       <button class="close-button" @click="closeModal" aria-label="닫기">&times;</button>
       <div class="modal-header">
         <div class="modal-title-container">
-          <img src="@/assets/images/character_sheet/title.png" alt="제목" class="modal-title-image">
+          <img
+            src="@/assets/images/character_sheet/title.png"
+            alt="제목"
+            class="modal-title-image"
+          />
           <h2 class="modal-title-text">아이템 선택</h2>
         </div>
       </div>
       <div class="modal-tabs">
-        <button :class="{ active: activeTab === 'job' }" @click="activeTab = 'job'">직업 아이템</button>
-        <button :class="{ active: activeTab === 'common' }" @click="activeTab = 'common'">공통 아이템</button>
+        <button :class="{ active: activeTab === 'job' }" @click="activeTab = 'job'">
+          직업 아이템
+        </button>
+        <button :class="{ active: activeTab === 'common' }" @click="activeTab = 'common'">
+          공통 아이템
+        </button>
       </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="items-grid">
-          <div 
-            v-for="availableItem in filteredItems" 
-            :key="availableItem.id" 
-            class="available-item" 
+          <div
+            v-for="availableItem in filteredItems"
+            :key="availableItem.id"
+            class="available-item"
             @click="selectItem(availableItem)"
             :class="{ selected: selectedItem && selectedItem.id === availableItem.id }"
           >
@@ -26,13 +34,15 @@
               <span class="item-name">{{ availableItem.name }}</span>
               <span class="item-weight">무게: {{ availableItem.weight }}</span>
               <span class="item-description">{{ availableItem.description }}</span>
-              <span v-if="availableItem.count > 0 && availableItem.count !== -1" class="item-count">{{ availableItem.count }}</span>
+              <span
+                v-if="availableItem.count > 0 && availableItem.count !== -1"
+                class="item-count"
+                >{{ availableItem.count }}</span
+              >
             </div>
           </div>
         </div>
-        <div v-if="showWarning" class="warning-message">
-          하중을 넘어섬으로 추가할 수 없습니다.
-        </div>
+        <div v-if="showWarning" class="warning-message">하중을 넘어섬으로 추가할 수 없습니다.</div>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
         <div class="footer-left">
@@ -42,7 +52,14 @@
         </div>
         <div class="footer-right">
           <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
-          <button class="footer-button" :style="saveButtonStyle" @click="addItem" :disabled="!selectedItem">추가</button>
+          <button
+            class="footer-button"
+            :style="saveButtonStyle"
+            @click="addItem"
+            :disabled="!selectedItem"
+          >
+            추가
+          </button>
         </div>
       </div>
     </div>
@@ -50,26 +67,27 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { getEquipmentList, addEquipment } from '@/common/api/InventoryAPI.js';
-import { selectedPlayMemberID } from '@/store/state.js';
+import { ref, computed, defineProps, defineEmits, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { getEquipmentList, addEquipment } from "@/common/api/InventoryAPI.js";
+import { selectedPlayMemberID } from "@/store/state.js";
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
-const route = useRoute();  
+const route = useRoute();
 
 const props = defineProps({
   currentWeight: Number,
   totalWeight: Number,
   ruleId: Number,
-  jobId: Number
+  jobId: Number,
 });
 
-const emit = defineEmits(['close', 'select-item']);
+const emit = defineEmits(["close", "select-item"]);
 
 const isVisible = ref(true);
 const selectedItem = ref(null);
 const showWarning = ref(false);
-const activeTab = ref('job'); // Default tab is 'job'
+const activeTab = ref("job"); // Default tab is 'job'
 const equipmentList = ref([]);
 
 const fetchEquipmentList = async () => {
@@ -77,20 +95,20 @@ const fetchEquipmentList = async () => {
     const list = await getEquipmentList(props.ruleId);
     equipmentList.value = list;
   } catch (error) {
-    console.error('Error fetching equipment list:', error);
+    console.error("Error fetching equipment list:", error);
   }
 };
 
 const filteredItems = computed(() => {
-  if (activeTab.value === 'job') {
-    return equipmentList.value.filter(item => item.jobId === props.jobId);
+  if (activeTab.value === "job") {
+    return equipmentList.value.filter((item) => item.jobId === props.jobId);
   } else {
-    return equipmentList.value.filter(item => item.jobId === 9);
+    return equipmentList.value.filter((item) => item.jobId === 9);
   }
 });
 
 const closeModal = () => {
-  emit('close');
+  emit("close");
 };
 
 const selectItem = (item) => {
@@ -100,7 +118,9 @@ const selectItem = (item) => {
 
 const addItem = async () => {
   if (selectedItem.value) {
+    const oldWeight = props.currentWeight; // 예전 무게
     const newWeight = props.currentWeight + selectedItem.value.weight;
+
     if (newWeight > props.totalWeight) {
       showWarning.value = true;
     } else {
@@ -111,13 +131,31 @@ const addItem = async () => {
           weight: selectedItem.value.weight,
         };
 
-        await addEquipment(route.params.roomId, selectedPlayMemberID.value, equipmentData);
+        // 장비 추가하고 웹소켓 위해 응답 저장
+        const response = await addEquipment(
+          route.params.roomId,
+          selectedPlayMemberID.value,
+          equipmentData
+        );
+        // console.log("addItem response", response.data);
 
-        // `select-item` 이벤트가 발생하는지 확인
-        console.log("Emitting select-item with:", selectedItem.value);
-
-        // 이벤트 발생시 아이템의 전체 수량(currentCount)을 정확히 반영하여 전달합니다.
+        // select-item 이벤트 발생
         emit("select-item", { ...selectedItem.value, currentCount: selectedItem.value.count });
+
+        //웹소켓 메시지 데이터
+        const messageData = {
+          gameType: "WEIGHT",
+          roomID: parseInt(response.data.roomID, 10),
+          sheetID: parseInt(response.data.sheetID, 10),
+          // playMemberID: selectedPlayMemberID.value,
+          currentWeight: oldWeight,
+          updateWeight: newWeight,
+        };
+        console.log("messageData", messageData);
+
+        //웹소켓 전달
+        GameLogWebSocketService.sendMessage(messageData);
+
         closeModal();
       } catch (error) {
         console.error("Failed to add item to the server:", error);
@@ -128,41 +166,41 @@ const addItem = async () => {
 
 onMounted(() => {
   fetchEquipmentList();
+  GameLogWebSocketService.connect(route.params.roomId);
 });
 
-
 const modalContentStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/character_sheet/main_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 
 const modalBodyStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
-  marginTop: '10px',
-  overflowY: 'auto',
-  scrollbarWidth: 'thin',
-  scrollbarColor: '#855e2fee #201805',
+  background: `url(${require("@/assets/images/character_sheet/tab_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
+  marginTop: "10px",
+  overflowY: "auto",
+  scrollbarWidth: "thin",
+  scrollbarColor: "#855e2fee #201805",
 }));
 
 const modalFooterStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
+  background: `url(${require("@/assets/images/character_sheet/main_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 // 닫기 버튼 스타일
 const closeButtonStyle = computed(() => ({
-  background: `url(${require('@/assets/images/maps/background/close.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/maps/background/close.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 
 // 저장 버튼 스타일
 const saveButtonStyle = computed(() => ({
-  background: `url(${require('@/assets/images/maps/background/save.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
+  background: `url(${require("@/assets/images/maps/background/save.png")}) no-repeat center center`,
+  backgroundSize: "cover",
 }));
 </script>
 

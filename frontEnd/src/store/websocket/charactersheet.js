@@ -9,7 +9,7 @@ class SheetWebSocketService {
     }
 
     connect() {
-        const socket = new SockJS('http://i11d108.p.ssafy.io:8888/api/v1/ws');
+        const socket = new SockJS('https://i11d108.p.ssafy.io/api/v1/ws');
         this.stompClient = Stomp.over(socket);
 
         this.stompClient.connect({}, () => {

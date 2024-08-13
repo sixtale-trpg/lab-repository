@@ -8,7 +8,7 @@
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
-        <GMSection class="gm-section" :gm="gm" :isGM="isGM"  />
+        <GMSection class="gm-section" :gm="gm" :isGM="isGM" />
         <div class="log-and-chat">
           <Log class="log-section" />
           <Chatting class="chatting-section" />
@@ -19,17 +19,17 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { useMapStore } from '@/store/map/mapStore'; // 맵 상태 관리
-import Header from '@/views/games/components/ingame/Header.vue';
-import MainContent from '@/views/games/components/ingame/MainContent.vue';
-import VideoProfile from '@/views/games/components/ingame/VideoProfiles.vue';
-import GMSection from '@/views/games/components/ingame/GMSection.vue';
-import Chatting from '@/views/games/components/ingame/Chatting.vue';
-import Log from '@/views/games/components/ingame/Log.vue';
+import { ref, watch, computed } from "vue";
+import { useMapStore } from "@/store/map/mapStore"; // 맵 상태 관리
+import Header from "@/views/games/components/ingame/Header.vue";
+import MainContent from "@/views/games/components/ingame/MainContent.vue";
+import VideoProfile from "@/views/games/components/ingame/VideoProfiles.vue";
+import GMSection from "@/views/games/components/ingame/GMSection.vue";
+import Chatting from "@/views/games/components/ingame/Chatting.vue";
+import Log from "@/views/games/components/ingame/Log.vue";
 
 // Import the background image
-import MainBackground from '@/assets/images/maps/background/MainBackground.png';
+import MainBackground from "@/assets/images/maps/background/MainBackground.png";
 
 // Pinia 스토어 인스턴스
 const mapStore = useMapStore();
@@ -38,12 +38,15 @@ const mapStore = useMapStore();
 const selectedMap = ref(mapStore.selectedMap);
 
 // Pinia의 selectedMap이 변경되면 로컬 상태도 업데이트
-watch(() => mapStore.selectedMap, (newMap) => {
-  selectedMap.value = newMap;
-});
+watch(
+  () => mapStore.selectedMap,
+  (newMap) => {
+    selectedMap.value = newMap;
+  }
+);
 
 const gm = ref({
-  name: '미카엘'
+  name: "미카엘",
 });
 
 const isGM = ref(true);
@@ -51,9 +54,9 @@ const isGM = ref(true);
 // Computed property for the background style
 const backgroundStyle = computed(() => ({
   backgroundImage: `url(${MainBackground})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
 }));
 </script>
 

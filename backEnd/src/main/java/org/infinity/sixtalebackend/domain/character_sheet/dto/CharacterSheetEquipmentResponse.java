@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @Builder
 public class CharacterSheetEquipmentResponse {
+    private Long sheetID;
     private List<EquipmentInfo> characterEquipment;
     private List<EquipmentInfo> commonEquipment;
 

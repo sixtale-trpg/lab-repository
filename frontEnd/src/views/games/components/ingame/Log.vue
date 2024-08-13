@@ -1,24 +1,167 @@
 <template>
-    <div class="log-section-container" :style="backgroundStyle">
-      <div class="tabs">
-        <button class="tab" :class="{ active: activeTab === 'allLogs' }" @click="selectTab('allLogs')">
-          전체 로그 기록
-        </button>
-      </div>
-      <div class="log-content">
-        <div v-if="activeTab === 'allLogs'">
-          전체 로그 기록
-          <!-- 이곳에 로그 내용이 표시됨 -->
-        </div>
-      </div>
+  <div class="log-section-container" :style="backgroundStyle">
+    <div class="tabs">
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'allLogs' }"
+        @click="selectTab('allLogs')"
+      >
+        전체 로그 기록
+      </button>
     </div>
-  </template>
-  
-  <script setup>
-  // 로그로직 추가해야한다 ! //
+    <div class="log-content">
+      <div v-if="activeTab === 'allLogs'">
+        <div v-for="msg in messages" :key="msg.id">
+          <p>{{ msg.content }}</p>
+        </div>
+        <!-- <div class="message-input">
+      <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+      <button @click="sendMessage">Send</button>
+    </div> -->
+      </div>
+      <!-- <div class="message-input">
+    <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+    <button @click="sendMessage">Send</button>
+  </div> -->
+    </div>
+  </div>
+</template>
 
+<script setup>
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
+import { ref, computed, onMounted, watch, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { getRoomInfo } from "@/common/api/RoomsAPI";
+import { map } from "sockjs-client/lib/transport-list";
+import { useMapStore } from "@/store/map/mapStore";
+import { getMapList } from "@/common/api/RoomsAPI";
+import { getCharacterSheet } from "@/common/api/CharacterSheetAPI";
 
-  import { ref } from 'vue';
+const route = useRoute();
+// 로그로직 추가해야한다 ! //
+const router = useRouter();
+const newMessage = ref("");
+const messages = ref([]); // 모든 메시지를 저장하는 배열
+const roomId = ref(null);
+const mapStore = useMapStore();
+const mapData = ref([]);
+
+// 로컬 스토리지 저장
+const loadMessagesFromLocalStorage = () => {
+  const storedMessages = localStorage.getItem(`messages-${roomId.value}`);
+  if (storedMessages) {
+    messages.value = JSON.parse(storedMessages);
+  }
+};
+
+const saveMessagesToLocalStorage = () => {
+  localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
+};
+
+// 스크롤을 맨 아래로 이동시키는 함수
+const scrollToBottom = () => {
+  nextTick(() => {
+    const logContent = document.querySelector(".log-content");
+    if (logContent) {
+      logContent.scrollTop = logContent.scrollHeight;
+    }
+  });
+};
+
+// 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
+onMounted(async () => {
+  try {
+    // 룸 id 받아옴
+    roomId.value = route.params.roomId;
+    console.log("Room ID from route:", roomId.value);
+
+    const response = await getMapList(roomId.value);
+    mapData.value = response.mapList || [];
+
+    // 메세지 받아오는것
+    GameLogWebSocketService.onMessageReceived((message) => {
+      switch(message.gameType){
+        case "MAP_CHANGE":
+          // 현재 선택된 맵의 데이터 가져오기
+          let selectedMap = mapData.value[message.nextMapID];
+          console.log(typeof selectedMap)
+          // selectedMap이 숫자가 아닌 경우, 숫자로 변환 (문자열 등일 경우)
+          if (typeof selectedMap === 'string') {
+            selectedMap = parseInt(selectedMap, 10);
+          }
+          // selectedMap이 숫자인지 확인
+          if (typeof selectedMap === 'number') {
+            // selectedMap의 값을 1 감소시키기
+            const newSelectedMap = selectedMap - 1;
+            // 감소시킨 값을 저장하기
+            mapStore.setSelectedMap(newSelectedMap);
+          }
+          break;
+        case "GAME_START":
+          // 게임 시작 시 페이지 이동
+          router.push(`/game/${route.params.roomId}/in-game`);
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+
+    // Handle incoming messages
+    // 메세지 받아오는것
+    GameLogWebSocketService.onMessageReceived(async (message) => {
+      console.log("message!!!: ", message);
+      switch (message.gameType) {
+        case "MAP_CHANGE":
+          const selectedMap = mapData.value[message.nextMapID];
+          mapStore.setSelectedMap(selectedMap); //맵 저장
+          break;
+        case "GAME_START":
+          // 게임 시작 시 페이지 이동
+          router.push(`/game/${route.params.roomId}/in-game`);
+          break;
+        case "WEIGHT":
+          // 시트 업데이트
+          // await fetchUpdate(playMemberID);
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+      messages.value.push(message);
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+
+    // 로컬 스토리지에서 메시지 로드
+    loadMessagesFromLocalStorage();
+  } catch (error) {
+    console.error("Error fetching room info or connecting to WebSocket:", error);
+  }
+});
+
+// 메시지 배열의 깊은 변경을 감지
+watch(messages, (newMessages) => {
+  scrollToBottom();
+}, { deep: true });
+
+// const sendMessage = () => {
+//   if (newMessage.value.trim() === '') return;
+
+//   const messageData = {
+//     gameType: 'MAP_CHANGE', 
+//     roomID: roomId.value, 
+//     currentMapID: 1, 
+//     nextMapID: 2,
+//   };
+
+//   // Send the message to the server
+//   GameLogWebSocketService.sendMessage(messageData); 
+//   newMessage.value = ''; // Clear the input field
+// };
+
   
   const activeTab = ref('allLogs');
   
@@ -46,7 +189,8 @@
   .log-section-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 300px !important;
+    max-height: 300px !important;
   }
   
   .tabs {
@@ -76,6 +220,7 @@
     overflow-y: auto;
     border: 1px solid #444;
     color: white;
+
   }
   
   /* 스크롤바 스타일링 */

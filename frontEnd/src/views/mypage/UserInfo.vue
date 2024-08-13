@@ -79,6 +79,9 @@ const goToEditPage = () => {
 .menu-title {
   color: white;
   margin: 0 0 20px 20px;
+  text-align: left;
+
+
 }
 .content-box {
   background-color: #3a3a3c;

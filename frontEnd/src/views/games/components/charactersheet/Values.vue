@@ -1,10 +1,11 @@
 <template>
+  <div v-if="showWarning" class="warning-text">가치관을 선택하지 않았습니다!</div>
   <div class="values-container">
     <div class="values-cards">
       <div 
         v-for="belief in currentOptions" 
         :key="belief.beliefID"
-        :class="['action-card', { selected: localFormData.selectedValue === belief.beliefID }]"
+        :class="['action-card', { selected: localFormData.beliefId === belief.beliefID }]"
         @click="selectBelief(belief.beliefID)"
       >
         <div class="card-content">
@@ -17,36 +18,50 @@
 </template>
 
 <script setup>
-import { reactive, toRefs, watch } from 'vue';
+import { reactive, toRefs, watch, ref, onMounted } from 'vue';
 
 const props = defineProps({
   formData: Object,
   currentOptions: Array
 });
 
-const { formData, currentOptions } = toRefs(props);
+const { formData } = toRefs(props);
 
-const emit = defineEmits(['update:selectedBelief']);
+const emit = defineEmits(['update:belief-id']);
 
-// 로컬 상태를 만들어 formData의 변경을 감지하고 부모에 반영
 const localFormData = reactive({ ...formData.value });
 
-// 부모 컴포넌트에서 넘어온 값이 변경될 경우 로컬 상태를 동기화
-watch(() => formData.value, (newVal) => {
-  Object.assign(localFormData, newVal);
+// Watcher로 localFormData가 변경될 때 부모 컴포넌트로 데이터 전송
+watch(localFormData, (newValue) => {
+  emit('update:belief-id', newValue.beliefId);
 });
 
+// 경고 메시지 표시 여부
+const showWarning = ref(false);
+
 function selectBelief(beliefID) {
-  localFormData.selectedValue = beliefID;
-  emit('update:selectedBelief', beliefID);
+  localFormData.beliefId = beliefID; // beliefId로 데이터 저장
+  emit('update:belief-id', beliefID); // 부모에게 변경된 데이터 전송
+  showWarning.value = false; // 선택 시 경고 메시지 숨기기
 }
+
+function checkForEmptyBelief() {
+  // 선택된 가치관이 없을 경우 경고 메시지를 표시합니다.
+  showWarning.value = !localFormData.beliefId;
+}
+
+// 컴포넌트가 마운트될 때 경고 메시지 표시
+onMounted(() => {
+  checkForEmptyBelief();
+});
 </script>
+
 
 <style scoped>
 .values-container {
   display: flex;
   justify-content: center;
-  padding-top: 100px;
+  padding-top: 0px;
   height: 80%; 
   overflow-y: auto; 
 }
@@ -94,5 +109,13 @@ function selectBelief(beliefID) {
   font-size: 1.2rem;
   text-align: left; 
   width: 100%;
+}
+
+.warning-text {
+  font-size: 1.5rem;
+  color: red;
+  text-align: center;
+  margin: 1rem;
+  font-weight: bold;
 }
 </style>

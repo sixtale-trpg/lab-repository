@@ -240,19 +240,17 @@ const closeConfirmDeleteModal = () => {
   selectedIndex.value = null;
 };
 
-const handleDeleteConfirm = () => {
-  if (selectedIndex.value !== null) {
-    items.value.splice(selectedIndex.value, 1);
-    updateCurrentWeight();
-    closeConfirmDeleteModal();
-  }
-};
 
-const updateItem = (updatedItem) => {
+
+// 데이터가 추가, 삭제된 후에 항상 서버에서 최신 데이터를 가져와서 업데이트합니다.
+const updateItem = async (updatedItem) => {
   const itemIndex = items.value.findIndex(item => item.id === updatedItem.id);
   if (itemIndex !== -1) {
     items.value[itemIndex] = updatedItem;
     updateCurrentWeight();
+    
+    // 서버에서 최신 데이터를 다시 가져오기
+    await fetchUserItems(selectedPlayMemberID.value);
   }
 };
 
@@ -309,9 +307,22 @@ const handleItemSelected = (item) => {
 
 const handleItemAdded = async (addedItem) => {
   console.log("Item added:", addedItem);
-  await fetchUserItems(selectedPlayMemberID.value); // 서버에서 최신 데이터를 다시 가져오기
+
+  // 서버에서 최신 데이터를 다시 가져오기
+  await fetchUserItems(selectedPlayMemberID.value); 
+  updateCurrentWeight();
 };
 
+const handleDeleteConfirm = async () => {
+  if (selectedIndex.value !== null) {
+    items.value.splice(selectedIndex.value, 1);
+    updateCurrentWeight();
+    
+    // 서버에서 최신 데이터를 다시 가져오기
+    await fetchUserItems(selectedPlayMemberID.value); 
+    closeConfirmDeleteModal();
+  }
+};
 
 const showGoldTooltip = (event) => {
   if (isGM.value) {

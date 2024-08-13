@@ -170,6 +170,7 @@ const showGrid = ref(true);
 const gridSize = 50;
 
 const npcList = ref([]); // NPC 리스트를 위한 ref
+const npcInfo = ref([]); // NPC 리스트를 위한 ref
 const isGM = ref(false); // GM 여부를 확인하는 변수
 const isNpcListOpen = ref(true); // NPC 리스트 열림 여부
 

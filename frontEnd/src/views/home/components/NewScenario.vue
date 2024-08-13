@@ -1,6 +1,6 @@
 <template>
   <section class="new-scenario">
-    <div class="container">
+    <div class="container2">
       <div class="header">
         <h1>신규 시나리오</h1>
       </div>
@@ -59,7 +59,7 @@ const scenarios2 = ref([
 ]);
 </script>
 
-<style>
+<style >
 :root {
   --vc-clr-primary: #000;
   --vc-clr-secondary: #090f207f;
@@ -95,7 +95,7 @@ const scenarios2 = ref([
   padding: 0;
 }
 
-.container {
+.container2 {
   padding: 200px 20px !important; 
   border-radius: 0; 
   max-width: 1200px; 

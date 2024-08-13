@@ -21,17 +21,9 @@
       <div class="modal-body" :style="modalBodyStyle">
         <component 
           :is="activeComponent" 
-          v-model:formData="characterData"
-          :equipment-data="equipmentData" 
-          :gold="gold"
-          :currentWeight="currentWeight"
-          :maxWeight="maxWeight"
-          :statsData="statsData"
-          :actionData="actionData"
-          @update-character="updateCharacterData"
-          @update-equipment="updateEquipmentData"
+          :formData="characterData" 
+          :statsData="statsData" 
           @update-stats="updateStatsData"
-          @update-action="updateActionData"
         />
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
@@ -43,8 +35,8 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
-import { updateCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
+import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
+import { updateCharacterSheet2 } from '@/common/api/CharacterSheetAPI.js';
 import CharacterInfo from './CharacterInfo.vue';
 import Equipment from './Equipment.vue';
 import Stats from './CharacterStats2.vue';
@@ -75,99 +67,101 @@ const tabLabels = {
 };
 
 const characterData = ref({ ...props.formData });
-const equipmentData = computed(() => characterData.value.characterEquipment || []);
-const gold = computed(() => characterData.value.currentMoney || 0);
-const currentWeight = computed(() => characterData.value.currentWeight || 0);
-const maxWeight = computed(() => characterData.value.limitWeight || 0);
 
 const statsData = ref({
-  currentHp: characterData.value.currentHp || 0,
-  glove: characterData.value.glove || 0,
-  inspirationScore: characterData.value.inspirationScore || 0,
-  level: characterData.value.level || 1,
-  exp: characterData.value.exp || 0,
-  attributes: (characterData.value.stat || []).reduce((acc, stat) => {
-    acc[stat.statID] = {
-      value: stat.statValue,
-      weight: stat.statWeight,
-    };
-    return acc;
-  }, {}),
+  currentHp: 0,
+  glove: 0,
+  inspirationScore: 0,
+  level: 1,
+  exp: 0,
+  attributes: {},
 });
 
-const actionData = ref(characterData.value.characterAction || []);
+const actionData = ref([]);
+const equipmentData = ref([]);
 
-const updateCharacterData = (updatedData) => {
-  console.log("Received updated formData:", updatedData);
-  characterData.value = { ...characterData.value, ...updatedData };
-};
+onMounted(() => {
+  statsData.value = {
+    currentHp: characterData.value.currentHp || 0,
+    glove: characterData.value.glove || 0,
+    inspirationScore: characterData.value.inspirationScore || 0,
+    level: characterData.value.level || 1,
+    exp: characterData.value.exp || 0,
+    attributes: (characterData.value.stat || []).reduce((acc, stat) => {
+      acc[stat.statID] = {
+        value: stat.statValue,
+        weight: stat.statWeight,
+      };
+      return acc;
+    }, {}),
+  };
 
+  // actionData 초기화
+  actionData.value = characterData.value.characterAction || [];
+  
+  equipmentData.value = characterData.value.characterEquipment || [];
+});
 
-const updateEquipmentData = (updatedData) => {
-  equipmentData.value = updatedData;
-};
+import { toRaw } from 'vue';
 
 const updateStatsData = (updatedData) => {
+  console.log('Parent received updated statsData:', updatedData);
+
   statsData.value = { ...updatedData };
-  // 캐릭터 데이터에 직접 업데이트 반영
-  characterData.value.stat = Object.entries(statsData.value.attributes).map(([key, value]) => ({
-    statID: parseInt(key),
-    statValue: value.value,
-    statWeight: value.weight,
-  }));
-};
 
-const updateActionData = (updatedData) => {
-  actionData.value = updatedData;
-};
+  // characterData를 업데이트
+  Object.assign(characterData.value, {
+    level: statsData.value.level,
+    currentHp: statsData.value.currentHp,
+    glove: statsData.value.glove,
+    inspirationScore: statsData.value.inspirationScore,
+    exp: statsData.value.exp,
+    stat: Object.keys(statsData.value.attributes).map(key => ({
+      statID: parseInt(key),
+      statValue: statsData.value.attributes[key].value,
+      statWeight: statsData.value.attributes[key].weight,
+    })),
+  });
 
-// SaveForm 함수 바로 위에 추가해볼 수 있습니다.
-console.log("Equipment Data:", equipmentData.value);
+  console.log('Updated characterData after applying stats:', toRaw(characterData.value));
+};
 
 
 const saveForm = async () => {
   try {
+    const rawCharacterData = toRaw(characterData.value);
     const updatedData = {
-      jobId: characterData.value.jobId,
-      raceId: characterData.value.raceId,
-      beliefId: characterData.value.beliefId,
-      name: characterData.value.name,
-      appearance: characterData.value.appearance,
-      background: characterData.value.background,
-      stat: characterData.value.stat,
-      characterAction: actionData.value.map(action => ({
-        actionID: action.actionID,
-        actionOptionId: action.actionOptionId || ""
-      })),
-      characterEquipment: equipmentData.value.map(equipment => ({
-        equipmentId: equipment.equipmentID,
-        currentCount: equipment.currentCount,
-        weight: equipment.weight
-      })),
-      currentWeight: characterData.value.currentWeight,
-      currentHp: characterData.value.currentHp,
-      currentMoney: characterData.value.currentMoney,
-      limitWeight: characterData.value.limitWeight,
-      limitHp: characterData.value.limitHp,
-      glove: characterData.value.glove,
-      inspirationScore: characterData.value.inspirationScore,
-      level: characterData.value.level,
-      exp: characterData.value.exp,
-      imageURL: characterData.value.imageURL,
+      jobId: rawCharacterData.jobId,
+      raceId: rawCharacterData.raceId,
+      beliefId: rawCharacterData.beliefId,
+      name: rawCharacterData.name,
+      appearance: rawCharacterData.appearance,
+      background: rawCharacterData.background,
+      stat: rawCharacterData.stat,
+      characterAction: rawCharacterData.characterAction,
+      characterEquipment: rawCharacterData.characterEquipment,
+      currentWeight: rawCharacterData.currentWeight,
+      currentHp: rawCharacterData.currentHp,
+      currentMoney: rawCharacterData.currentMoney,
+      limitWeight: rawCharacterData.limitWeight,
+      limitHp: rawCharacterData.limitHp,
+      glove: rawCharacterData.glove,
+      inspirationScore: rawCharacterData.inspirationScore,
+      level: rawCharacterData.level,
+      exp: rawCharacterData.exp,
+      imageURL: rawCharacterData.imageURL,
     };
 
-    console.log('Updated Data:', updatedData);
-
-    const response = await updateCharacterSheet(props.roomID, props.playMemberID, updatedData);
+    const response = await updateCharacterSheet2(props.roomID, props.playMemberID, updatedData);
     console.log('Save successful:', response);
 
-    // 저장이 성공하면 모달을 닫음
-    closeModal();
 
+    closeModal();
   } catch (error) {
     console.error('Error saving form data:', error);
   }
 };
+
 
 
 const closeModal = () => {
@@ -229,9 +223,8 @@ function getTabButtonStyle(tab) {
 </script>
 
 
-
 <style scoped>
-/* 스타일은 그대로 유지 */
+/* 기존 스타일 유지 */
 .modal-overlay {
   position: fixed;
   top: 0;

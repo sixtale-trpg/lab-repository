@@ -1,4 +1,6 @@
 <template>
+  <div v-if="isLoading">로딩 중...</div>
+  <form v-else @submit.prevent="handleCreateRoom">
   <div class="create-room-modal" @click.self="closeModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -26,18 +28,18 @@
           <div class="form-group card">
             <label for="rule" class="input-label">룰</label>
             <select id="rule" v-model="rule">
-              <!-- 옵션 예시 -->
-              <option value="룰1">룰1</option>
-              <option value="룰2">룰2</option>
+              <option v-for="ruleOption in rules" :key="ruleOption.id" :value="ruleOption.id">
+                {{ ruleOption.title }}
+              </option>
             </select>
           </div>
           
           <div class="form-group card">
             <label for="scenario" class="input-label">시나리오</label>
             <select id="scenario" v-model="scenario">
-              <!-- 옵션 예시 -->
-              <option value="시나리오1">시나리오1</option>
-              <option value="시나리오2">시나리오2</option>
+              <option v-for="scenarioOption in scenarios" :key="scenarioOption.id" :value="scenarioOption.id">
+                {{ scenarioOption.title }}
+              </option>
             </select>
           </div>
           
@@ -74,19 +76,26 @@
           
           <div class="form-actions">
             <button type="button" @click="closeModal" class="cancel-button">취소</button>
-            <button type="submit" class="create-button">생성</button>
+            <button type="submit" class="create-button" @click="handleCreateRoom">생성</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+</form>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { defineEmits } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { createAndEnterRoom } from '@/common/api/RoomsAPI';
+import { getRuleList } from '@/common/api/RuleAPI';
+import { getScenarioListForCreateRoom } from '@/common/api/ScenarioAPI';
+import { createRoom } from '@/common/api/RoomsAPI';
 
+const router = useRouter();
 const emit = defineEmits(['close']);
+
 const roomName = ref('');
 const isPrivate = ref(false);
 const password = ref('');
@@ -96,31 +105,108 @@ const maxPlayers = ref(6);
 const playTime = ref(12);
 const isShortStory = ref(false);
 const isVoice = ref(false);
+const isCamera = ref(false);
+const rules = ref([]);
+const scenarios = ref([]);
+const isLoading = ref(true);
 
 const isLongStory = computed({
   get: () => !isShortStory.value,
   set: (value) => { isShortStory.value = !value; }
 });
 
+watch(isPrivate, (newValue) => {
+  if (!newValue) {
+    password.value = '';
+  }
+});
+
 const closeModal = () => {
   emit('close');
 };
 
-const createRoom = () => {
+// const createRoom = () => {
+//   const roomData = {
+//     roomName: roomName.value,
+//     isPrivate: isPrivate.value,
+//     password: isPrivate.value ? password.value : '',
+//     rule: rule.value,
+//     scenario: scenario.value,
+//     maxPlayers: maxPlayers.value,
+//     playTime: playTime.value,
+//     narrative: isShortStory.value ? '단편' : '장편',
+//     isVoice: isVoice.value,
+//   };
+  
+//   console.log(roomData);
+//   closeModal();
+// };
+
+
+
+const handleCreateRoom = async () => {
   const roomData = {
-    roomName: roomName.value,
-    isPrivate: isPrivate.value,
-    password: isPrivate.value ? password.value : '',
-    rule: rule.value,
-    scenario: scenario.value,
-    maxPlayers: maxPlayers.value,
-    playTime: playTime.value,
-    narrative: isShortStory.value ? '단편' : '장편',
+    title: roomName.value,
+    scenarioID: parseInt(scenario.value),
+    description: `${roomName.value} 방입니다`,
+    maxCount: maxPlayers.value,
+    isLocked: isPrivate.value,
+    password: isPrivate.value ? password.value : null,
+    isShortStory: isShortStory.value,
     isVoice: isVoice.value,
   };
-  
-  console.log(roomData);
-  closeModal();
+
+  console.log('Room data being sent:', roomData);
+
+  if (isPrivate.value && password.value) {
+    console.log('Password for the room:', password.value);
+  } else {
+    console.log('No password set for the room.');
+  }
+
+  if (!validateRoomData(roomData)) {
+    alert('방 생성에 필요한 모든 정보를 올바르게 입력해주세요.');
+    return;
+  }
+
+  try {
+    const createdRoom = await createRoom(roomData);
+    console.log('Room created successfully:', createdRoom);
+    closeModal();
+    if (createdRoom && createdRoom.id) {
+      router.push({ 
+        name: 'Waiting', 
+        params: { roomId: createdRoom.id.toString() },
+        query: { 
+          title: createdRoom.title,
+          isLocked: createdRoom.isLocked,
+          password: createdRoom.isLocked ? password.value : null
+        }
+      });
+    } else {
+      throw new Error('Invalid room data received');
+    }
+  } catch (error) {
+    console.error('Failed to create room:', error);
+    alert('방 생성에 실패했습니다. 다시 시도해주세요.');
+  }
+};
+
+// 3. API 호출 전 데이터 유효성 검사
+const validateRoomData = (data) => {
+  if (!data.title || data.title.trim() === '') {
+    console.error('Title is required');
+    return false;
+  }
+  if (!data.scenarioID || isNaN(data.scenarioID)) {
+    console.error('Invalid scenario ID');
+    return false;
+  }
+  if (!data.maxCount || data.maxCount < 1) {
+    console.error('Invalid max count');
+    return false;
+  }
+  return true;
 };
 
 const handleLongStoryChange = () => {
@@ -134,6 +220,30 @@ const handleShortStoryChange = () => {
     isLongStory.value = false;
   }
 };
+
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    const [ruleList, scenarioList] = await Promise.all([
+      getRuleList(),
+      getScenarioListForCreateRoom()
+    ]);
+    rules.value = ruleList;
+    scenarios.value = scenarioList;
+    
+    if (rules.value.length > 0) {
+      rule.value = rules.value[0].id;
+    }
+    if (scenarios.value.length > 0) {
+      scenario.value = scenarios.value[0].id;
+    }
+  } catch (error) {
+    console.error('Failed to fetch rules or scenarios:', error);
+    alert('룰과 시나리오 정보를 불러오는데 실패했습니다. 페이지를 새로고침 해주세요.');
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
 <style scoped>

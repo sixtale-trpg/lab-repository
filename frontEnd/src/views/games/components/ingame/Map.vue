@@ -135,6 +135,7 @@ import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
 import { getMapPlace, getMapNpcs, getMapList } from '@/common/api/RoomsAPI';
 import { useRoute } from 'vue-router';
+import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
 
 import scheduleModal from '@/assets/images/ingame/map/background.png';
 import titleImage from '@/assets/images/ingame/map/title.png';
@@ -177,6 +178,7 @@ const hoveredLaserDescription = ref(null);
 watch(
   () => props.selectedMap,
   async (newMap) => {
+    console.log("뉴맵" +newMap.id)
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
       console.log("Selected Map ID:", newMap.id);
@@ -434,8 +436,21 @@ const openModal = (row, col) => {
 };
 
 const changeMap = async (description) => {
+  console.log(description);
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
+
+      // 웹소켓 메시지 전송
+      // Log the map change event
+      // const messageData = {
+      //   gameType: 'MAP_CHANGE',
+      //   roomID: roomId.value,
+      //   currentMapID: 0,// 현재 선택된 맵 ID
+      //   nextMapID: newMapId, // 실제 다음 맵 ID로 업데이트 필요
+      // };
+
+      // GameLogWebSocketService.sendMessage(messageData);
+
 
     try {
       const newMapId = description.nextMapId;
@@ -462,6 +477,7 @@ const changeMap = async (description) => {
           };
         });
       }
+
 
     } catch (error) {
       console.error("Error loading new map or NPC data:", error);

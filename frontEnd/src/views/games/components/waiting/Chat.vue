@@ -31,7 +31,7 @@
         :key="message.id"
         class="chat-message"
       >
-        <span class="sender">{{ message.sender }}:</span>
+        <span class="sender">{{ message. }}:</span>
         <span class="text">{{ message.text }}</span>
       </div>
     </div>

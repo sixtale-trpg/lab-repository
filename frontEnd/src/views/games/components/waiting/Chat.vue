@@ -53,9 +53,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, defineProps } from "vue";
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
 import { getRoomInfo } from "@/common/api/RoomsAPI";
+import { getMemberInfo } from "@/common/api/mypageAPI";
 
 // 이미지 동적 로드
 const background1 = require("@/assets/images/room/chat/chat_background1.png");
@@ -70,16 +71,28 @@ const selectedTab = ref("ALL");
 const newMessage = ref("");
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const roomInfo = ref(null); // 방 정보를 저장할 변수
+const user = ref({});
 
 // 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
 const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
 
 // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
 onMounted(async () => {
+  //회원 기본 정보
+  getMemberInfo()
+    .then((response) => {
+      console.log(response.data.data);
+      user.value = response.data.data;
+    })
+    .catch((error) => {
+      console.error("Failed to fetch member info:", error);
+    });
+
   try {
     // API를 통해 방 정보 가져오기
     roomInfo.value = await getRoomInfo(initialRoomId).then((res) => {
-      WebSocketService.connect(res.id);
+      console.log("사용자", user.value);
+      WebSocketService.connect(res.id, user.value.id);
       return res;
     });
     console.log("Room Info:", roomInfo.value);
@@ -94,7 +107,7 @@ onMounted(async () => {
 });
 
 const selectTab = (tab) => {
-  selectedTab.value = tab; // 탭 선택
+  selectedTab.value = tab.toUpperCase(); // 탭 선택
 };
 
 const sendMessage = () => {
@@ -116,8 +129,9 @@ const sendMessage = () => {
     type: messageData.type,
   });
 
-  WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+  WebSocketService.sendMessage(messageData, user.value.id); // 서버로 메시지 전송
   newMessage.value = ""; // 입력 필드 초기화
+  console.log("메시지가 추가되었습니다:", newMessage.value);
 };
 
 const filteredMessages = computed(() => {

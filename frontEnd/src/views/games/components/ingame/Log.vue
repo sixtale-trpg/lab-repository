@@ -31,6 +31,7 @@ import { getRoomInfo } from '@/common/api/RoomsAPI';
 import { map } from 'sockjs-client/lib/transport-list';
 import { useMapStore } from '@/store/map/mapStore';
 import { getMapList } from '@/common/api/RoomsAPI';
+import { getCharacterSheet } from '@/common/api/CharacterSheetAPI';
 
 const route = useRoute();
 // 로그로직 추가해야한다 ! //
@@ -69,7 +70,7 @@ onMounted(async () => {
 
   // Handle incoming messages
   // 메세지 받아오는것
-  GameLogWebSocketService.onMessageReceived((message) => {
+  GameLogWebSocketService.onMessageReceived( async (message) => {
     switch(message.gameType){
       case "MAP_CHANGE":
         const selectedMap = mapData.value[message.nextMapID];
@@ -78,6 +79,24 @@ onMounted(async () => {
       case "GAME_START":
         // 게임 시작 시 페이지 이동
         router.push(`/game/${route.params.roomId}/in-game`);
+        break;
+      case "WEIGHT":
+      try {
+            // 캐릭터 시트 조회
+            const characterSheet = await getCharacterSheet(roomId.value, message.playMemberID);
+
+            // 조회된 캐릭터 시트를 WebSocket을 통해 다른 클라이언트에게 브로드캐스트
+            const broadcastMessage = {
+              gameType: "CHARACTER_SHEET_UPDATE",
+              roomID: roomId.value,
+              playMemberID: message.playMemberID,
+              characterSheet: characterSheet, // 전송할 캐릭터 시트 데이터
+            };
+
+            GameLogWebSocketService.sendMessage(broadcastMessage);
+          } catch (error) {
+            console.error('Error broadcasting character sheet:', error);
+          }
         break;
       default:
         // 다른 메시지 타입의 처리 로직

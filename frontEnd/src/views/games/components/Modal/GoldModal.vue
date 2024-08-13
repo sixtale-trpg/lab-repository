@@ -87,8 +87,8 @@ const saveGold = async () => {
      //웹소켓 메시지 데이터
      const messageData = {
           gameType: "GOLD",
-          roomID: response.data.roomID,
-          sheetID: response.data.sheetID,
+          roomID:parseInt(response.data.roomID, 10),
+          sheetID:parseInt(response.data.sheetID, 10),
           currentGold: response.data.currentGold,
           updateGold: response.data.updateGold,
         };

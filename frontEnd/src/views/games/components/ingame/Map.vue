@@ -8,19 +8,15 @@
         <span v-else>◀</span>
       </div>
       <div v-if="isNpcListOpen" class="npc-list-content">
-        <div
-          v-for="npc in npcList"
-          :key="npc.id"
-          class="npc-item"
-        >
+        <div v-for="npc in npcList" :key="npc.id" class="npc-item">
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
             <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
           </div>
           <p v-if="isGM">
-            <input 
-              type="number" 
-              v-model.number="npc.currentHp" 
+            <input
+              type="number"
+              v-model.number="npc.currentHp"
               @input="updateNpcHp(npc.id, npc.currentHp)"
               class="npc-hp-input"
             />
@@ -62,19 +58,19 @@
             class="laser-effect"
             @mouseenter="onLaserMouseEnter(row, col, $event)"
             @mouseleave="onLaserMouseLeave"
-            @click="openModal(row, col)" 
+            @click="openModal(row, col)"
           ></div>
         </div>
       </div>
     </div>
 
     <!-- 정보 패널 -->
-    <div class="info-panel" v-if="hoveredLaserDescription" :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }">
-      <img
-        class="info-background"
-        :src="infoBackground"
-        alt="Information Background"
-      />
+    <div
+      class="info-panel"
+      v-if="hoveredLaserDescription"
+      :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
+    >
+      <img class="info-background" :src="infoBackground" alt="Information Background" />
       <div class="info-content">
         <h3>{{ hoveredLaserDescription.details }}</h3>
       </div>
@@ -104,11 +100,7 @@
             <p>현재 맵을 새 맵으로 교체하시겠습니까?</p>
           </div>
           <div class="modal-footer custom-modal-footer">
-            <button
-              type="button"
-              class="btn footer-button"
-              data-bs-dismiss="modal"
-            >
+            <button type="button" class="btn footer-button" data-bs-dismiss="modal">
               <img :src="cancelImage" alt="닫기" />
               <span class="button-text">아니요</span>
             </button>
@@ -133,9 +125,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
-import { getMapPlace, getMapNpcs, getMapList } from '@/common/api/RoomsAPI';
-import { useRoute } from 'vue-router';
-import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
+import { getMapPlace, getMapNpcs, getMapList } from "@/common/api/RoomsAPI";
+import { useRoute } from "vue-router";
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 import scheduleModal from "@/assets/images/ingame/map/background.png";
 import titleImage from "@/assets/images/ingame/map/title.png";
@@ -188,7 +180,7 @@ const hoveredLaserDescription = ref(null);
 watch(
   () => props.selectedMap,
   async (newMap) => {
-    console.log("뉴맵" +newMap.id)
+    console.log("뉴맵" + newMap.id);
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
       setSelectedMap(newMap);
@@ -231,7 +223,7 @@ const loadMapData = async (mapId) => {
     const roomId2 = roomId.value;
 
     const mapInfo = await getMapPlace(roomId2, mapId);
-    const npcData = await getMapNpcs(roomId2, mapId);  // NPC 정보 불러오기
+    const npcData = await getMapNpcs(roomId2, mapId); // NPC 정보 불러오기
 
     npcList.value = npcData.npcEvents || [];
 
@@ -240,14 +232,14 @@ const loadMapData = async (mapId) => {
 
     if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
       activeLasers.value = new Set(
-        mapInfo.placeEvents.map(event => {
+        mapInfo.placeEvents.map((event) => {
           const coord = `${event.row}-${event.col}`;
           return coord;
         })
       );
 
       cellDescriptions.value = {};
-      mapInfo.placeEvents.forEach(event => {
+      mapInfo.placeEvents.forEach((event) => {
         cellDescriptions.value[`${event.row}-${event.col}`] = {
           title: `Event at (${event.row}, ${event.col})`,
           details: event.description,
@@ -279,41 +271,41 @@ const gridRows = computed(() => Array.from({ length: 10 }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: 15 }, (_, i) => i));
 
 const onLaserMouseEnter = (row, col, event) => {
-    if (tooltipTimeout) clearTimeout(tooltipTimeout);
-    const description = getDescription(row, col);
-    hoveredLaserDescription.value = { ...description, position: { row, col } };
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
+  const description = getDescription(row, col);
+  hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-    const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
-    const tooltipWidth = 300; // 툴팁의 예상 너비
-    const tooltipHeight = 340; // 툴팁의 예상 높이
+  const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
+  const tooltipWidth = 300; // 툴팁의 예상 너비
+  const tooltipHeight = 340; // 툴팁의 예상 높이
 
-    let tooltipX = event.clientX + 10;
-    let tooltipY = event.clientY + 10;
+  let tooltipX = event.clientX + 10;
+  let tooltipY = event.clientY + 10;
 
-    // 툴팁 위치 조정 로직
-    if (tooltipX + tooltipWidth > mapRect.right) {
-        tooltipX = mapRect.right - tooltipWidth - 10;
-    }
+  // 툴팁 위치 조정 로직
+  if (tooltipX + tooltipWidth > mapRect.right) {
+    tooltipX = mapRect.right - tooltipWidth - 10;
+  }
 
-    if (tooltipY + tooltipHeight > mapRect.bottom) {
-        tooltipY = mapRect.bottom - tooltipHeight - 10;
-    }
+  if (tooltipY + tooltipHeight > mapRect.bottom) {
+    tooltipY = mapRect.bottom - tooltipHeight - 10;
+  }
 
-    if (tooltipX < mapRect.left) {
-        tooltipX = mapRect.left + 10;
-    }
+  if (tooltipX < mapRect.left) {
+    tooltipX = mapRect.left + 10;
+  }
 
-    if (tooltipY < mapRect.top) {
-        tooltipY = mapRect.top + 10;
-    }
+  if (tooltipY < mapRect.top) {
+    tooltipY = mapRect.top + 10;
+  }
 
-    tooltipPosition.value = { x: tooltipX, y: tooltipY };
+  tooltipPosition.value = { x: tooltipX, y: tooltipY };
 
-    if (hoveredLaserDescription.value.nextMapUrl) {
-        infoBackground.value = hoveredLaserDescription.value.nextMapUrl;
-    } else {
-        infoBackground.value = require("@/assets/images/hover/token_hover.png");
-    }
+  if (hoveredLaserDescription.value.nextMapUrl) {
+    infoBackground.value = hoveredLaserDescription.value.nextMapUrl;
+  } else {
+    infoBackground.value = require("@/assets/images/hover/token_hover.png");
+  }
 };
 
 const onLaserMouseLeave = () => {
@@ -366,9 +358,7 @@ const onDrop = (event) => {
         y: tokenY,
       });
 
-      console.log(
-        `Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`
-      );
+      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
 
       // 토큰 좌표 이동 로그 전송
       sendMessage(tokenX.toFixed(1), tokenY.toFixed(1));
@@ -394,11 +384,13 @@ const sendMessage = (x, y) => {
   const messageData = {
     gameType: "TOKEN_MOVE",
     roomID: roomId.value,
-    tokens: [{
-      sheetID: selectedToken.value.id,
-      currentPosition: { x: currentX, y: currentY },
-      updatePosition: { x: nextX, y: nextY },
-    },]
+    tokens: [
+      {
+        sheetID: selectedToken.value.id,
+        currentPosition: { x: currentX, y: currentY },
+        updatePosition: { x: nextX, y: nextY },
+      },
+    ],
   };
 
   InGameWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
@@ -432,9 +424,7 @@ const startDrag = (token, event) => {
 
 const onDrag = (event) => {
   if (draggingToken) {
-    const mapRect = document
-      .querySelector(".map-section-container")
-      .getBoundingClientRect();
+    const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
 
@@ -445,11 +435,7 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   if (draggingToken) {
-    console.log(
-      `Token dropped at: (${draggingToken.x.toFixed(
-        1
-      )}, ${draggingToken.y.toFixed(1)})`
-    );
+    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
   }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
@@ -457,9 +443,7 @@ const stopDrag = () => {
 };
 
 const handleDiceRolled = (results) => {
-  results.forEach((result) =>
-    console.log(`${result.type}면체 주사위 결과: ${result.value}`)
-  );
+  results.forEach((result) => console.log(`${result.type}면체 주사위 결과: ${result.value}`));
 };
 
 const isLaserActive = (row, col) => {
@@ -482,17 +466,16 @@ const changeMap = async (description) => {
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
 
-      // 웹소켓 메시지 전송
-      // Log the map change event
-      // const messageData = {
-      //   gameType: 'MAP_CHANGE',
-      //   roomID: roomId.value,
-      //   currentMapID: 0,// 현재 선택된 맵 ID
-      //   nextMapID: newMapId, // 실제 다음 맵 ID로 업데이트 필요
-      // };
+    // 웹소켓 메시지 전송
+    // Log the map change event
+    // const messageData = {
+    //   gameType: 'MAP_CHANGE',
+    //   roomID: roomId.value,
+    //   currentMapID: 0,// 현재 선택된 맵 ID
+    //   nextMapID: newMapId, // 실제 다음 맵 ID로 업데이트 필요
+    // };
 
-      // GameLogWebSocketService.sendMessage(messageData);
-
+    // GameLogWebSocketService.sendMessage(messageData);
 
     try {
       const newMapId = description.nextMapId;
@@ -555,7 +538,7 @@ const modalStyle = computed(() => ({
 isGM.value = true;
 
 const updateNpcHp = (id, newHp) => {
-  const npcIndex = npcList.value.findIndex(npc => npc.id === id);
+  const npcIndex = npcList.value.findIndex((npc) => npc.id === id);
   if (npcIndex !== -1) {
     npcList.value[npcIndex].currentHp = newHp;
     console.log(`Updated NPC ${id} HP to ${newHp}`);
@@ -572,26 +555,6 @@ onMounted(async () => {
   InGameWebSocketService.onMessageReceived((message) => {
     messages.value.push(message); // 메시지 목록에 추가
   });
-});
-
-onMounted(() => {
-  threeJSManager = new ThreeJSManager(rendererContainer.value);
-  eventBus.on("dice-rolled", handleDiceRolled);
-  window.addEventListener("toggle-grid", (event) => {
-    showGrid.value = event.detail;
-  });
-
-  window.addEventListener("delete-token", (event) => {
-    deleteTokenFromMap(event.detail);
-  });
-
-  if (props.selectedMap && props.selectedMap.id) {
-    console.log("Initial Selected Map ID:", props.selectedMap.id);
-  } else {
-    console.warn(
-      "Selected Map is null or ID is not available on initial load."
-    );
-  }
 });
 
 onUnmounted(() => {

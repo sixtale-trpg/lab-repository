@@ -119,6 +119,21 @@ const fetchCharacterSheets = async () => {
   }
 };
 
+// 새로운 fetchCharacterData 함수 추가
+const fetchCharacterData = async (playMemberID) => {
+  try {
+    const characterSheet = await getCharacterSheet(roomID.value, playMemberID);
+    if (characterSheet) {
+      selectedCharacterData.value = { ...characterSheet, playMemberID: playMemberID };
+      console.log('Character data updated in fetchCharacterData:', selectedCharacterData.value);
+    } else {
+      console.error('Character data not found for playMemberID:', playMemberID);
+    }
+  } catch (error) {
+    console.error('Error fetching character sheet:', error);
+  }
+};
+
 const fetchUserJob = async (playMemberID) => {
   selectedPlayMemberID.value = playMemberID;
 
@@ -140,19 +155,14 @@ const toggleAIImages = () => {
   showStats.value = false;
 };
 
-const showUserInfo = (playMemberID) => {
-  const userData = users.value.find(user => user.playMemberID === playMemberID);
-  if (userData) {
-    selectedCharacterData.value = userData; 
-    console.log('Character data being sent to CharacterInfoModal:', selectedCharacterData.value);
-    showCharacterInfo.value = true; // 모달을 열기 위해 showCharacterInfo를 true로 설정
-  } else {
-    console.error('Character data not found for playMemberID:', playMemberID);
-  }
+const showUserInfo = async (playMemberID) => {
+  await fetchCharacterData(playMemberID);  // 최신 데이터를 가져옴
+  showCharacterInfo.value = true;
 };
 
-const closeCharacterInfo = () => {
+const closeCharacterInfo = async () => {
   showCharacterInfo.value = false;
+  await fetchCharacterSheets();  // 모달이 닫힐 때 최신 데이터를 다시 가져옴
 };
 
 const getStatValue = (statsArray, statID) => {
@@ -164,6 +174,7 @@ onMounted(() => {
   fetchCharacterSheets();
 });
 </script>
+
 
 <style scoped>
 /* 스타일 부분은 그대로 유지 */

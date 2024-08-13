@@ -8,10 +8,10 @@
 </template>
 
 <script setup>
-import Token from '@/views/games/components/ingame/Token.vue';
-import Action from '@/views/games/components/ingame/Action.vue';
-import Dice from '@/views/games/components/ingame/Dice.vue';
-import Inventory from '@/views/games/components/ingame/Inventory.vue';
+import Token from "@/views/games/components/ingame/Token.vue";
+import Action from "@/views/games/components/ingame/Action.vue";
+import Dice from "@/views/games/components/ingame/Dice.vue";
+import Inventory from "@/views/games/components/ingame/Inventory.vue";
 </script>
 
 <style scoped>
@@ -23,7 +23,10 @@ import Inventory from '@/views/games/components/ingame/Inventory.vue';
   height: 100%;
 }
 
-.token-area, .action-area, .inventory-area, .dice-area {
+.token-area,
+.action-area,
+.inventory-area,
+.dice-area {
   box-sizing: border-box;
   padding: 10px;
   margin: 0; /* 여백 제거 */
@@ -40,7 +43,8 @@ import Inventory from '@/views/games/components/ingame/Inventory.vue';
   grid-row: 1 / 2;
 }
 
-.inventory-area, .dice-area {
+.inventory-area,
+.dice-area {
   display: flex;
   flex-direction: column;
   padding: 10px; /* 내부 패딩을 통일 */
@@ -62,5 +66,4 @@ import Inventory from '@/views/games/components/ingame/Inventory.vue';
   grid-column: 1 / 3;
   grid-row: 3 / 4;
 }
-
 </style>

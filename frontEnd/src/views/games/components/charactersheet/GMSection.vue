@@ -24,6 +24,14 @@
 
 <script setup>
 import VoiceChatButton from '../../VoiceChatButton.vue'; // VoiceChatButton 컴포넌트 임포트
+import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
+import { ref, computed, onMounted } from 'vue';
+import { useRoute,useRouter } from 'vue-router';
+
+
+const route = useRoute();
+const router = useRouter();
+const roomId = ref(null);
 
 const props = defineProps({
   gm: {
@@ -36,9 +44,42 @@ const props = defineProps({
   },
 });
 
+// 게임 로그 소켓을 캐릭터 시트에서 구독
+onMounted(async () => {
+  try{
+    roomId.value = route.params.roomId;
+    GameLogWebSocketService.connect(roomId.value);
+  }catch (error) {
+    console.error('Error fetching room info or connecting to WebSocket:', error);
+  }
+
+  GameLogWebSocketService.onMessageReceived((message) => {
+      switch(message.gameType){
+        case "GAME_START":
+          // 게임 시작 시 페이지 이동
+          router.push(`/game/${route.params.roomId}/in-game`);
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+      console.log(message);
+      // messages.value.push(message);
+      // saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+
+})
+
 const emit = defineEmits(['start-game']);
 
 const startGame = () => {
+  const messageData = {
+    gameType: 'GAME_START',
+    roomID: roomId.value, 
+  };
+
+  // Send the log message via WebSocket
+  GameLogWebSocketService.sendMessage(messageData);
   emit('start-game');
 };
 

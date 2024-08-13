@@ -58,9 +58,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - var(--header-height, 70px));
-  overflow-y: scroll; /* 스크롤을 위한 overflow 설정 */
   scroll-snap-type: y mandatory; /* 수직 스크롤 스냅 설정 */
-  
 }
 
 .carousel-no-padding, 

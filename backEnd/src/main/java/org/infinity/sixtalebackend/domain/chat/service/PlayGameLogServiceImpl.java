@@ -38,8 +38,6 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
         String content = createContent(messageRequest);
         messageRequest.setContent(content);
 
-        log.info("TETSTETSTETST " +messageRequest.getSheetID());
-
         // Save to database
         playGameLogRepository.save(convertToEntity(messageRequest));
 
@@ -206,8 +204,6 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
         if (tokens == null || tokens.isEmpty()) {
             return "";
         }
-        Long sheetId = characterSheetRepository.findByPlayMemberId(tokens.get(0).getSheetID()).get().getId();
-        tokens.get(0).setSheetID(sheetId);
 
         StringBuilder contentBuilder = new StringBuilder();
 

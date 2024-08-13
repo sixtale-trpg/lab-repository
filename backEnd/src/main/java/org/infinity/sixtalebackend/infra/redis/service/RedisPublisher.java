@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.infra.redis.service;
 
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
+import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Service;
@@ -19,5 +20,9 @@ public class RedisPublisher {
     public void publish(ChannelTopic channelTopic, ChatMessageRequest chatMessageRequest){
         redisTemplate.convertAndSend(channelTopic.getTopic(), chatMessageRequest);
     }
+//
+//    public void gamePublish(ChannelTopic channelTopic, GameMessageDto gameMessageDto){
+//        redisTemplate.convertAndSend(channelTopic.getTopic(), gameMessageDto);
+//    }
 
 }

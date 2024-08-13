@@ -22,7 +22,7 @@ class WebSocketService {
     this.memberID = memberID;
     // WebSocket 및 STOMP 연결 설정
 
-    const socket = new SockJS("https://i11d108.p.ssafy.io/api/v1/ws"); // SockJS로 WebSocket 연결 생성
+    const socket = new SockJS("https://i11d108.p.ssafy.io/ws"); // SockJS로 WebSocket 연결 생성
     this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
 
     this.stompClient.connect(

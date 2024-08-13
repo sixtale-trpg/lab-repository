@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rooms/{roomID}/sheets")
@@ -121,8 +122,8 @@ public class CharacterSheetController {
     @PutMapping("{playMemberID}/gold")
     public ResponseEntity updateCharacterGold(@PathVariable Long roomID, @PathVariable Long playMemberID,  @RequestBody @Valid CharacterGoldUpdateRequest characterGoldUpdateRequest) {
         try {
-            characterSheetService.updateCharacterGold(roomID, playMemberID, characterGoldUpdateRequest);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_CHARACTER_GOLD), HttpStatus.OK);
+            Map<String, String> responseData = characterSheetService.updateCharacterGold(roomID, playMemberID, characterGoldUpdateRequest);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_CHARACTER_GOLD, responseData), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_CHARACTER_GOLD_FAIL), HttpStatus.BAD_REQUEST);

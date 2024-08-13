@@ -152,21 +152,13 @@ const addItem = async () => {
           sheetID: response.data.sheetID,
           currentWeight: oldWeight,
           updateWeight: newWeight,
-          content:
-            "[" +
-            response.data.characterName +
-            "]" +
-            "WEIGHT" +
-            ":" +
-            oldWeight +
-            " ->" +
-            newWeight,
         };
-        console.log("oldWeight", oldWeight);
-        console.log("newWeight", newWeight);
-        console.log("newWeight", newWeight);
-        console.log("newWeight", newWeight);
+        console.log("messageData",messageData);
+
+        
+        //웹소켓 전달
         ChangeWeightWebSocketService.sendMessage(messageData);
+      
         closeModal();
       } catch (error) {
         console.error("Failed to add item to the server:", error);
@@ -177,6 +169,7 @@ const addItem = async () => {
 
 onMounted(() => {
   fetchEquipmentList();
+  ChangeWeightWebSocketService.connect(route.params.roomId);
 });
 
 const modalContentStyle = computed(() => ({

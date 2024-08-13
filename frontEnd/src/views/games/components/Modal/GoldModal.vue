@@ -32,10 +32,13 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, watch } from 'vue';
+import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { updateGold } from '@/common/api/InventoryAPI'; // 골드 수정 API 함수 임포트
 import { selectedPlayMemberID } from '@/store/state.js'; // 상태에서 직접 가져오기
+import ChangeWeightWebSocketService from "@/store/websocket/changeWeight"; // WebSocket 서비스 가져오기
 
+const route = useRoute();
 const props = defineProps({
   isVisible: {
     type: Boolean,
@@ -70,11 +73,28 @@ watch(() => props.currentGold, (newGold) => {
 const closeModal = () => {
   emit('close');
 };
-
+// 웹소켓 마운트
+onMounted(() => {
+  ChangeWeightWebSocketService.connect(route.params.roomId);
+});
 const saveGold = async () => {
   try {
-    await updateGold(props.roomId, playMemberID, goldAmount.value); // API 호출
+    //골드 수정 
+    const response = await updateGold(props.roomId, playMemberID, goldAmount.value); // API 호출
+    
     emit('update-gold', goldAmount.value);
+
+     //웹소켓 메시지 데이터
+     const messageData = {
+          gameType: "GOLD",
+          roomID: response.data.roomID,
+          sheetID: response.data.sheetID,
+          currentGold: response.data.currentGold,
+          updateGold: response.data.updateGold,
+        };
+
+      // 웹소켓 전달
+      ChangeWeightWebSocketService.sendMessage(messageData);
     closeModal();
   } catch (error) {
     console.error('Failed to update gold:', error);

@@ -1,8 +1,8 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { OpenVidu } from 'openvidu-browser';
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { OpenVidu } from "openvidu-browser";
 
-export const useSessionStore = defineStore('session', () => {
+export const useSessionStore = defineStore("session", () => {
   const OV = ref(new OpenVidu());
   const session = ref(null);
   const publishers = ref(Array(9).fill(null)); // 사용자별 발행자 저장
@@ -15,12 +15,12 @@ export const useSessionStore = defineStore('session', () => {
       session.value = OV.value.initSession();
 
       // 스트림 생성 이벤트 처리
-      session.value.on('streamCreated', (event) => {
-        const subUserId = parseInt(event.stream.connection.data.split('User ')[1], 10);
+      session.value.on("streamCreated", (event) => {
+        const subUserId = parseInt(event.stream.connection.data.split("User ")[1], 10);
         console.log(`Subscribing to userId: ${subUserId}`);
 
         const subscriber = session.value.subscribe(event.stream, `video-${subUserId}`);
-        subscriber.on('streamPlaying', () => {
+        subscriber.on("streamPlaying", () => {
           console.log(`Stream playing for userId: ${subUserId}`);
         });
 
@@ -28,17 +28,17 @@ export const useSessionStore = defineStore('session', () => {
       });
 
       // 스트림 제거 이벤트 처리
-      session.value.on('streamDestroyed', (event) => {
-        const subUserId = parseInt(event.stream.connection.data.split('User ')[1], 10);
+      session.value.on("streamDestroyed", (event) => {
+        const subUserId = parseInt(event.stream.connection.data.split("User ")[1], 10);
         console.log(`Stream destroyed for userId: ${subUserId}`);
         subscribers.value[subUserId - 1] = [];
       });
 
-      session.value.on('connectionCreated', (event) => {
+      session.value.on("connectionCreated", (event) => {
         console.log(`Connection created: ${event.connection.connectionId}`);
       });
 
-      session.value.on('connectionDestroyed', (event) => {
+      session.value.on("connectionDestroyed", (event) => {
         console.log(`Connection destroyed: ${event.connection.connectionId}`);
       });
     }
@@ -59,9 +59,16 @@ const token = await getToken(userId);
   const OV = new OpenVidu('https://onedoit.store'); // OpenVidu 서버 URL
   const session = OV.initSession();
 
-  console.log(session)
-  await session.connect(token, { clientData: `User ${userId}` });
-  console.log(`Connected to session for userId: ${userId}`);
+      const publisherInstance = await OV.value.initPublisherAsync(`video-${userId}`, {
+        audioSource: true,
+        videoSource: false,
+        publishAudio: true,
+        publishVideo: false,
+        resolution: "640x480",
+        frameRate: 30,
+        insertMode: "APPEND",
+        mirror: false,
+      });
 
   const publisher = OV.initPublisher(`video-${userId}`, {
     audioSource: true,
@@ -74,66 +81,18 @@ const token = await getToken(userId);
     mirror: false,
   });
 
-  session.publish(publisher);
+      // 오디오 트랙 이벤트 등록
+      publisherInstance.on("streamAudioVolumeChange", (event) => {
+        console.log(`Audio volume changed for userId ${userId}: `, event.newValue);
+      });
 
-  console.log(`Publisher started for userId: ${userId}`);
-
-  // 오디오 트랙 이벤트 등록
-  publisher.on('streamAudioVolumeChange', (event) => {
-    console.log(`Audio volume changed for userId ${userId}: `, event.newValue);
-  });
-
-  publisher.on('streamPlaying', () => {
-    console.log(`Stream is playing for userId: ${userId}`);
-  });
-  } catch (error) {
-  console.error('Error connecting to session:', error);
-  }
-};
-  // // 음성 채팅을 시작하는 함수
-  // const startVoiceChat = async (customSessionId) => {
-  //   // if (!session.value) {
-  //   //   initializeSession();
-  //   // }
-
-  //   try {
-  //     const token = await getToken(customSessionId);
-  //     console.log(token)
-  //     const OV = new OpenVidu();
-  //     const session = OV.initSession();
-  //     // await session.value.connect(token, { clientData: `User ${userId}` });
-  //     // console.log(`Connected to session for userId: ${userId}`);
-  //     await session.connect(token, { clientData: `User ${customSessionId}` });
-  //     console.log(`Connected to session for customSessionId: ${customSessionId}`);
-
-  //     const publisher = OV.initPublisher(`video-${customSessionId}`, {
-  //     audioSource: true,
-  //     videoSource: false,
-  //     publishAudio: true,
-  //     publishVideo: false,
-  //     resolution: '640x480',
-  //     frameRate: 30,
-  //     insertMode: 'APPEND',
-  //     mirror: false,
-  //   });
-
-  //     session.value.publish(publisher);
-  //     // publishers.value[userId - 1] = publisherInstance;
-  //     console.log(`Publisher started for userId: ${userId}`);
-  //     // voiceStates.value[userId - 1] = true;
-
-  //     // 오디오 트랙 이벤트 등록
-  //     publisher.on('streamAudioVolumeChange', (event) => {
-  //       console.log(`Audio volume changed for userId ${userId}: `, event.newValue);
-  //     });
-
-  //     publisher.on('streamPlaying', () => {
-  //       console.log(`Stream is playing for userId: ${userId}`);
-  //     });
-  //   } catch (error) {
-  //     console.error('Error connecting to session:', error);
-  //   }
-  // };
+      publisherInstance.on("streamPlaying", () => {
+        console.log(`Stream is playing for userId: ${userId}`);
+      });
+    } catch (error) {
+      console.error("Error connecting to session:", error);
+    }
+  };
 
   // 음성 채팅을 중지하는 함수
   const stopVoiceChat = (userId) => {
@@ -172,11 +131,45 @@ const createSession = async (customSessionId) => {
       body: JSON.stringify({ customSessionId }),
     });
 
-    if (response.status === 409) {
-      console.log('Session already exists, fetching token');
-    } else if (!response.ok) {
-      const errorText = await response.text(); // 응답 본문을 텍스트로 읽기
-      throw new Error(`Failed to create session: ${response.statusText}. ${errorText}`);
+  // 토큰을 가져오는 함수
+  const getToken = async () => {
+    try {
+      const response = await fetch("https://i11d108.p.ssafy.io/api/v1/sessions", {
+        method: "POST",
+        headers: {
+          //   Authorization: `Basic ${btoa('OPENVIDUAPP:MY_SECRET')}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ customSessionId: "SessionA" }),
+        mode: "no-cors",
+      });
+      console.log(response.data);
+
+      if (response.status === 409) {
+        console.log("Session already exists, fetching token");
+      } else if (!response.ok) {
+        throw new Error(`Failed to create session: ${response.statusText}`);
+      }
+
+      const tokenResponse = await fetch("https://i11d108.p.ssafy.io/api/v1/tokens", {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa("OPENVIDUAPP:MY_SECRET")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ session: "SessionA" }),
+        mode: "no-cors",
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error(`Failed to create token: ${tokenResponse.statusText}`);
+      }
+
+      const token = await tokenResponse.json();
+      return token.token;
+    } catch (error) {
+      console.error("Error fetching token:", error);
+      throw error;
     }
 
     const sessionId = await response.text(); // 응답을 텍스트로 읽기
@@ -228,7 +221,7 @@ const getToken = async (customSessionId) => {
   const disconnect = () => {
     if (session.value) {
       session.value.disconnect();
-      console.log('Session disconnected');
+      console.log("Session disconnected");
       session.value = null; // 세션 초기화
 
       // 모든 사용자 음성 상태 초기화

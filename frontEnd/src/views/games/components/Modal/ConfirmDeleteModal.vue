@@ -19,10 +19,12 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed, defineProps, defineEmits, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { deleteEquipment } from '@/common/api/InventoryAPI.js';
 import { selectedPlayMemberID } from '@/store/state.js';
+import ChangeWeightWebSocketService from "@/store/websocket/changeWeight"; // WebSocket 서비스 가져오기
+
 
 const props = defineProps({
   item: Object, // 삭제할 아이템 정보를 받아옴
@@ -45,10 +47,23 @@ const handleDelete = async () => {
       console.log('Deleting equipment with equipmentID:', props.item.equipmentID); // 로그 추가
 
       // 서버에 삭제 요청 (equipmentID를 사용)
-      await deleteEquipment(roomId, playMemberID, props.item.equipmentID);
-
+      const response = await deleteEquipment(roomId, playMemberID, props.item.equipmentID);
+      console.log("delete response" ,response.data)
       // 성공 시 confirm 이벤트 emit
       emit('confirm');
+
+        //웹소켓 메시지 데이터
+        const messageData = {
+          gameType: "WEIGHT",
+          roomID: response.data.roomID,
+          sheetID: response.data.sheetID,
+          currentWeight: response.data.currentWeight,
+          updateWeight: response.data.updateWeight,
+        };
+
+        // 웹소켓 전달
+        ChangeWeightWebSocketService.sendMessage(messageData);
+
       close();
     } catch (error) {
       console.error('Failed to delete item from the server:', error);
@@ -56,7 +71,10 @@ const handleDelete = async () => {
     }
   }
 };
-
+//웹소켓 마운트
+onMounted(() => {
+  ChangeWeightWebSocketService.connect(route.params.roomId);
+});
 
 const modalContentStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,

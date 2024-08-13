@@ -101,6 +101,7 @@ public class GameMessageDto {
         private Map<String, Integer> updatePosition; // 업데이트된 위치 (좌표 이동 시 사용)
     }
 
+    @Getter
     @Data
     @Builder
     public static class TokenMove {

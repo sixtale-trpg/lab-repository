@@ -10,6 +10,10 @@
           <div v-for="msg in messages" :key="msg.id">
           <p>{{ msg.content }}</p>
         </div>
+    <!-- <div class="message-input">
+      <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+      <button @click="sendMessage">Send</button>
+    </div> -->
       </div>
   <!-- <div class="message-input">
     <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />

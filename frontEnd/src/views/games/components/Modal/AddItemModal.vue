@@ -139,10 +139,7 @@ const addItem = async () => {
         );
         // console.log("addItem response", response.data);
 
-        // `select-item` 이벤트가 발생하는지 확인
-        console.log("Emitting select-item with:", selectedItem.value);
-
-        // 이벤트 발생시 아이템의 전체 수량(currentCount)을 정확히 반영하여 전달합니다.
+        // select-item 이벤트 발생
         emit("select-item", { ...selectedItem.value, currentCount: selectedItem.value.count });
 
         //웹소켓 메시지 데이터
@@ -166,6 +163,7 @@ const addItem = async () => {
     }
   }
 };
+
 
 onMounted(() => {
   fetchEquipmentList();

@@ -51,10 +51,23 @@ export const createCharacterSheet = async (roomID, characterData) => {
   }
 };
 
-// 캐릭터 시트 업데이트
+// 캐릭터 시트 업데이트 - 플레이 전 (캐릭터 시트작성할 때)
 export const updateCharacterSheet = async (roomID, playMemberID, updatedData) => {
   try {
     const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}`, updatedData, {
+      headers: getHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating character sheet:', error);
+    throw error;
+  }
+};
+
+// 캐릭터 시트 업데이트 - 플레이 후 (스탯 수정 시)
+export const updateCharacterSheet2 = async (roomID, playMemberID, updatedData) => {
+  try {
+    const response = await axios.put(`${BASE_SHEETS_URL}/${roomID}/sheets/${playMemberID}/sheet`, updatedData, {
       headers: getHeaders()
     });
     return response.data;

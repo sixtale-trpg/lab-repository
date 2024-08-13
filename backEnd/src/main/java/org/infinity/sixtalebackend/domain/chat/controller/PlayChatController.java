@@ -97,6 +97,7 @@ public class PlayChatController {
     // @SendTo("/sub/game/messages/{roomID}")
     public void handleGameMessage(GameMessageDto gameMessageDto){
         // 로그 저장 및 처리
+        log.info("FFFFFFFFFFFFFFFFF", gameMessageDto.getRoomID());
 
         // 처리된 메시지를 클라이언트에게 전송x
         playGameLogService.sendPlayGameLogMessage(gameMessageDto);

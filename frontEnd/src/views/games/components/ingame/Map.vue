@@ -15,10 +15,7 @@
         >
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
-            <div
-              class="npc-hp-fill"
-              :style="{ width: (npc.currentHp / npc.maxHp) * 100 + '%' }"
-            ></div>
+            <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
           </div>
           <p v-if="isGM">
             <input 

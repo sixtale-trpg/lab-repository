@@ -137,10 +137,13 @@ import { getMapPlace, getMapNpcs, getMapList } from '@/common/api/RoomsAPI';
 import { useRoute } from 'vue-router';
 import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
 
-import scheduleModal from '@/assets/images/ingame/map/background.png';
-import titleImage from '@/assets/images/ingame/map/title.png';
-import cancelImage from '@/assets/images/ingame/map/cancel.png';
-import okImage from '@/assets/images/ingame/map/ok.png';
+import scheduleModal from "@/assets/images/ingame/map/background.png";
+import titleImage from "@/assets/images/ingame/map/title.png";
+import cancelImage from "@/assets/images/ingame/map/cancel.png";
+import okImage from "@/assets/images/ingame/map/ok.png";
+import backButtonImage from "@/assets/images/ingame/map/back_button.png";
+
+import InGameWebSocketService from "@/store/websocket/ingame"; // WebSocket 서비스 가져오기
 
 const props = defineProps({
   selectedMap: {
@@ -164,10 +167,17 @@ const showGrid = ref(true);
 const gridSize = 50;
 
 const npcList = ref([]); // NPC 리스트를 위한 ref
+const npcInfo = ref([]); // NPC 리스트를 위한 ref
 const isGM = ref(false); // GM 여부를 확인하는 변수
 const isNpcListOpen = ref(true); // NPC 리스트 열림 여부
 
 const cellDescriptions = ref({});
+
+const messages = ref([]); // 모든 메시지를 저장하는 배열
+const newMessage = ref("");
+const { selectedMap, selectedToken, setSelectedMap, currentTokenX, currentTokenY } = mapStore;
+
+// selectedMap prop의 변경 사항 감시
 const tooltipPosition = ref({ x: 0, y: 0 });
 let tooltipTimeout = null;
 
@@ -181,7 +191,7 @@ watch(
     console.log("뉴맵" +newMap.id)
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
-      console.log("Selected Map ID:", newMap.id);
+      setSelectedMap(newMap);
 
       try {
         await loadMapData(newMap.id); // 맵과 관련된 이벤트와 NPC 데이터를 로드
@@ -356,6 +366,13 @@ const onDrop = (event) => {
         y: tokenY,
       });
 
+      console.log(
+        `Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`
+      );
+
+      // 토큰 좌표 이동 로그 전송
+      sendMessage(tokenX.toFixed(1), tokenY.toFixed(1));
+
       const removeEvent = new CustomEvent("remove-token-from-list", {
         detail: parsedToken,
       });
@@ -364,6 +381,27 @@ const onDrop = (event) => {
   } catch (error) {
     console.error("유효하지 않은 JSON 데이터:", tokenData);
   }
+};
+
+// 토큰 드랍 시 메시지 전송
+const sendMessage = (x, y) => {
+  const currentX = parseInt(currentTokenX, 10);
+  const currentY = parseInt(currentTokenY, 10);
+
+  const nextX = parseInt(x, 10);
+  const nextY = parseInt(y, 10);
+
+  const messageData = {
+    gameType: "TOKEN_MOVE",
+    roomID: roomId.value,
+    tokens: [{
+      sheetID: selectedToken.value.id,
+      currentPosition: { x: currentX, y: currentY },
+      updatePosition: { x: nextX, y: nextY },
+    },]
+  };
+
+  InGameWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
 };
 
 const deleteTokenFromMap = (token) => {
@@ -407,7 +445,11 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   if (draggingToken) {
-    draggingToken.zIndex = draggingToken.zIndexBackup; // 기존 z-index 복원
+    console.log(
+      `Token dropped at: (${draggingToken.x.toFixed(
+        1
+      )}, ${draggingToken.y.toFixed(1)})`
+    );
   }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
@@ -461,14 +503,14 @@ const changeMap = async (description) => {
 
       if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
         activeLasers.value = new Set(
-          mapInfo.placeEvents.map(event => {
+          mapInfo.placeEvents.map((event) => {
             const coord = `${event.row}-${event.col}`;
             return coord;
           })
         );
 
         cellDescriptions.value = {};
-        mapInfo.placeEvents.forEach(event => {
+        mapInfo.placeEvents.forEach((event) => {
           cellDescriptions.value[`${event.row}-${event.col}`] = {
             title: `Event at (${event.row}, ${event.col})`,
             details: event.description,
@@ -476,15 +518,39 @@ const changeMap = async (description) => {
             nextMapUrl: event.nextMapUrl,
           };
         });
+
+        console.log("Updated Map Info:", mapInfo);
+      } else {
+        console.warn("Invalid map data or placeEvents is undefined");
       }
 
+      if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
+        npcData.value = {}; // 기존 NPC 데이터를 초기화합니다.
+        npcInfo.npcEventList.forEach((npcEvent) => {
+          npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
+            description: npcEvent.description,
+            currentHp: npcEvent.currentHp,
+            imageUrl: backButtonImage, // 여기에 실제 NPC 이미지 경로를 설정하세요
+          };
+        });
 
+        console.log("Updated NPC Info:", npcInfo);
+      } else {
+        console.warn("Invalid NPC data or npcEventList is undefined");
+      }
     } catch (error) {
       console.error("Error loading new map or NPC data:", error);
     }
   }
 };
 
+const modalStyle = computed(() => ({
+  backgroundImage: `url(${scheduleModal})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  zIndex: 1070,
+}));
 // GM 여부 설정 (임의로 true로 설정, 실제로는 인증된 GM 사용자만 true가 되도록 구현 필요)
 isGM.value = true;
 
@@ -499,6 +565,40 @@ const updateNpcHp = (id, newHp) => {
 const toggleNpcList = () => {
   isNpcListOpen.value = !isNpcListOpen.value;
 };
+
+onMounted(async () => {
+  InGameWebSocketService.connect(roomId.value);
+  // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  InGameWebSocketService.onMessageReceived((message) => {
+    messages.value.push(message); // 메시지 목록에 추가
+  });
+});
+
+onMounted(() => {
+  threeJSManager = new ThreeJSManager(rendererContainer.value);
+  eventBus.on("dice-rolled", handleDiceRolled);
+  window.addEventListener("toggle-grid", (event) => {
+    showGrid.value = event.detail;
+  });
+
+  window.addEventListener("delete-token", (event) => {
+    deleteTokenFromMap(event.detail);
+  });
+
+  if (props.selectedMap && props.selectedMap.id) {
+    console.log("Initial Selected Map ID:", props.selectedMap.id);
+  } else {
+    console.warn(
+      "Selected Map is null or ID is not available on initial load."
+    );
+  }
+});
+
+onUnmounted(() => {
+  eventBus.off("dice-rolled", handleDiceRolled);
+  window.removeEventListener("toggle-grid", () => {});
+  window.removeEventListener("delete-token", () => {});
+});
 </script>
 
 <style scoped>

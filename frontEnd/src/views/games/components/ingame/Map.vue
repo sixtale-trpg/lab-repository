@@ -15,10 +15,7 @@
         >
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
-            <div
-              class="npc-hp-fill"
-              :style="{ width: (npc.currentHp / npc.maxHp) * 100 + '%' }"
-            ></div>
+            <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
           </div>
           <p v-if="isGM">
             <input 
@@ -136,7 +133,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
-import { getMapPlace, getMapNpcs } from '@/common/api/RoomsAPI';
+import { getMapPlace, getMapNpcs, getMapList } from '@/common/api/RoomsAPI';
 import { useRoute } from 'vue-router';
 
 import scheduleModal from '@/assets/images/ingame/map/background.png';
@@ -158,9 +155,8 @@ const mapStore = useMapStore();
 const route = useRoute();
 const roomId = ref(route.params.roomId);
 
+const mapImage = ref(null); // mapImage 초기 값 null로 설정
 const tokenImage = require("@/assets/images/ingame/Token.png");
-const defaultMapImage = require("@/assets/images/maps/map1.png");
-const mapImage = ref(defaultMapImage);
 const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
@@ -171,13 +167,11 @@ const isGM = ref(false); // GM 여부를 확인하는 변수
 const isNpcListOpen = ref(true); // NPC 리스트 열림 여부
 
 const cellDescriptions = ref({});
-
 const tooltipPosition = ref({ x: 0, y: 0 });
 let tooltipTimeout = null;
 
 const activeLasers = ref(new Set());
 const hoveredDescription = ref({ title: "", details: "" });
-
 const hoveredLaserDescription = ref(null);
 
 watch(
@@ -188,52 +182,89 @@ watch(
       console.log("Selected Map ID:", newMap.id);
 
       try {
-        const mapId = newMap.id;
-        const roomId2 = roomId.value;
-
-        const mapInfo = await getMapPlace(roomId2, mapId);
-        const npcData = await getMapNpcs(roomId2, mapId);  // NPC 정보 불러오기
-
-        npcList.value = npcData.npcEvents || [];
-
-        // 콘솔에 NPC 정보를 출력
-        console.log("NPC List:", npcList.value);
-
-        if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
-          activeLasers.value = new Set(
-            mapInfo.placeEvents.map(event => {
-              const coord = `${event.row}-${event.col}`;
-              return coord;
-            })
-          );
-
-          cellDescriptions.value = {};
-          mapInfo.placeEvents.forEach(event => {
-            cellDescriptions.value[`${event.row}-${event.col}`] = {
-              title: `Event at (${event.row}, ${event.col})`,
-              details: event.description,
-              nextMapId: event.nextMapId,
-              nextMapUrl: event.nextMapUrl,
-            };
-          });
-        }
-
+        await loadMapData(newMap.id); // 맵과 관련된 이벤트와 NPC 데이터를 로드
       } catch (error) {
         console.error("Error loading map or NPC data:", error);
       }
     } else {
-      mapImage.value = defaultMapImage;
-      console.warn("Selected Map is null or does not have an image URL.");
+      await loadDefaultMapImage(); // 맵 선택이 없을 경우 기본 맵 이미지를 로드
     }
   },
   { immediate: true }
 );
 
+const loadDefaultMapImage = async () => {
+  try {
+    const response = await getMapList(roomId.value);
+    const mapList = response.mapList || [];
+
+    if (mapList.length > 0) {
+      const firstMap = mapList[0];
+      mapImage.value = firstMap.imageURL; // 맵 목록의 첫 번째 이미지를 설정
+      console.log("첫 번째 맵 이미지 URL:", mapImage.value);
+
+      await loadMapData(firstMap.id); // 첫 번째 맵의 이벤트와 NPC 데이터를 로드
+    } else {
+      mapImage.value = require("@/assets/images/maps/map1.png"); // 맵 목록이 비어있으면 기본 이미지를 설정
+      console.warn("맵 목록이 비어 있습니다.");
+    }
+  } catch (error) {
+    mapImage.value = require("@/assets/images/maps/map1.png"); // 오류 발생 시 기본 이미지를 설정
+    console.error("맵 목록을 가져오는 중 오류 발생:", error);
+  }
+};
+
+const loadMapData = async (mapId) => {
+  try {
+    const roomId2 = roomId.value;
+
+    const mapInfo = await getMapPlace(roomId2, mapId);
+    const npcData = await getMapNpcs(roomId2, mapId);  // NPC 정보 불러오기
+
+    npcList.value = npcData.npcEvents || [];
+
+    // 콘솔에 NPC 정보를 출력
+    console.log("NPC List:", npcList.value);
+
+    if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
+      activeLasers.value = new Set(
+        mapInfo.placeEvents.map(event => {
+          const coord = `${event.row}-${event.col}`;
+          return coord;
+        })
+      );
+
+      cellDescriptions.value = {};
+      mapInfo.placeEvents.forEach(event => {
+        cellDescriptions.value[`${event.row}-${event.col}`] = {
+          title: `Event at (${event.row}, ${event.col})`,
+          details: event.description,
+          nextMapId: event.nextMapId,
+          nextMapUrl: event.nextMapUrl,
+        };
+      });
+    }
+  } catch (error) {
+    console.error("Error loading map or NPC data:", error);
+  }
+};
+
+onMounted(() => {
+  loadDefaultMapImage(); // 컴포넌트가 마운트될 때 기본 맵 이미지를 로드
+
+  threeJSManager = new ThreeJSManager(rendererContainer.value);
+  eventBus.on("dice-rolled", handleDiceRolled);
+  window.addEventListener("toggle-grid", (event) => {
+    showGrid.value = event.detail;
+  });
+
+  window.addEventListener("delete-token", (event) => {
+    deleteTokenFromMap(event.detail);
+  });
+});
+
 const gridRows = computed(() => Array.from({ length: 10 }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: 15 }, (_, i) => i));
-
-const gridCellWidth = computed(() => mapImage.value ? mapImage.value.width / 15 : 0);
-const gridCellHeight = computed(() => mapImage.value ? mapImage.value.height / 10 : 0);
 
 const onLaserMouseEnter = (row, col, event) => {
     if (tooltipTimeout) clearTimeout(tooltipTimeout);
@@ -452,24 +483,6 @@ const updateNpcHp = (id, newHp) => {
 const toggleNpcList = () => {
   isNpcListOpen.value = !isNpcListOpen.value;
 };
-
-onMounted(() => {
-  threeJSManager = new ThreeJSManager(rendererContainer.value);
-  eventBus.on("dice-rolled", handleDiceRolled);
-  window.addEventListener("toggle-grid", (event) => {
-    showGrid.value = event.detail;
-  });
-
-  window.addEventListener("delete-token", (event) => {
-    deleteTokenFromMap(event.detail);
-  });
-});
-
-onUnmounted(() => {
-  eventBus.off("dice-rolled", handleDiceRolled);
-  window.removeEventListener("toggle-grid", () => {});
-  window.removeEventListener("delete-token", () => {});
-});
 </script>
 
 <style scoped>

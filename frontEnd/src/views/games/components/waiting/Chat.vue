@@ -16,6 +16,15 @@
       >
         <span>채팅</span>
       </div>
+        <select v-model="selectedUser" class="whisper-dropdown">
+          <option v-for="user in users" :key="user.id" :value="user">{{ user.name }}</option>
+        </select>
+        <div class="whisper-chat" v-if="selectedUser">
+          <div v-for="msg in whisperMessages[selectedUser.id]" :key="msg.id">
+            <strong>{{ msg.sender }}:</strong> {{ msg.content }}
+          </div>
+        </div>
+
       <div
         @click="selectTab('whisper')"
         :class="{ tab: true, active: selectedTab.value === 'WHISPER' }"
@@ -33,6 +42,17 @@
       >
         <span class="sender">{{ message.sender }}:</span>
         <span class="text">{{ message.text }}</span>
+      </div>
+    </div>
+    <!-- 귓속말 -->
+    <div v-if="activeTab == 'WHISPER'">
+      <select v-model="selectedUser" class="whisper-dropdown">
+        <option v-for="user in users" :key="user.id" :value="user">{{ user.name }}</option>
+      </select>
+      <div class="whisper-chat" v-if="selectedUser">
+        <div v-for="msg in whisperMessages[selectedUser.id]" :key="msg.id">
+          <strong>{{ msg.sender }}:</strong> {{ msg.content }}
+        </div>
       </div>
     </div>
     <div :style="inputContainerStyle" class="input-container">
@@ -70,6 +90,19 @@ const selectedTab = ref("ALL");
 const newMessage = ref("");
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const roomInfo = ref(null); // 방 정보를 저장할 변수
+
+const users = ref([
+  { id: 1, name: 'Player1' },
+  { id: 2, name: 'Player2' },
+  { id: 3, name: 'Player3' },
+  { id: 4, name: 'Player4' },
+  { id: 5, name: 'Player5' },
+  { id: 6, name: 'Player6' },
+  { id: 7, name: 'Player7' },
+  { id: 8, name: 'Player8' },
+  { id: 'GM', name: 'Game Master' },
+]); // 예시 사용자 데이터
+const selectedUser = ref(null);
 
 // 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
 const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정

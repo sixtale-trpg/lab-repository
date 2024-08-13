@@ -1,168 +1,229 @@
 <template>
   <div class="equipment-selection-container">
-    <p>선호하는 무기를 선택하십시오</p>
-    <div class="title-bar">
-      <img src="@/assets/images/character_sheet/description_box.png" alt="Title Bar" class="title-bar-image">
-      <span class="title-bar-text">
-        하주은 9. 근원입니다. 갖고 있는 물건은 다음과 같습니다.
-        던전용 식량 (중1흔, 무게1), 가족 칼장 (중1흔, 무게1), 신탁력 특성3회분, 돈 10실.
-      </span>
+    <div class="equipment-decripton-title">
+      <p>캐릭터 시트에 들어갈 장비를 선택하세요 <br> 종류당 1개씩만 선택 가능합니다.</p>
+      <p>현재 하중: {{ calculateCurrentWeight }} / {{ calculateLimitWeight }}</p>
     </div>
-    <div class="equipment-buttons">
-      <div class="equipment-category">
-        <div class="title-container">
-          <img src="@/assets/images/character_sheet/nickname_light.png" alt="근거리 무기 선택" class="title-image">
-          <span class="title-text">근거리 무기 선택</span>
-        </div>
-        <div 
-          v-for="(button, index) in closeRangeWeapons" 
-          :key="index" 
-          class="equipment-button" 
-          @click="selectCloseRangeWeapon(index)"
-          :style="getButtonStyle(formData.selectedCloseRangeWeapon === index)"
-          :class="{ active: formData.selectedCloseRangeWeapon === index }"
-        >
-          <span>{{ button.title }}</span>
-        </div>
-      </div>
-      <div class="equipment-category">
-        <div class="title-container">
-          <img src="@/assets/images/character_sheet/nickname_light.png" alt="원거리 무기 선택" class="title-image">
-          <span class="title-text">원거리 무기 선택</span>
-        </div>
-        <div 
-          v-for="(button, index) in longRangeWeapons" 
-          :key="index" 
-          class="equipment-button" 
-          @click="selectLongRangeWeapon(index)"
-          :style="getButtonStyle(formData.selectedLongRangeWeapon === index)"
-          :class="{ active: formData.selectedLongRangeWeapon === index }"
-        >
-          <span>{{ button.title }}</span>
+    <div v-if="equipmentGroups.length > 0">
+      <div class="equipment-group" v-for="(group, groupIndex) in equipmentGroups" :key="groupIndex">
+        <div class="equipment-category">
+          <div class="title-container" :style="getCategoryStyle()">
+            <span class="title-text" v-if="group[0] && group[0].equipmentType">{{ group[0].equipmentType.name }}</span>
+            <span class="title-text" v-else>Unknown</span>
+          </div>
+          <div class="equipment-cards">
+            <div 
+              v-for="(item, index) in group" 
+              :key="item.id" 
+              :class="['action-card', { selected: isSelected(item.equipmentType.id, item.id) }]"
+              @click="selectEquipment(item.equipmentType.id, item)"
+            >
+              <img :src="item.imageUrl || 'path/to/default-image.png'" alt="장비 이미지" class="equipment-image">
+              <div class="equipment-info">
+                <span class="equipment-name">{{ item.name }}</span>
+                <br>
+                <span class="equipment-description">{{ item.description }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="equipment-category">
-        <div class="title-container">
-          <img src="@/assets/images/character_sheet/nickname_light.png" alt="다음 중 하나 선택" class="title-image">
-          <span class="title-text">다음 중 하나 선택</span>
-        </div>
-        <div 
-          v-for="(button, index) in miscellaneous" 
-          :key="index" 
-          class="equipment-button" 
-          @click="selectMiscellaneous(index)"
-          :style="getButtonStyle(formData.selectedMiscellaneous === index)"
-          :class="{ active: formData.selectedMiscellaneous === index }"
-        >
-          <span>{{ button.title }}</span>
-        </div>
-      </div>
+    </div>
+    <div v-else>
+      <p>장비를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, toRefs } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue'; // Vue Composition API 기능들 import
+import { fetchJobList } from '@/common/api/JobAPI.js';
 
 const props = defineProps({
-  'form-data': {
-    type: Object,
-    required: true
-  }
+  formData: Object,
+  currentOptions: Array,
+  jobId: Number,
+  ruleId: Number
 });
-// const { formData } = toRefs(props);
-const emit = defineEmits(['update:form-data']);
-const closeRangeWeapons = reactive([
-  { title: '단도 (반검용, 무게 1)' },
-  { title: '레이피어 (한검용, 장검, 무게 1)' },
-]);
 
-const longRangeWeapons = reactive([
-  { title: '투척용 단검 세 자루 (투척, 중거리, 무게 0)' },
-  { title: '낡은 활 (중거리, 무게 1), 화살 한 다발 (발사, 무게 1)' },
-]);
+const emit = defineEmits(['update:character-equipment']);
 
-const miscellaneous = reactive([
-  { title: '모험 장비 (무게 1)' },
-]);
+const selectedEquipment = reactive({});
+const jobWeight = ref(0);
+const currentWeight = ref(0); // 현재 하중
 
-const selectCloseRangeWeapon = (index) => {
-  formData.value.selectedCloseRangeWeapon = index;
+// 부모 컴포넌트로부터 전달된 characterEquipment 값을 로컬 상태로 초기화
+onMounted(async () => {
+  await fetchJobWeight();
+  initializeSelectedEquipment();
+  resetCurrentWeight(); // 현재 하중 초기화 및 계산
+});
+
+// 부모에서 전달된 characterEquipment를 통해 선택된 장비 초기화
+const initializeSelectedEquipment = () => {
+  if (props.formData.characterEquipment && Array.isArray(props.formData.characterEquipment)) {
+    props.formData.characterEquipment.forEach(equipment => {
+      if (equipment.equipmentType) {
+        selectedEquipment[equipment.equipmentType.id] = equipment;
+      }
+    });
+  }
 };
 
-const selectLongRangeWeapon = (index) => {
-  formData.value.selectedLongRangeWeapon = index;
+// jobWeight 값 가져오기
+const fetchJobWeight = async () => {
+  try {
+    const jobList = await fetchJobList(props.ruleId);
+    const job = jobList.find(job => job.id === props.jobId);
+    if (job) {
+      jobWeight.value = job.weight;
+    }
+  } catch (error) {
+    console.error('Error fetching job weight:', error);
+  }
 };
 
-const selectMiscellaneous = (index) => {
-  formData.value.selectedMiscellaneous = index;
+// 한계 하중 계산 (직업의 기본 무게 + 근력 스탯)
+const calculateLimitWeight = computed(() => {
+  const strengthStat = props.formData.stat.find(stat => stat.statID === 1);
+  return jobWeight.value + (strengthStat ? strengthStat.statValue : 0);
+});
+
+// 현재 하중 계산 (선택된 아이템의 무게 합산)
+const calculateCurrentWeight = computed(() => {
+  return currentWeight.value;
+});
+
+// 현재 하중 초기화 및 다시 계산
+const resetCurrentWeight = () => {
+  currentWeight.value = 0;
+  Object.values(selectedEquipment).forEach(equipment => {
+    currentWeight.value += equipment.weight || 0;
+  });
+  updateParentCurrentWeight(); // 부모의 하중을 덮어씌움
 };
 
-const defaultBackgroundImage = require('@/assets/images/character_sheet/equip1.png');
-const activeBackgroundImage = require('@/assets/images/character_sheet/equip2.png');
+// 부모의 현재 하중을 덮어씌우는 함수
+const updateParentCurrentWeight = () => {
+  props.formData.currentWeight = currentWeight.value;
+  emit('update:character-equipment', Object.values(selectedEquipment));
+};
 
-const getButtonStyle = (isActive) => {
+// 선택된 아이템의 무게를 계산하고 업데이트
+const selectEquipment = (typeId, item) => {
+  if (selectedEquipment[typeId]) {
+    // 기존 선택된 아이템의 무게를 제거
+    currentWeight.value -= selectedEquipment[typeId].weight || 0;
+  }
+
+  // 새로운 아이템을 선택
+  selectedEquipment[typeId] = {
+    equipmentId: item.id,
+    equipmentType: {
+      id: typeId,
+    },
+    currentCount: 1,
+    weight: item.weight
+  };
+
+  // 새로운 아이템의 무게를 추가
+  currentWeight.value += item.weight || 0;
+
+  // 부모 컴포넌트로 업데이트
+  updateParentCurrentWeight();
+};
+
+// 선택된 장비인지 확인하는 함수
+const isSelected = (typeId, itemId) => {
+  return selectedEquipment[typeId] && selectedEquipment[typeId].equipmentId === itemId;
+};
+
+// equipmentGroups 계산
+const equipmentGroups = computed(() => {
+  if (!Array.isArray(props.currentOptions) || props.currentOptions.length === 0) {
+    return [];
+  }
+  return Object.values(
+    props.currentOptions.reduce((groups, item) => {
+      if (item.equipmentType && item.equipmentType.id) {
+        const groupId = item.equipmentType.id;
+        if (!groups[groupId]) {
+          groups[groupId] = [];
+        }
+        groups[groupId].push(item);
+      }
+      return groups;
+    }, {})
+  );
+});
+
+const categoryImage = require('@/assets/images/character_sheet/Vector.png');
+const getCategoryStyle = () => {
   return {
-    backgroundImage: `url(${isActive ? activeBackgroundImage : defaultBackgroundImage})`
+    backgroundImage: `url(${categoryImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'relative',
+    width: '350px',
+    height: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 };
 </script>
 
 <style scoped>
+.equipment-decripton-title {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
 .equipment-selection-container {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.title-bar {
-  position: relative;
-  width: 100%;
-  height: 80px; /* 제목 바 높이 조정 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px; /* 제목 바와 내용 사이 간격 */
-}
-
-.title-bar-image {
-  width: 100%;
-  height: 100%;
-}
-
-.title-bar-text {
-  position: absolute;
-  color: white;
-  font-size: 1rem; /* 텍스트 크기 조정 */
-  text-align: center;
-  padding: 0 20px; /* 텍스트 패딩 */
-  white-space: pre-wrap; /* 여러 줄 텍스트 지원 */
-}
-
-.equipment-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px; /* 간격 조정 */
+.equipment-group {
+  margin-bottom: 20px;
+  width: 80%;
+  padding: 5%;
+  max-width: 1200px;
+  text-align: left;
 }
 
 .equipment-category {
-  margin-bottom: 20px; /* 간격 조정 */
-  text-align: center; /* 카테고리 안의 내용 가운데 정렬 */
+  margin-bottom: 20px;
+}
+
+.action-card {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  padding: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s, box-shadow 0.3s, border 0.3s;
+}
+
+.action-card:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.action-card.selected {
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #fff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
 }
 
 .title-container {
   position: relative;
-  display: flex; /* flexbox로 설정 */
-  align-items: center; /* 수직 가운데 정렬 */
-  justify-content: center; /* 수평 가운데 정렬 */
-  margin-bottom: 15px; /* 간격 조정 */
-}
-
-.title-image {
-  width: 350px; /* 너비 조정 */
-  height: 60px; /* 높이 조정 */
-  display: block;
+  margin-bottom: 15px;
 }
 
 .title-text {
@@ -171,29 +232,43 @@ const getButtonStyle = (isActive) => {
   left: 50%;
   transform: translate(-50%, -50%);
   color: #fff;
-  font-size: 1.2rem; /* 폰트 크기 조정 */
+  font-size: 1.2rem;
   white-space: nowrap;
 }
 
-.equipment-button {
-  background-size: cover;
+.equipment-cards {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  cursor: pointer;
-  margin-bottom: 15px; /* 간격 조정 */
-  padding: 10px; /* 패딩 조정 */
-  font-size: 1rem; /* 폰트 크기 조정 */
-  width: 400px; /* 너비 조정 */
-  height: 60px; /* 높이 조정 */
-  border-radius: 10px; /* 테두리 반경 조정 */
-  position: relative;
-  transition: transform 0.3s, box-shadow 0.3s, background-image 0.3s; /* 애니메이션 추가 */
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 10px;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
-.equipment-button.active {
-  transform: scale(1.05); /* 크기 조정 */
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* 그림자 추가 */
+.equipment-image {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  margin-bottom: 10px;
+  transition: transform 0.3s;
+}
+
+.action-card.selected .equipment-image {
+  transform: scale(1.1);
+}
+
+.equipment-info {
+  text-align: center;
+}
+
+.equipment-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.equipment-description {
+  font-size: 1rem;
+  color: #ddd;
 }
 </style>

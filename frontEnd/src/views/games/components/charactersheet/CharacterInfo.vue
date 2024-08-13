@@ -27,8 +27,8 @@
         <div 
           v-for="race in currentOptions" 
           :key="race.raceID" 
-          :class="['action-card', { selected: localFormData.selectedRace === race.raceName }]"
-          @click="selectRace(race.raceName)">
+          :class="['action-card', { selected: localFormData.raceId === race.raceID }]"
+          @click="selectRace(race.raceID)">
           <div class="race-card-header">
             <span class="race-card-title">{{ race.raceName }}</span>
           </div>
@@ -39,6 +39,8 @@
       </div>
     </div>
   </div>
+  <!-- 경고 메시지 -->
+  <div v-if="showWarning" class="warning-text">입력하지 않은 값이 있습니다!</div>
   <div class="history-section">
     <div class="history-title-container">
       <img src="@/assets/images/character_sheet/Vector.png" alt="히스토리" class="history-title-image">
@@ -47,12 +49,12 @@
     <div class="history-input-container">
       <input 
         type="text" 
-        v-model="localFormData.history" 
+        v-model="localFormData.background" 
         id="history" 
         class="history-input" 
         maxlength="255" 
         placeholder="최대 255자" 
-        @input="emitHistoryChange" 
+        @input="emitBackgroundChange" 
       />
       <img src="@/assets/images/character_sheet/history_box.png" alt="히스토리 입력 배경" class="history-input-image">
     </div>
@@ -64,32 +66,50 @@ import { ref, reactive, toRefs, watch } from 'vue';
 
 const props = defineProps({
   formData: Object,
-  currentOptions: Array // currentOptions를 props로 받아옵니다.
+  currentOptions: Array 
 });
 
-const { formData, currentOptions } = toRefs(props); // currentOptions를 toRefs로 접근
+const { formData } = toRefs(props);
 
-const emit = defineEmits(['update:name', 'update:history', 'update:selectedRace']);
+const emit = defineEmits(['update:name', 'update:background', 'update:race-id']);
 
 // 로컬 상태를 만들어 formData의 변경을 감지하고 부모에 반영
 const localFormData = reactive({ ...formData.value });
 
+// 경고 메시지 표시 여부
+const showWarning = ref(false);
+
 // 부모 컴포넌트에서 넘어온 값이 변경될 경우 로컬 상태를 동기화
-watch(() => formData.value, (newVal) => {
-  Object.assign(localFormData, newVal);
+watch(formData, (newValue) => {
+  localFormData.name = newValue.name;
+  localFormData.background = newValue.background;
+  localFormData.raceId = newValue.raceId;
+});
+
+watch(localFormData, (newValue) => {
+  emit('update:name', newValue.name);
+  emit('update:background', newValue.background);
+  emit('update:race-id', newValue.raceId);
 });
 
 function emitNameChange() {
   emit('update:name', localFormData.name);
+  checkForEmptyFields();
 }
 
-function emitHistoryChange() {
-  emit('update:history', localFormData.history);
+function emitBackgroundChange() {
+  emit('update:background', localFormData.background);
+  checkForEmptyFields();
 }
 
-function selectRace(raceName) {
-  localFormData.selectedRace = raceName;
-  emit('update:selectedRace', raceName);
+function selectRace(raceId) {
+  localFormData.raceId = raceId;
+  emit('update:race-id', raceId);
+  checkForEmptyFields();
+}
+
+function checkForEmptyFields() {
+  showWarning.value = !localFormData.name || !localFormData.raceId || !localFormData.background;
 }
 </script>
 
@@ -251,5 +271,15 @@ function selectRace(raceName) {
   color: #fff;
   z-index: 2; /* 배경 이미지 위에 텍스트가 오도록 설정 */
   box-sizing: border-box;
+}
+
+.warning-text {
+  font-size: 1.5rem;
+  margin-top: 5%;
+  margin-bottom: 20px;
+  text-align: center;
+  color: red;
+  margin: 1rem;
+  font-weight: bold;
 }
 </style>

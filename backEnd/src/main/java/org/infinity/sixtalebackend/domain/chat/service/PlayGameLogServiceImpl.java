@@ -47,8 +47,7 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
 
         // Save to database
         playGameLogRepository.save(convertToEntity(messageRequest));
-        Long sheetId = characterSheetRepository.findByPlayMemberId(messageRequest.getTokens().get(0).getSheetID()).get().getId();
-        messageRequest.getTokens().get(0).setSheetID(sheetId);
+
 
         if (GameType.GAME_START.equals(messageRequest.getGameType())) {
             // 채팅 입장 시, 룸 아이디 토픽없으면 토픽 생성 -> pub/sub기능 할 수 있도록 리스너 설정
@@ -211,6 +210,8 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
         if (tokens == null || tokens.isEmpty()) {
             return "";
         }
+        Long sheetId = characterSheetRepository.findByPlayMemberId(tokens.get(0).getSheetID()).get().getId();
+        tokens.get(0).setSheetID(sheetId);
 
         StringBuilder contentBuilder = new StringBuilder();
 

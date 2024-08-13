@@ -178,7 +178,7 @@ const cellDescriptions = ref({});
 
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const newMessage = ref("");
-const { selectedMap, selectedToken, clearToken } = mapStore;
+const { selectedMap, selectedToken, setSelectedMap, currentTokenX, currentTokenY } = mapStore;
 
 // selectedMap prop의 변경 사항 감시
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -194,7 +194,7 @@ watch(
   async (newMap) => {
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
-      console.log("Selected Map ID:", newMap.id);
+      setSelectedMap(newMap);
 
       try {
         const mapId = newMap.id;
@@ -368,19 +368,19 @@ const onDrop = (event) => {
 
 // 토큰 드랍 시 메시지 전송
 const sendMessage = (x, y) => {
-  console.log("selectedToken", selectedToken);
-  console.log("selectedMap", selectedMap);
+  const currentX = parseInt(currentTokenX, 10);
+  const currentY = parseInt(currentTokenY, 10);
 
-  const intX = parseInt(x, 10);
-  const intY = parseInt(y, 10);
+  const nextX = parseInt(x, 10);
+  const nextY = parseInt(y, 10);
 
   const messageData = {
     gameType: "TOKEN_MOVE",
     roomID: roomId.value,
     tokens: [{
-      id: selectedToken,
-      sheetID: selectedMap.id,
-      updatePosition: { x: intX, y: intY },
+      sheetID: selectedToken.value.id,
+      currentPosition: { x: currentX, y: currentY },
+      updatePosition: { x: nextX, y: nextY },
     },]
   };
 
@@ -461,6 +461,8 @@ const openModal = (row, col) => {
 };
 
 const changeMap = async (description) => {
+  console.log("newMapId", newMapId);
+
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
 

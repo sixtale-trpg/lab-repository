@@ -153,7 +153,7 @@ const selectMap = (index) => {
 // 맵 선택 저장
 const saveSelection = () => {
   const selectedMap = mapData.value[currentMapIndex.value];
-  setSelectedMap(selectedMap);
+  // setSelectedMap(mapData.value[currentMapIndex.value]);
   console.log('선택된 맵:', selectedMap);
   mapStore.setSelectedMap(selectedMap); // 저장 버튼을 눌렀을 때 선택한 맵과 이미지를 저장
   emit('save', selectedMap);

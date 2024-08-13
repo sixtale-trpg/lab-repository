@@ -52,7 +52,7 @@ import { getRoomInfo } from '@/common/api/RoomsAPI';  // API 함수들
 
 
 const mapStore = useMapStore();
-const { selectedToken, selectToken } = mapStore;
+const { selectedToken, selectToken, setCurrentTokenX, setCurrentTokenY, currentTokenX, currentTokenY } = mapStore;
 
 const tokens = ref([]);
 const tokenImage = require("@/assets/images/ingame/Token.png");
@@ -107,6 +107,12 @@ const closeInput = () => {
 };
 
 const dragStart = (token, event) => {
+  const mouseX = event.clientX;
+  const mouseY = event.clientY;
+
+  setCurrentTokenX(mouseX);
+  setCurrentTokenY(mouseY);
+
   selectedToken.value = token;
   selectToken(token);
   event.dataTransfer.setData("text/plain", JSON.stringify(token));

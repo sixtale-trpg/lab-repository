@@ -77,6 +77,7 @@ const mapData = ref([]);
 const isLoading = ref(true);
 const error = ref(null);
 const mapStore = useMapStore();
+const { selectedMap, setSelectedMap } = mapStore;
 
 const route = useRoute();
 const roomId = ref(route.params.roomId);

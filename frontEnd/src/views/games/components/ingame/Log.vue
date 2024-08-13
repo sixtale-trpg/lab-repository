@@ -16,6 +16,10 @@
       <button @click="sendMessage">Send</button>
     </div> -->
       </div>
+  <!-- <div class="message-input">
+    <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+    <button @click="sendMessage">Send</button>
+  </div> -->
     </div>
   </template>
   
@@ -29,9 +33,9 @@
   import { getMapList } from '@/common/api/RoomsAPI';
 
 const route = useRoute();
-  // 로그로직 추가해야한다 ! //
-  const router = useRouter();
-  const newMessage = ref('');
+// 로그로직 추가해야한다 ! //
+const router = useRouter();
+const newMessage = ref('');
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const roomId = ref(null);
 const mapStore = useMapStore();
@@ -39,14 +43,14 @@ const mapData = ref([]);
 
 // 로컬 스토리지 저장
 const loadMessagesFromLocalStorage = () => {
-  const storedMessages = localStorage.getItem(`messages-${roomId.value}`);
-  if (storedMessages) {
-    messages.value = JSON.parse(storedMessages);
-  }
+const storedMessages = localStorage.getItem(`messages-${roomId.value}`);
+if (storedMessages) {
+  messages.value = JSON.parse(storedMessages);
+}
 };
 
 const saveMessagesToLocalStorage = () => {
-  localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
+localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
 };
 
 // 스크롤을 맨 아래로 이동시키는 함수
@@ -59,18 +63,18 @@ const scrollToBottom = () => {
   });
 };
 
-  // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
+// 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
 onMounted(async () => {
-   try {
-    // 룸 id 받아옴
-    roomId.value = route.params.roomId;
-    console.log('Room ID from route:', roomId.value);
-    
-    const response = await getMapList(roomId.value);
-    mapData.value = response.mapList || [];
+ try {
+  // 룸 id 받아옴
+  roomId.value = route.params.roomId;
+  console.log('Room ID from route:', roomId.value);
+  
+  const response = await getMapList(roomId.value);
+  mapData.value = response.mapList || [];
 
-    // 웹소켓 연결
-    GameLogWebSocketService.connect(roomId.value);
+  // 웹소켓 연결
+  GameLogWebSocketService.connect(roomId.value);
 
     // 메세지 받아오는것
     GameLogWebSocketService.onMessageReceived((message) => {
@@ -104,12 +108,12 @@ onMounted(async () => {
       saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
     });
 
-     // 로컬 스토리지에서 메시지 로드
-     loadMessagesFromLocalStorage();
+   // 로컬 스토리지에서 메시지 로드
+   loadMessagesFromLocalStorage();
 
-  } catch (error) {
-    console.error('Error fetching room info or connecting to WebSocket:', error);
-  }
+} catch (error) {
+  console.error('Error fetching room info or connecting to WebSocket:', error);
+}
 });
 
 // 메시지 배열의 깊은 변경을 감지

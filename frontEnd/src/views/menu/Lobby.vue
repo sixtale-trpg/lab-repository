@@ -95,6 +95,7 @@ import { useRouter } from 'vue-router';
 import { getRoomList } from '@/common/api/RoomsAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
 import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
+import { getMemberInfo } from "@/common/api/mypageAPI";
 
 const router = useRouter();
 
@@ -109,6 +110,7 @@ const currentPage = ref(0);
 const roomsPerPage = 6;
 const totalElements = ref(0);
 const totalPages = ref(0);
+const memberID = ref(0);
 
 const refreshRooms = () => {
   rooms.value = []; // 방 목록을 비우기
@@ -174,7 +176,7 @@ const enterRoom = (room) => {
   const messageData = {
     type: "ENTER", // 메시지 유형
     roomID: room.id, // 가져온 방 정보에서 roomID 사용
-    memberID: 1, // 사용자 ID, 실제 값으로 설정
+    memberID: memberID.value, // 사용자 ID, 실제 값으로 설정
   };
 
   WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
@@ -296,6 +298,15 @@ const fetchSingleRoomInfo = async (roomId) => {
 
 onMounted(() => {
   fetchRooms();
+  getMemberInfo()
+        .then((response) => {
+          memberID.value = response.data.data.id;
+          console.log(memberID.value);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch member info:", error);
+        });
+
   fetchSingleRoomInfo(1);
 });
 </script>

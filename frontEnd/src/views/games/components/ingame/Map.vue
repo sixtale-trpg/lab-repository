@@ -15,10 +15,7 @@
         >
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
-            <div
-              class="npc-hp-fill"
-              :style="{ width: (npc.currentHp / npc.maxHp) * 100 + '%' }"
-            ></div>
+            <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
           </div>
           <p v-if="isGM">
             <input 
@@ -136,8 +133,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
-import { getMapPlace, getMapNpcs } from "@/common/api/RoomsAPI";
-import { useRoute } from "vue-router";
+import { getMapPlace, getMapNpcs, getMapList } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
+import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
 
 import scheduleModal from "@/assets/images/ingame/map/background.png";
 import titleImage from "@/assets/images/ingame/map/title.png";
@@ -161,9 +159,8 @@ const mapStore = useMapStore();
 const route = useRoute();
 const roomId = ref(route.params.roomId);
 
+const mapImage = ref(null); // mapImage 초기 값 null로 설정
 const tokenImage = require("@/assets/images/ingame/Token.png");
-const defaultMapImage = require("@/assets/images/maps/map1.png");
-const mapImage = ref(defaultMapImage);
 const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
@@ -186,80 +183,100 @@ let tooltipTimeout = null;
 
 const activeLasers = ref(new Set());
 const hoveredDescription = ref({ title: "", details: "" });
-
 const hoveredLaserDescription = ref(null);
 
 watch(
   () => props.selectedMap,
   async (newMap) => {
+    console.log("뉴맵" +newMap.id)
     if (newMap && newMap.imageURL) {
       mapImage.value = newMap.imageURL;
       setSelectedMap(newMap);
 
       try {
-        const mapId = newMap.id;
-        const roomId2 = roomId.value;
-
-        const mapInfo = await getMapPlace(roomId2, mapId);
-        const npcData = await getMapNpcs(roomId2, mapId);  // NPC 정보 불러오기
-
-        npcList.value = npcData.npcEvents || [];
-
-        // 콘솔에 NPC 정보를 출력
-        console.log("NPC List:", npcList.value);
-
-        if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
-          activeLasers.value = new Set(
-            mapInfo.placeEvents.map((event) => {
-              const coord = `${event.row}-${event.col}`;
-              return coord;
-            })
-          );
-
-          cellDescriptions.value = {};
-          mapInfo.placeEvents.forEach((event) => {
-            cellDescriptions.value[`${event.row}-${event.col}`] = {
-              title: `Event at (${event.row}, ${event.col})`,
-              details: event.description,
-              nextMapId: event.nextMapId,
-              nextMapUrl: event.nextMapUrl,
-            };
-          });
-
-          console.log("Map Info:", mapInfo);
-        } else {
-          console.warn("Invalid map data or placeEvents is undefined");
-        }
-
-        if (npcInfo && Array.isArray(npcInfo.npcEventList)) {
-          npcInfo.npcEventList.forEach((npcEvent) => {
-            npcData.value[`${npcEvent.row}-${npcEvent.col}`] = {
-              description: npcEvent.description,
-              currentHp: npcEvent.currentHp,
-              imageUrl: backButtonImage, // 여기에 실제 NPC 이미지 경로를 설정하세요
-            };
-          });
-
-          console.log("NPC Info:", npcInfo);
-        } else {
-          console.warn("Invalid NPC data or npcEventList is undefined");
-        }
+        await loadMapData(newMap.id); // 맵과 관련된 이벤트와 NPC 데이터를 로드
       } catch (error) {
         console.error("Error loading map or NPC data:", error);
       }
     } else {
-      mapImage.value = defaultMapImage;
-      console.warn("Selected Map is null or does not have an image URL.");
+      await loadDefaultMapImage(); // 맵 선택이 없을 경우 기본 맵 이미지를 로드
     }
   },
   { immediate: true }
 );
 
+const loadDefaultMapImage = async () => {
+  try {
+    const response = await getMapList(roomId.value);
+    const mapList = response.mapList || [];
+
+    if (mapList.length > 0) {
+      const firstMap = mapList[0];
+      mapImage.value = firstMap.imageURL; // 맵 목록의 첫 번째 이미지를 설정
+      console.log("첫 번째 맵 이미지 URL:", mapImage.value);
+
+      await loadMapData(firstMap.id); // 첫 번째 맵의 이벤트와 NPC 데이터를 로드
+    } else {
+      mapImage.value = require("@/assets/images/maps/map1.png"); // 맵 목록이 비어있으면 기본 이미지를 설정
+      console.warn("맵 목록이 비어 있습니다.");
+    }
+  } catch (error) {
+    mapImage.value = require("@/assets/images/maps/map1.png"); // 오류 발생 시 기본 이미지를 설정
+    console.error("맵 목록을 가져오는 중 오류 발생:", error);
+  }
+};
+
+const loadMapData = async (mapId) => {
+  try {
+    const roomId2 = roomId.value;
+
+    const mapInfo = await getMapPlace(roomId2, mapId);
+    const npcData = await getMapNpcs(roomId2, mapId);  // NPC 정보 불러오기
+
+    npcList.value = npcData.npcEvents || [];
+
+    // 콘솔에 NPC 정보를 출력
+    console.log("NPC List:", npcList.value);
+
+    if (mapInfo && Array.isArray(mapInfo.placeEvents)) {
+      activeLasers.value = new Set(
+        mapInfo.placeEvents.map(event => {
+          const coord = `${event.row}-${event.col}`;
+          return coord;
+        })
+      );
+
+      cellDescriptions.value = {};
+      mapInfo.placeEvents.forEach(event => {
+        cellDescriptions.value[`${event.row}-${event.col}`] = {
+          title: `Event at (${event.row}, ${event.col})`,
+          details: event.description,
+          nextMapId: event.nextMapId,
+          nextMapUrl: event.nextMapUrl,
+        };
+      });
+    }
+  } catch (error) {
+    console.error("Error loading map or NPC data:", error);
+  }
+};
+
+onMounted(() => {
+  loadDefaultMapImage(); // 컴포넌트가 마운트될 때 기본 맵 이미지를 로드
+
+  threeJSManager = new ThreeJSManager(rendererContainer.value);
+  eventBus.on("dice-rolled", handleDiceRolled);
+  window.addEventListener("toggle-grid", (event) => {
+    showGrid.value = event.detail;
+  });
+
+  window.addEventListener("delete-token", (event) => {
+    deleteTokenFromMap(event.detail);
+  });
+});
+
 const gridRows = computed(() => Array.from({ length: 10 }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: 15 }, (_, i) => i));
-
-const gridCellWidth = computed(() => mapImage.value ? mapImage.value.width / 15 : 0);
-const gridCellHeight = computed(() => mapImage.value ? mapImage.value.height / 10 : 0);
 
 const onLaserMouseEnter = (row, col, event) => {
     if (tooltipTimeout) clearTimeout(tooltipTimeout);
@@ -461,10 +478,21 @@ const openModal = (row, col) => {
 };
 
 const changeMap = async (description) => {
-  console.log("newMapId", newMapId);
-
+  console.log(description);
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
+
+      // 웹소켓 메시지 전송
+      // Log the map change event
+      // const messageData = {
+      //   gameType: 'MAP_CHANGE',
+      //   roomID: roomId.value,
+      //   currentMapID: 0,// 현재 선택된 맵 ID
+      //   nextMapID: newMapId, // 실제 다음 맵 ID로 업데이트 필요
+      // };
+
+      // GameLogWebSocketService.sendMessage(messageData);
+
 
     try {
       const newMapId = description.nextMapId;

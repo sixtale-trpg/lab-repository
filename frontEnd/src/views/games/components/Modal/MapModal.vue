@@ -62,6 +62,7 @@ import tabBackground from '@/assets/images/maps/background/tab_background.png';
 import titleBackground from '@/assets/images/maps/background/nickname_light.png'; // 맵 제목 배경 이미지
 import closeButtonImage from '@/assets/images/maps/background/close.png'; // "닫기" 버튼 이미지
 import saveButtonImage from '@/assets/images/maps/background/save.png'; // "저장" 버튼 이미지
+import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
 
 // 이벤트 발신 설정
 const emit = defineEmits(['close', 'save']);
@@ -69,6 +70,7 @@ const emit = defineEmits(['close', 'save']);
 // 모달 가시성 및 현재 맵 인덱스
 const isVisible = ref(true);
 const currentMapIndex = ref(0);
+const previousMapIndex = ref(null); // 이전 맵 인덱스를 저장할 변수
 
 // 상태 변수
 const mapData = ref([]);
@@ -79,12 +81,12 @@ const { selectedMap, setSelectedMap } = mapStore;
 
 const route = useRoute();
 const roomId = ref(route.params.roomId);
+
 // 컴포넌트가 마운트되면 API를 통해 맵 데이터를 로드
 onMounted(async () => {
   try {
     // roomId는 prop이나 외부에서 제공받는다고 가정
-    const roomId2 = roomId.value; // 실제 roomId를 사용해야 합니다.
-    const response = await getMapList(roomId2);
+    const response = await getMapList(roomId.value);
     mapData.value = response.mapList || [];
     isLoading.value = false;
   } catch (err) {
@@ -147,15 +149,29 @@ const closeModal = () => {
 
 // 맵 선택
 const selectMap = (index) => {
+  // 현재 선택된 맵 인덱스를 이전 맵 인덱스로 저장
+  previousMapIndex.value = currentMapIndex.value;
   currentMapIndex.value = index;
 };
 
 // 맵 선택 저장
 const saveSelection = () => {
   const selectedMap = mapData.value[currentMapIndex.value];
-  // setSelectedMap(mapData.value[currentMapIndex.value]);
+  const previousMap = previousMapIndex.value !== null ? mapData.value[previousMapIndex.value] : null;
   console.log('선택된 맵:', selectedMap);
   mapStore.setSelectedMap(selectedMap); // 저장 버튼을 눌렀을 때 선택한 맵과 이미지를 저장
+
+  // Log the map change event
+  const messageData = {
+    gameType: 'MAP_CHANGE',
+    roomID: roomId.value,
+    currentMapID:previousMap ? previousMap.id : null,// 현재 선택된 맵 ID
+    nextMapID: selectedMap.id, // 실제 다음 맵 ID로 업데이트 필요
+  };
+
+  // Send the log message via WebSocket
+  GameLogWebSocketService.sendMessage(messageData);
+
   emit('save', selectedMap);
 };
 </script>

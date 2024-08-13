@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterActionRepository;
@@ -12,6 +13,7 @@ import org.infinity.sixtalebackend.domain.chat.dto.MessageType;
 import org.infinity.sixtalebackend.domain.chat.repository.PlayGameLogRepository;
 import org.infinity.sixtalebackend.domain.map.domain.Map;
 import org.infinity.sixtalebackend.domain.map.repository.MapRepository;
+import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
 import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlayGameLogServiceImpl implements PlayGameLogService {
@@ -31,6 +34,7 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
     private final MapRepository mapRepository;
     private final CharacterSheetRepository characterSheetRepository;
     private final CharacterActionRepository characterActionRepository;
+    private final PlayMemberRepository playMemberRepository;
 
 
     @Override
@@ -39,8 +43,12 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
         String content = createContent(messageRequest);
         messageRequest.setContent(content);
 
+        log.info("TETSTETSTETST " +messageRequest.getSheetID());
+
         // Save to database
         playGameLogRepository.save(convertToEntity(messageRequest));
+        Long sheetId = characterSheetRepository.findByPlayMemberId(messageRequest.getTokens().get(0).getSheetID()).get().getId();
+        messageRequest.getTokens().get(0).setSheetID(sheetId);
 
         if (GameType.GAME_START.equals(messageRequest.getGameType())) {
             // 채팅 입장 시, 룸 아이디 토픽없으면 토픽 생성 -> pub/sub기능 할 수 있도록 리스너 설정

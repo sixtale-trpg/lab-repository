@@ -156,7 +156,7 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
      */
     @Override
     @Transactional
-    public void deleteCharacterEquipment(Long roomID, Long playMemberID, Long equipmentID) {
+    public Map<String, String> deleteCharacterEquipment(Long roomID, Long playMemberID, Long equipmentID) {
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMemberId(playMemberID)
                 .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
 
@@ -164,6 +164,7 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
                 .orElseThrow(() -> new IllegalArgumentException("Equipment not found"));
 
         characterEquipmentRepository.delete(equipment);
+        int currentWeight =characterSheet.getCurrentWeight();
 
         // 삭제된 장비의 무게를 현재 무게에서 뺌
         int updatedWeight = characterSheet.getCurrentWeight() - equipment.getWeight();
@@ -172,7 +173,14 @@ public class CharacterSheetEquipmentServiceImpl implements CharacterSheetEquipme
         // 변경된 무게 저장
         characterSheetRepository.save(characterSheet);
         log.info("장비 삭제 완료 - 장비 ID: {}, 업데이트된 무게: {}", equipmentID, updatedWeight);
-    
 
+        // 응답을 위한 map 생성
+        Map<String, String> result = new HashMap<>();
+        result.put("roomID", roomID.toString());
+        result.put("sheetID", characterSheet.getId().toString());
+        result.put("currentWeight", String.valueOf(currentWeight));
+        result.put("updateWeight", String.valueOf(updatedWeight));
+
+        return result;
     }
 }

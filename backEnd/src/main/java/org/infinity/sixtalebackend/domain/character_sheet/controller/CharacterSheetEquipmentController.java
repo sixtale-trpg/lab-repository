@@ -109,8 +109,8 @@ public class CharacterSheetEquipmentController {
     @DeleteMapping("/{equipmentID}")
     public ResponseEntity deleteCharacterEquipment(@PathVariable Long roomID, @PathVariable Long playMemberID, @PathVariable Long equipmentID) {
         try {
-            characterSheetEquipmentService.deleteCharacterEquipment(roomID, playMemberID, equipmentID);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_CHARACTER_SHEET_EQUIPMENT), HttpStatus.OK);
+            Map<String, String> responseData = characterSheetEquipmentService.deleteCharacterEquipment(roomID, playMemberID, equipmentID);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_CHARACTER_SHEET_EQUIPMENT, responseData), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.DELETE_CHARACTER_SHEET_EQUIPMENT_FAIL), HttpStatus.BAD_REQUEST);

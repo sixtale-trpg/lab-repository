@@ -30,7 +30,6 @@ public class WaitingChatController {
         waitingLogService.sendWaitingChatMessage(chatMessageRequest);
 
         messagingTemplate.convertAndSend("/sub/waiting/chat/room/" + chatMessageRequest.getRoomID(), chatMessageRequest);
-        System.out.println("Message sent to room: " + chatMessageRequest.getRoomID());
     }
 
     /**

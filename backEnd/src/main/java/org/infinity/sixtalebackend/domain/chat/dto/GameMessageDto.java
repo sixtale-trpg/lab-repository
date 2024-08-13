@@ -25,8 +25,8 @@ public class GameMessageDto {
     @JsonProperty("roomID")
     private Long roomID; // 게임 방 ID
 
-    @JsonProperty("sheetID")
-    private Long sheetID; // 시트 ID (플레이어 또는 NPC 시트)
+    @JsonProperty("playMemberID")
+    private Long playMemberID; // 플레이 멤버 ID (플레이어 또는 NPC 시트)
 
     @JsonProperty("currentMapID")
     private Long currentMapID; // 현재 맵 ID (맵 변경 시 사용)
@@ -104,8 +104,8 @@ public class GameMessageDto {
     @Data
     @Builder
     public static class TokenMove {
-        @JsonProperty("sheetID")
-        private Long sheetID; // 시트 ID (토큰 이동 시 사용)
+        @JsonProperty("playMemberID")
+        private Long playMemberID; // 플레이 멤버 ID (토큰 이동 시 사용)
 
         @JsonProperty("currentPosition")
         private Map<String, Integer> currentPosition;

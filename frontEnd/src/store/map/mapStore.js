@@ -5,7 +5,7 @@ export const useMapStore = defineStore("map", {
     mapData: [], // API에서 가져온 맵 데이터 저장
     isLoading: false,
     error: null,
-    selectedMap: null, // 선택한 맵을 저장할 상태
+    selectedMap: {}, // 선택한 맵을 저장할 상태
     selectedMapImage: null, // 선택한 맵의 이미지를 저장할 상태
     selectedMapId: null, // 선택한 맵의 ID를 저장할 상태
     selectedToken: {},
@@ -38,6 +38,14 @@ export const useMapStore = defineStore("map", {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    selectMap(map) {
+      this.selectedMap = map;
+    },
+
+    clearMap() {
+      this.selectedMap = null;
     },
 
     selectToken(token) {

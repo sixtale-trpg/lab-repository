@@ -48,6 +48,8 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useMapStore } from "@/store/map/mapStore";
+import { getRoomInfo } from '@/common/api/RoomsAPI';  // API 함수들
+
 
 const mapStore = useMapStore();
 const { selectedToken, selectToken } = mapStore;

@@ -80,12 +80,12 @@ const mapStore = useMapStore();
 
 const route = useRoute();
 const roomId = ref(route.params.roomId);
+
 // 컴포넌트가 마운트되면 API를 통해 맵 데이터를 로드
 onMounted(async () => {
   try {
     // roomId는 prop이나 외부에서 제공받는다고 가정
-    const roomId2 = roomId.value; // 실제 roomId를 사용해야 합니다.
-    const response = await getMapList(roomId2);
+    const response = await getMapList(roomId.value);
     mapData.value = response.mapList || [];
     isLoading.value = false;
   } catch (err) {

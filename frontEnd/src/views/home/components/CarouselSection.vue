@@ -2,7 +2,7 @@
   <div  class="no-padding">
     <div class="carousel-inner">
       <div class="carousel-item active">
-        <img src="@/assets/images/carousel/slide6.gif" 
+        <img src="@/assets/images/carousel/slide7.gif" 
         class="d-block" alt="" />
         <div class="carousel-caption" @click="navigateToLobby">
         </div>

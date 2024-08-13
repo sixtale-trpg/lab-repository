@@ -94,6 +94,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getRoomList } from '@/common/api/RoomsAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
+import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
 
 const router = useRouter();
 
@@ -166,6 +167,18 @@ const enterRoom = (room) => {
     alert('이미 게임이 시작된 방입니다.');
     return;
   }
+  // 게임방에 들어갈때 웹소켓 연결 -> enter 메세지 보내기
+  WebSocketService.connect();
+
+  // enter 메세지 보내기
+  const messageData = {
+    type: "ENTER", // 메시지 유형
+    roomID: room.id, // 가져온 방 정보에서 roomID 사용
+    memberID: 1, // 사용자 ID, 실제 값으로 설정
+  };
+
+  WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+
   router.push({ name: 'Waiting', params: { roomId: room.id } });
 };
 

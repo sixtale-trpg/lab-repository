@@ -17,7 +17,7 @@ class ChangeWeightWebSocketService {
     }
     this.roomID = roomID; // Store the roomID
 
-    const socket = new SockJS("wss://i11d108.p.ssafy.io/api/v1/ws"); // 서버 URL
+    const socket = new SockJS("http://localhost:8888/api/v1/ws"); // 서버 URL
     this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
 
     this.stompClient.connect(
@@ -27,16 +27,13 @@ class ChangeWeightWebSocketService {
         console.log("Connected to change weight WebSocket");
 
         // 메시지 구독 설정
-        this.stompClient.subscribe(
-          `/sub/game/messages/${this.roomID}`,
-          (message) => {
-            console.log("Game Log received:", message.body);
-            const parsedMessage = JSON.parse(message.body);
-            if (this.messageCallback) {
-              this.messageCallback(parsedMessage);
-            }
+        this.stompClient.subscribe(`/sub/game/messages/${this.roomID}`, (message) => {
+          console.log("Game Log received:", message.body);
+          const parsedMessage = JSON.parse(message.body);
+          if (this.messageCallback) {
+            this.messageCallback(parsedMessage);
           }
-        );
+        });
       },
       (error) => {
         console.error("change weight WebSocket connection error:", error); // 연결 오류 처리

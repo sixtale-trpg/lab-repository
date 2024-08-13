@@ -9,7 +9,6 @@ class InGameWebSocketService {
     this.roomID = null;
   }
 
-<<<<<<< HEAD
   connect(roomID) {
     if (!roomID) {
       console.error("Room ID is required to connect to WebSocket");
@@ -18,11 +17,7 @@ class InGameWebSocketService {
 
     this.roomID = roomID;
 
-    const socket = new SockJS("http://localhost:8888/api/v1/ws"); // 서버 URL
-=======
-  connect() {
-    const socket = new SockJS('http://i11d108.p.ssafy.io:8888/api/v1/ws'); // 서버 URL
->>>>>>> f36c987828098a6284eb09aff424fa3bbf00e7b0
+    const socket = new SockJS("wss://i11d108.p.ssafy.io/api/v1/ws"); // 서버 URL
     this.stompClient = Stomp.over(socket);
 
     this.stompClient.connect(
@@ -32,13 +27,16 @@ class InGameWebSocketService {
         console.log("Connected to In-Game WebSocket");
 
         // 인게임 메시지 구독
-        this.stompClient.subscribe(`/sub/game/messages/${this.roomID}`, (message) => {
-          console.log("In-Game Message received:", message.body);
-          const parsedMessage = JSON.parse(message.body);
-          if (this.messageCallback) {
-            this.messageCallback(parsedMessage);
+        this.stompClient.subscribe(
+          `/sub/game/messages/${this.roomID}`,
+          (message) => {
+            console.log("In-Game Message received:", message.body);
+            const parsedMessage = JSON.parse(message.body);
+            if (this.messageCallback) {
+              this.messageCallback(parsedMessage);
+            }
           }
-        });
+        );
       },
       (error) => {
         console.error("In-Game WebSocket connection error:", error);

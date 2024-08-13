@@ -45,7 +45,7 @@ import {
   ROLE_ASSISTANT,
   ROLE_SYSTEM,
   ROLE_USER,
-} from '@/common/api/OpenAiAPI';
+} from '@/common/api/openaiApi';
 
 const DEFAULT_SYSTEM_MESSAGE = '안녕하세요! 던전월드 룰에 대해 궁금한 것이 있으면 뭐든지 물어보세요!'
 

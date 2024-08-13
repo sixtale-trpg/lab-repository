@@ -59,6 +59,7 @@ public class RoomServiceImpl implements RoomService{
                 throw new IncorrectPasswordException("잠긴 방에 들어가려면 비밀번호가 필요합니다.");
             }
             if (!passwordEncoder.matches(password, room.getPassword())) {
+                log.warn("비밀번호 검증 실패 - 입력된 비밀번호: {}, 저장된 비밀번호 해시: {}", password, room.getPassword());
                 throw new IncorrectPasswordException("비밀번호가 올바르지 않습니다.");
             }
         }

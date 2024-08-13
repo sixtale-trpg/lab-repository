@@ -9,7 +9,6 @@ class InGameWebSocketService {
     this.roomID = null;
   }
 
-<<<<<<< HEAD
   connect(roomID) {
     if (!roomID) {
       console.error("Room ID is required to connect to WebSocket");
@@ -18,11 +17,8 @@ class InGameWebSocketService {
 
     this.roomID = roomID;
 
-    const socket = new SockJS("http://localhost:8888/api/v1/ws"); // 서버 URL
-=======
-  connect() {
-    const socket = new SockJS('http://i11d108.p.ssafy.io:8888/api/v1/ws'); // 서버 URL
->>>>>>> f36c987828098a6284eb09aff424fa3bbf00e7b0
+    const socket = new SockJS("https://i11d108.p.ssafy.io/api/v1/ws"); // 서버 URL
+
     this.stompClient = Stomp.over(socket);
 
     this.stompClient.connect(

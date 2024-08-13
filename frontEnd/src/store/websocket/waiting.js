@@ -1,17 +1,13 @@
-import { Stomp } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
-
 class WebSocketService {
   constructor() {
-    this.stompClient = null;
+    this.socket = null;
     this.connected = false;
     this.messageCallback = null;
     this.roomID = null;
     this.memberID = null;
-    this.subscriptionUrls = [];
   }
 
-  // WebSocket 및 STOMP 연결 설정
+  // WebSocket 연결 설정
   connect(roomID, memberID) {
     if (!roomID) {
       console.error("Room ID is required to connect to WebSocket");
@@ -20,29 +16,33 @@ class WebSocketService {
 
     this.roomID = roomID;
     this.memberID = memberID;
-    // WebSocket 및 STOMP 연결 설정
+    
+    // WebSocket 연결 설정
+    const wsUrl = `wss://i11d108.p.ssafy.io/api/v1/ws/${roomID}/${memberID}`; // 실제 서버 URL로 교체
+    this.socket = new WebSocket(wsUrl);
 
-    const socket = new SockJS("https://i11d108.p.ssafy.io/api/v1/ws"); // SockJS로 WebSocket 연결 생성
-    this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
+    // WebSocket 이벤트 핸들러 설정
+    this.socket.onopen = () => {
+      this.connected = true;
+      console.log("Connected to WebSocket");
+    };
 
-    this.stompClient.connect(
-      {},
-      () => {
-        this.connected = true;
-        console.log("Connected to WebSocket");
-
-        // 대기 방 구독
-        this.subscribeToUrl(`/sub/waiting/chat/room/${this.roomID}`);
-
-        // 귓속말 구독
-        this.subscribeToUrl(
-          `/sub/waiting/chat/whisper/${this.roomID}/${memberID}`
-        );
-      },
-      (error) => {
-        console.error("WebSocket connection error:", error); // 연결 오류 처리
+    this.socket.onmessage = (event) => {
+      const parsedMessage = JSON.parse(event.data);
+      console.log("Message received: ", parsedMessage);
+      if (this.messageCallback) {
+        this.messageCallback(parsedMessage);
       }
-    );
+    };
+
+    this.socket.onclose = () => {
+      this.connected = false;
+      console.log("WebSocket connection closed");
+    };
+
+    this.socket.onerror = (error) => {
+      console.error("WebSocket connection error: ", error);
+    };
   }
 
   // 메시지 수신 시 호출할 콜백 설정
@@ -52,33 +52,10 @@ class WebSocketService {
 
   // 메시지를 서버로 전송
   sendMessage(message) {
-    if (this.connected) {
-      console.log("Sending message:", message);
-      this.stompClient.send(
-        "/pub/waiting/chat/message",
-        {},
-        JSON.stringify(message)
-      ); // 메시지 전송
-    } else {
-      console.error("WebSocket is not connected");
-    }
-  }
-
-  // 메시지 수신 시 호출할 콜백 설정
-  onMessageReceived(callback) {
-    this.messageCallback = callback;
-  }
-
-  // 메시지를 서버로 전송
-  sendMessage(message) {
-    if (this.connected) {
+    if (this.connected && this.socket) {
       console.log("Sending message:", message);
       try {
-        this.stompClient.send(
-          "/pub/waiting/chat/message",
-          {},
-          JSON.stringify(message)
-        ); // 메시지 전송
+        this.socket.send(JSON.stringify(message)); // 메시지 전송
         console.log("Message sent successfully");
       } catch (error) {
         console.error("Error sending message:", error);
@@ -88,15 +65,12 @@ class WebSocketService {
     }
   }
 
-  // 특정 URL 구독
-  subscribeToUrl(url) {
-    this.stompClient.subscribe(url, (message) => {
-      console.log(`Message received from ${url}:`, message.body);
-      const parsedMessage = JSON.parse(message.body);
-      if (this.messageCallback) {
-        this.messageCallback(parsedMessage);
-      }
-    });
+  // WebSocket 연결 해제
+  disconnect() {
+    if (this.socket) {
+      this.socket.close();
+      this.connected = false;
+    }
   }
 }
 

@@ -66,7 +66,7 @@ const roomInfo = ref(null); // 방 정보를 저장할 변수
 const user = ref({});
 
 // 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
-const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
+const initialRoomId = route.params.roomId; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
 
 // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
 onMounted(async () => {

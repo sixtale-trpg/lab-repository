@@ -17,7 +17,8 @@ class InGameWebSocketService {
 
     this.roomID = roomID;
 
-    const socket = new SockJS("wss://i11d108.p.ssafy.io/api/v1/ws"); // 서버 URL
+    const socket = new SockJS("https://i11d108.p.ssafy.io/api/v1/ws"); // 서버 URL
+
     this.stompClient = Stomp.over(socket);
 
     this.stompClient.connect(
@@ -27,16 +28,13 @@ class InGameWebSocketService {
         console.log("Connected to In-Game WebSocket");
 
         // 인게임 메시지 구독
-        this.stompClient.subscribe(
-          `/sub/game/messages/${this.roomID}`,
-          (message) => {
-            console.log("In-Game Message received:", message.body);
-            const parsedMessage = JSON.parse(message.body);
-            if (this.messageCallback) {
-              this.messageCallback(parsedMessage);
-            }
+        this.stompClient.subscribe(`/sub/game/messages/${this.roomID}`, (message) => {
+          console.log("In-Game Message received:", message.body);
+          const parsedMessage = JSON.parse(message.body);
+          if (this.messageCallback) {
+            this.messageCallback(parsedMessage);
           }
-        );
+        });
       },
       (error) => {
         console.error("In-Game WebSocket connection error:", error);

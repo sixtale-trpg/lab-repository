@@ -371,14 +371,17 @@ const sendMessage = (x, y) => {
   console.log("selectedToken", selectedToken);
   console.log("selectedMap", selectedMap);
 
+  const intX = parseInt(x, 10);
+  const intY = parseInt(y, 10);
+
   const messageData = {
     gameType: "TOKEN_MOVE",
-    roomID: roomId, // 가져온 방 정보에서 roomID 사용
-    token: {
+    roomID: roomId.value,
+    tokens: [{
       id: selectedToken,
-      sheetID: selectedMap,
-      updatePosition: { x, y },
-    },
+      sheetID: selectedMap.id,
+      updatePosition: { x: intX, y: intY },
+    },]
   };
 
   InGameWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
@@ -534,7 +537,7 @@ const toggleNpcList = () => {
 };
 
 onMounted(async () => {
-  InGameWebSocketService.connect(roomId);
+  InGameWebSocketService.connect(roomId.value);
   // 서버로부터 메시지를 수신할 때마다 콜백 실행
   InGameWebSocketService.onMessageReceived((message) => {
     messages.value.push(message); // 메시지 목록에 추가

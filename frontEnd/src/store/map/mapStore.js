@@ -39,12 +39,8 @@ export const useMapStore = defineStore("map", {
         this.isLoading = false;
       }
     },
-
-    selectMap(map) {
-      this.selectedMap = map;
-    },
-
-    clearMap() {
+    
+    clearCurrentMap() {
       this.selectedMap = null;
     },
 

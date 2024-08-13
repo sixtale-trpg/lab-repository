@@ -75,7 +75,7 @@ const mapData = ref([]);
 const isLoading = ref(true);
 const error = ref(null);
 const mapStore = useMapStore();
-const { selectmap } = mapStore;
+const { selectedMap, setSelectedMap } = mapStore;
 
 const route = useRoute();
 const roomId = ref(route.params.roomId);
@@ -153,7 +153,7 @@ const selectMap = (index) => {
 // 맵 선택 저장
 const saveSelection = () => {
   const selectedMap = mapData.value[currentMapIndex.value];
-  selectMap(selectedMap);
+  setSelectedMap(selectedMap);
   console.log('선택된 맵:', selectedMap);
   mapStore.setSelectedMap(selectedMap); // 저장 버튼을 눌렀을 때 선택한 맵과 이미지를 저장
   emit('save', selectedMap);

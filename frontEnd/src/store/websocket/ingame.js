@@ -27,7 +27,7 @@ class InGameWebSocketService {
         console.log("Connected to In-Game WebSocket");
 
         // 인게임 메시지 구독
-        this.stompClient.subscribe("/sub/in/game/messages", (message) => {
+        this.stompClient.subscribe(`/sub/game/messages/${this.roomID}`, (message) => {
           console.log("In-Game Message received:", message.body);
           const parsedMessage = JSON.parse(message.body);
           if (this.messageCallback) {
@@ -50,7 +50,7 @@ class InGameWebSocketService {
   sendMessage(message) {
     if (this.connected) {
       console.log("Sending in-game message:", message);
-      this.stompClient.send("/in/game/message", {}, JSON.stringify(message));
+      this.stompClient.send("/pub/game/message", {}, JSON.stringify(message));
     } else {
       console.error("In-Game WebSocket is not connected");
     }

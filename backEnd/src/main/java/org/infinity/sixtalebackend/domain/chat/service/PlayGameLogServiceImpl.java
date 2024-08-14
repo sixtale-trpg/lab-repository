@@ -1,47 +1,58 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterActionRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
+import org.infinity.sixtalebackend.domain.chat.domain.PlayGameLog;
 import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
+import org.infinity.sixtalebackend.domain.chat.dto.GameType;
 import org.infinity.sixtalebackend.domain.chat.repository.PlayGameLogRepository;
 import org.infinity.sixtalebackend.domain.map.domain.Map;
 import org.infinity.sixtalebackend.domain.map.repository.MapRepository;
-import org.infinity.sixtalebackend.domain.member.domain.Member;
+import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
-import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlayGameLogServiceImpl implements PlayGameLogService {
     private final PlayGameLogRepository playGameLogRepository;
-    private final RedisPublisher redisPublisher;
     private final ChatRoomService chatRoomService;
     private final RoomRepository roomRepository;
     private final MapRepository mapRepository;
     private final CharacterSheetRepository characterSheetRepository;
     private final CharacterActionRepository characterActionRepository;
+    private final PlayMemberRepository playMemberRepository;
+
 
     @Override
-    public void sendPlayGameLogMessage(GameMessageDto messageRequest) {
+    public GameMessageDto sendPlayGameLogMessage(GameMessageDto messageRequest) {
+
         String content = createContent(messageRequest);
         messageRequest.setContent(content);
 
-        // Save to DB
-        // playGameLogRepository.save(convertToEntity(messageRequest));
+        // Save to database
+        playGameLogRepository.save(convertToEntity(messageRequest));
 
-        // Send WebSocket message
-        // redisPublisher.publish(chatRoomService.getTopic(String.valueOf(messageRequest.getRoomID())),messageRequest);
+
+        if (GameType.GAME_START.equals(messageRequest.getGameType())) {
+            // 채팅 입장 시, 룸 아이디 토픽없으면 토픽 생성 -> pub/sub기능 할 수 있도록 리스너 설정
+            chatRoomService.enterChatRoom(messageRequest.getRoomID().toString());
+        }
+        return messageRequest;
     }
 
     private String createContent(GameMessageDto messageRequest) {
         switch (messageRequest.getGameType()) {
+            case GAME_START:
+                return "게임 시작";
             case MAP_CHANGE:
                 return String.format("MAP : %d(%s) -> %d(%s)",
                         messageRequest.getCurrentMapID(),
@@ -50,13 +61,13 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
                         findMap(messageRequest.getNextMapID()).getName()); // 실제 맵 이름 조회
             case STAT_CHANGE:
                 return String.format("[%s] %s : %d -> %d",
-                        findSheet(messageRequest.getSheetID()).getName(), // 실제 플레이어 이름 조회
+                        findSheet(messageRequest.getPlayMemberID()).getName(), // 실제 플레이어 이름 조회
                         messageRequest.getStatName(),
                         messageRequest.getCurrentStat(),
                         messageRequest.getUpdateStat());
             case DICE_SETTING:
                 return String.format("[%s] DICE_ROLL_SETTING : %s",
-                        findSheet(messageRequest.getSheetID()).getName(), // 실제 플레이어 이름 조회
+                        findSheet(messageRequest.getPlayMemberID()).getName(), // 실제 플레이어 이름 조회
                         diceRollsToString(messageRequest.getDiceRolls()));
             case DICE_ROLL:
                 // 결과 계산
@@ -66,29 +77,29 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
                         .sum();
 
                 return String.format("[%s] DICE_ROLL : %s ＞ %s",
-                        findSheet(messageRequest.getSheetID()).getName(), // 실제 플레이어 이름 조회
+                        findSheet(messageRequest.getPlayMemberID()).getName(), // 실제 플레이어 이름 조회
                         diceRollsToString(messageRequest.getDiceRolls()),
                         diceRollResultsToString(messageRequest.getDiceRolls(), calculatedTotalResult));
             case ACTION:
                 return String.format("[%s] ACTION : %d(%s)",
-                        findSheet(messageRequest.getSheetID()).getName(), // 실제 플레이어 이름 조회
+                        findSheet(messageRequest.getPlayMemberID()).getName(), // 실제 플레이어 이름 조회
                         messageRequest.getCharacterActionID());
             case WEIGHT:
                 return String.format("[%s] WEIGHT : %d -> %d",
-                        findSheet(messageRequest.getSheetID()).getName(), // 실제 플레이어 이름 조회
+                        findSheet(messageRequest.getPlayMemberID()).getName(), // 실제 플레이어 이름 조회
                         messageRequest.getCurrentWeight(),
                         messageRequest.getUpdateWeight());
             case GOLD:
                 return String.format("[%s] GOLD : %d -> %d",
-                        findSheet(messageRequest.getSheetID()).getName(), // 실제 플레이어 이름 조회
+                        findSheet(messageRequest.getPlayMemberID()).getName(), // 실제 플레이어 이름 조회
                         messageRequest.getCurrentGold(),
                         messageRequest.getUpdateGold());
             case EVENT_HP_CHANGE:
                 return createHpEventContent(messageRequest.getEvents());
-//            case MAP_MOVEMENT:
-//                return createTokenMoveContent(messageRequest.getEvents());
+            case TOKEN_MOVE:
+                return createTokenMoveContent(messageRequest.getTokens());
             case GAME_END:
-                return "Game has ended";
+                return "게임 종료";
             default:
                 throw new IllegalArgumentException("Unsupported game type: " + messageRequest.getGameType());
         }
@@ -189,14 +200,51 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
         return contentBuilder.toString().trim();
     }
 
+    private String createTokenMoveContent(List<GameMessageDto.TokenMove> tokens) {
+        if (tokens == null || tokens.isEmpty()) {
+            return "";
+        }
 
-//    private String createTokenMoveContent(List<GameMessageDto.GameEvent> events) {
-//        // Create token move content
-//    }
+        StringBuilder contentBuilder = new StringBuilder();
 
-//    private GameMessageEntity convertToEntity(GameMessageDto dto) {
-//        // Convert DTO to Entity
-//    }
+        for (GameMessageDto.TokenMove token : tokens) {
+            // Extract sheet ID, current position, and updated position
+            Long playMemberID = token.getPlayMemberID();
+            java.util.Map<String, Integer> currentPosition = token.getCurrentPosition();
+            java.util.Map<String, Integer> updatePosition = token.getUpdatePosition();
+
+            // Ensure that all required fields are present
+            if (playMemberID != null && currentPosition != null && updatePosition != null) {
+                // Extract coordinates
+                Integer currentX = currentPosition.get("x");
+                Integer currentY = currentPosition.get("y");
+                Integer updateX = updatePosition.get("x");
+                Integer updateY = updatePosition.get("y");
+
+                // Format the event details
+                if (currentX != null && currentY != null && updateX != null && updateY != null) {
+                    // Fetch the sheet name based on the sheet ID (implementation needed)
+                    String sheetName = findSheet(playMemberID).getName(); // Method to find the sheet name by ID
+
+                    contentBuilder.append(String.format("[%s] TOKEN_MOVE: (%d, %d) → (%d, %d)\n",
+                            sheetName, currentX, currentY, updateX, updateY));
+                }
+            }
+        }
+
+        return contentBuilder.toString().trim(); // Remove trailing newline
+    }
+
+
+    private PlayGameLog convertToEntity(GameMessageDto dto) {
+        return PlayGameLog.builder()
+                .roomID(dto.getRoomID())
+                .createdAt(LocalDateTime.now())
+                .gameType(dto.getGameType())
+                .playMemberID(dto.getPlayMemberID())
+                .content(dto.getContent())
+                .build();
+    }
 
     private Boolean findRoom(Long roomID){
         boolean existRoom = roomRepository.existsById(roomID);
@@ -209,9 +257,9 @@ public class PlayGameLogServiceImpl implements PlayGameLogService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 맵이 존재하지 않습니다. id=" + mapID));
     }
 
-    private CharacterSheet findSheet(Long sheetID){
-        return characterSheetRepository.findById(sheetID)
-                .orElseThrow(() -> new IllegalArgumentException("해당 캐릭터 시트가 존재하지 않습니다. id=" + sheetID));
+    private CharacterSheet findSheet(Long playMemberID){
+        return characterSheetRepository.findByPlayMemberId(playMemberID)
+                .orElseThrow(() -> new IllegalArgumentException("해당 캐릭터 시트가 존재하지 않습니다. id=" + playMemberID));
     }
 
     private CharacterAction findAction(Long characterActionID){

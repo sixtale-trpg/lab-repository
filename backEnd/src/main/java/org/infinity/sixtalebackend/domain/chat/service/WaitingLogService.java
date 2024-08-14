@@ -5,7 +5,7 @@ import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.springframework.data.domain.Pageable;
 
 public interface WaitingLogService {
-    void sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) ;
+    ChatMessageRequest sendWaitingChatMessage(ChatMessageRequest chatMessageRequest) ;
     ChatMessageListResponse getWaitingChatLogList(Long roomID, Pageable pageable);
 
     ChatMessageListResponse getWaitingChatWisperLogList(Long roomID,Long memberID,Pageable pageable);

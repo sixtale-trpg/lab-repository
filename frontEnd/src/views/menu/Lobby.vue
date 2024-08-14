@@ -243,6 +243,8 @@ const handleEnterRoom = async (room) => {
 
     selectedRoomId.value = room.id;
 
+    WebSocketService.connect(room.id,userId.value);
+
     if (room.isLocked) {
       showPasswordModal.value = true;
     } else {

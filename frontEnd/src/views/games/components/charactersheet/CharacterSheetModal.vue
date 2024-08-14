@@ -25,6 +25,7 @@
           :current-options="currentTabOptions"
           :job-id="jobID"
           :rule-id="ruleID"
+          v-bind="appearanceProps"
           @update:job-id="(newJobId) => formData.jobId = newJobId"
           @update:race-id="(newRaceId) => formData.raceId = newRaceId"
           @update:belief-id="(newBeliefId) => formData.beliefId = newBeliefId"
@@ -34,6 +35,8 @@
           @update:stats="(newStats) => formData.stat = newStats"
           @update:character-action="(newCharacterAction) => formData.characterAction = newCharacterAction"
           @update:character-equipment="(newEquipment) => formData.characterEquipment = newEquipment"
+          @update:candidate-images="updateCandidateImages"
+          @update:selected-image-url="(newImageUrl) => formData.imageURL = newImageUrl"
         ></component>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
@@ -45,10 +48,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, defineEmits } from 'vue';
 import { useRoute } from 'vue-router';
 import { getJobSelectOption } from '@/common/api/JobAPI.js';
 import { getRoomInfo } from '@/common/api/RoomsAPI.js';
+import { createCharacterSheet } from '@/common/api/CharacterSheetAPI.js'; 
 import Appearance from './Appearance.vue';
 import CharacterInfo from './CharacterInfo.vue';
 import Values from './Values.vue';
@@ -56,12 +60,12 @@ import Equipment from './Equipment.vue';
 import Stats from './Stats.vue';
 import Actions from './Actions.vue';
 
+
 const route = useRoute();
+const emit = defineEmits(['close', 'save-success']);
 
-// Room ID는 라우터에서 가져오고 숫자형으로 변환
-const roomID = ref(Number(route.params.roomId)); 
 
-// Job ID는 부모에서 전달된 Job 객체에서 가져오며, 숫자형으로 변환
+const roomID = ref(Number(route.params.roomId));
 const props = defineProps({
   job: {
     type: Object,
@@ -69,17 +73,13 @@ const props = defineProps({
   }
 });
 const jobID = ref(Number(props.job.id));
-
-// ruleID는 룸 정보를 가져오는 API에서 설정
 const ruleID = ref(null);
-
 const jobOptions = ref({
   jobBeliefList: [],
   jobRaceList: [],
   jobActionList: [],
   jobEquipmentList: []
 });
-
 const isLoading = ref(true);
 
 const fetchRuleID = async () => {
@@ -107,7 +107,7 @@ const fetchJobOptions = async () => {
 };
 
 const activeTab = ref('character');
-const tabs = ['character', 'values', 'stats',  'equipment', 'actions', 'appearance'];
+const tabs = ['character', 'values', 'stats', 'equipment', 'actions', 'appearance'];
 const tabLabels = {
   character: '캐릭터 정보',
   values: '가치관',
@@ -118,52 +118,41 @@ const tabLabels = {
 };
 
 const formData = ref({
-    jobId: null, // 직업 ID
-    raceId: null, // 종족 ID
-    beliefId: null, // 신념 ID
-    name: '', // 캐릭터 이름
-    appearance: '', // 외모
-    background: '', // 배경 스토리
-    stat: [ // 능력치
-        {
-            statID: null,
-            statValue: null,
-            statWeight: null
-        },
-        // 추가 능력치...
-    ],
-    characterAction: [ // 액션
-        {
-            actionID: null,
-            actionOptionId: null
-        },
-        // 추가 액션...
-    ],
-    characterEquipment: [ // 장비
-        {
-            equipmentId: null,
-            currentCount: null,
-            weight: null
-        },
-        // 추가 장비...
-    ],
-    currentWeight: 0, // 현재 무게
-    currentHp: 0, // 현재 HP
-    currentMoney: 0, // 현재 소지금
-    limitWeight: 0, // 무게 한도
-    limitHp: 0, // HP 한도
-    glove: 0, // 장갑 (별도 정의 필요 시)
-    inspirationScore: 0, // 영감 점수 (별도 정의 필요 시)
-    level: 1, // 레벨
-    exp: 0, // 경험치
-    imageURL: '' // 이미지 URL
+  raceId: null,
+  beliefId: null,
+  name: '',
+  appearance: '',
+  background: '',
+  stat: [],
+  characterAction: [],
+  characterEquipment: [],
+  currentWeight: 0,
+  currentHp: 0,
+  currentMoney: 0,
+  limitWeight: 0,
+  limitHp: 0,
+  glove: 0,
+  inspirationScore: 0,
+  level: 1,
+  exp: 0,
+  imageURL: '' // 확정된 이미지 URL
 });
 
+const candidateImages = ref([null, null, null]); // 후보 이미지 리스트
+
+const updateCandidateImages = (newCandidateImages) => {
+  candidateImages.value = newCandidateImages;
+  console.log('후보 이미지 리스트 업데이트:', candidateImages.value);
+};
 
 const raceOptions = computed(() => jobOptions.value.jobRaceList || []);
 const beliefOptions = computed(() => jobOptions.value.jobBeliefList || []);
 const equipmentOptions = computed(() => jobOptions.value.jobEquipmentList || []);
 const actionOptions = computed(() => jobOptions.value.jobActionList || []);
+
+const appearanceProps = computed(() => {
+  return activeTab.value === 'appearance' ? { candidateImages: candidateImages.value } : {};
+});
 
 const activeComponent = computed(() => {
   if (isLoading.value) return null;
@@ -200,32 +189,62 @@ function getTabButtonStyle(tab) {
   };
 }
 
-function updateBelief(selectedBelief) {
-  formData.value.selectedBelief = selectedBelief;
-}
-
-const updateAttributes = ({ key, value }) => {
-  formData.value.attributes[key] = value;
-};
-
-const updateSelectedEquipment = (selectedEquipment) => {
-  // 선택된 장비 데이터를 formData.characterEquipment에 업데이트
-  formData.value.characterEquipment = Object.keys(selectedEquipment).map(typeId => {
-    return {
-      equipmentId: selectedEquipment[typeId],
-      currentCount: 1, // 기본 값을 설정 (또는 필요한 경우 동적으로 변경 가능)
-      weight: 1 // 기본 값을 설정 (또는 필요한 경우 동적으로 변경 가능)
-    };
-  });
-};
-
-function updateAction(selectedAction) {
-  formData.value.selectedAction = selectedAction;
-}
+onMounted(() => {
+  fetchRuleID();
+  formData.value.jobId = jobID.value;  // jobID를 formData에 할당
+});
 
 function saveForm() {
-  console.log('폼 데이터 저장됨:', formData.value);
+  const characterSheetRequestData = {
+    jobId: formData.value.jobId,
+    raceId: formData.value.raceId,
+    beliefId: formData.value.beliefId,
+    name: formData.value.name,
+    appearance: formData.value.appearance,
+    background: formData.value.background,
+    stat: formData.value.stat.map(stat => ({
+      statID: stat.statID,
+      statValue: Number(stat.statValue),  // statValue를 숫자로 변환
+      statWeight: Number(stat.statWeight),  // statWeight를 숫자로 변환
+    })),
+    characterAction: formData.value.characterAction.map(action => ({
+      actionID: action.actionID,
+      actionOptionId: action.actionOptionId || null,
+    })),
+    characterEquipment: formData.value.characterEquipment.map(item => ({
+      equipmentId: item.equipmentId,
+      currentCount: item.currentCount,
+      weight: item.weight,
+    })),
+    currentWeight: formData.value.currentWeight,
+    currentHp: formData.value.currentHp,
+    currentMoney: formData.value.currentMoney,
+    limitWeight: formData.value.limitWeight,
+    limitHp: formData.value.limitHp,
+    glove: formData.value.glove,
+    inspirationScore: formData.value.inspirationScore,
+    level: formData.value.level,
+    exp: formData.value.exp,
+    imageURL: formData.value.imageURL,
+  };
+
+  // FormData 대신 JSON 객체를 직접 전달
+  createCharacterSheet(roomID.value, characterSheetRequestData)
+    .then(response => {
+      console.log('캐릭터 시트 생성 성공:', response);
+      alert('캐릭터 시트가 성공적으로 생성되었습니다.');
+
+       // 캐릭터 시트가 성공적으로 생성된 경우 이벤트 발생
+       emit('save-success');
+    })
+    .catch(error => {
+      console.error('캐릭터 시트 생성 중 오류 발생:', error);
+      alert('캐릭터 시트 생성 중 오류가 발생했습니다.');
+    });
+
+  console.log('보낼 데이터 형식:', characterSheetRequestData);
 }
+
 
 import closeButtonImage from '@/assets/images/character_sheet/close.png';
 import saveButtonImage from '@/assets/images/character_sheet/save.png';
@@ -265,8 +284,10 @@ const modalFooterStyle = computed(() => ({
 }));
 
 onMounted(fetchRuleID);
-</script>
 
+console.log('jobID:', jobID.value);
+
+</script>
 
 
 <style scoped>

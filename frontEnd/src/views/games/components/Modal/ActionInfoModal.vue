@@ -10,6 +10,7 @@
       </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="action-info">
+          <!-- 기존의 액션 정보 표시 -->
           <div class="info-item">
             <div class="title-container">
               <img src="@/assets/images/character_sheet/nickname_light.png" alt="분류 배경" class="title-image">
@@ -20,14 +21,27 @@
               <span class="info-text">{{ actionCategory }}</span>
             </div>
           </div>
-          <div class="info-item">
-            <div class="title-container">
-              <img src="@/assets/images/character_sheet/nickname_light.png" alt="이름 배경" class="title-image">
-              <span class="title-text">이름</span>
+          <!-- 주사위 정보 표시 -->
+          <div v-if="props.action.isDice" class="dice-info">
+            <div class="info-item">
+              <div class="title-container">
+                <img src="@/assets/images/character_sheet/nickname_light.png" alt="주사위 타입 배경" class="title-image">
+                <span class="title-text">주사위 타입</span>
+              </div>
+              <div class="info-box">
+                <img src="@/assets/images/character_sheet/nickname_light.png" alt="타입명 배경" class="info-box-image">
+                <span class="info-text">D{{ props.action.diceType }}</span>
+              </div>
             </div>
-            <div class="info-box">
-              <img src="@/assets/images/character_sheet/nickname_light.png" alt="이름명 배경" class="info-box-image">
-              <span class="info-text">{{ actionName }}</span>
+            <div class="info-item">
+              <div class="title-container">
+                <img src="@/assets/images/character_sheet/nickname_light.png" alt="주사위 개수 배경" class="title-image">
+                <span class="title-text">주사위 개수</span>
+              </div>
+              <div class="info-box">
+                <img src="@/assets/images/character_sheet/nickname_light.png" alt="개수명 배경" class="info-box-image">
+                <span class="info-text">{{ props.action.diceCount }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -51,7 +65,8 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
+import { setSelectedDice } from '@/store/state.js';
 
 const props = defineProps(['action']);
 const emit = defineEmits(['close', 'select']);
@@ -64,6 +79,15 @@ const closeModal = () => {
 };
 
 const selectAction = () => {
+  if (props.action.isDice) {
+    // 주사위 정보를 store의 상태에 저장
+    setSelectedDice(props.action.diceType, props.action.diceCount);
+  }
+  console.log(props.action)
+  // 여기
+  // 메시지 보내는 로직 추가
+  // ACTION
+  // playMemberID ? 
   emit('select', props.action);
   closeModal();
 };
@@ -112,6 +136,10 @@ const formattedDescription = computed(() => {
     description += `<ul>${optionsList}</ul>`;
   }
   return description;
+});
+
+onMounted(() => {
+  console.log("Action data on modal open:", props.action);
 });
 
 </script>
@@ -200,6 +228,7 @@ const formattedDescription = computed(() => {
   border-radius: 5px;
   border: 2px solid #201805;
 }
+
 
 .action-info {
   display: flex;

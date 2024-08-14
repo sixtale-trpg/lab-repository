@@ -56,7 +56,6 @@ const localAttributes = reactive({
   charisma: props.formData.stat.find(attr => attr.statID === 6) ? props.formData.stat.find(attr => attr.statID === 6).statValue : '',
 });
 
-
 const emit = defineEmits(['update:stats']);
 
 // 모든 능력치가 선택되지 않았을 때 경고를 표시하는 상태
@@ -103,6 +102,8 @@ const emitAttributeUpdate = (key) => {
   }));
   emit('update:stats', updatedStats);
 
+  console.log('선택한 능력치:', updatedStats); // 선택한 능력치를 콘솔에 출력
+
   // 선택되지 않은 능력치가 있는지 확인
   checkAllAttributesSelected();
 };
@@ -119,6 +120,7 @@ const resetAttributes = () => {
     emitAttributeUpdate(key);
   });
   checkAllAttributesSelected(); // 리셋 후 경고 메시지 표시
+  console.log('능력치가 리셋되었습니다.'); // 리셋 후 콘솔에 출력
 };
 
 // 부모에서 업데이트된 데이터를 로컬 상태로 동기화
@@ -129,7 +131,6 @@ watch(() => props.formData.stat, (newStat) => {
     if (key) localAttributes[key] = attr.statValue;
   });
 });
-
 
 // 컴포넌트가 마운트될 때 선택되지 않은 능력치가 있는지 확인
 onMounted(checkAllAttributesSelected);
@@ -154,6 +155,7 @@ const formattedDescription = computed(() => {
   return descriptionText.replace(/\.\s/g, '.<br>');
 });
 </script>
+
 
 
 <style scoped>

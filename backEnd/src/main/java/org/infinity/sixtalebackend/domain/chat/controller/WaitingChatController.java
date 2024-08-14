@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageListResponse;
 import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.infinity.sixtalebackend.domain.chat.service.WaitingLogService;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -59,7 +60,8 @@ public class WaitingChatController {
     @GetMapping("/waiting/chat/whisper/log/{roomID}")
     public ResponseEntity<?> getWaitingWhisperChatLogList(@PathVariable Long roomID,Pageable pageable) {
         try {
-            Long memberID = 2L;
+            Long memberID = AuthenticationUtil.getMemberId();
+
             ChatMessageListResponse chatMessageListResponse = waitingLogService.getWaitingChatWisperLogList(roomID,memberID,pageable);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_WAITING_WHISPER_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
         }catch(Exception e){
@@ -76,7 +78,8 @@ public class WaitingChatController {
     @GetMapping("/waiting/chat/all/log/{roomID}")
     public ResponseEntity<?> getWaitingChatAllLogList(@PathVariable Long roomID,Pageable pageable) {
         try {
-            Long memberID = 2L;
+            Long memberID = AuthenticationUtil.getMemberId();
+
             ChatMessageListResponse chatMessageListResponse = waitingLogService.getWaitingChatAllLogList(roomID,memberID,pageable);
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_WAITING_ALL_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
         }catch(Exception e){

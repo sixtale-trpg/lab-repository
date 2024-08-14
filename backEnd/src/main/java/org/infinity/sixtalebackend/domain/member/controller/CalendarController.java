@@ -6,6 +6,7 @@ import org.infinity.sixtalebackend.domain.member.exception.InvalidDateException;
 import org.infinity.sixtalebackend.domain.member.service.CalendarServiceImpl;
 import org.infinity.sixtalebackend.domain.member.dto.CalendarListResponse;
 import org.infinity.sixtalebackend.domain.member.dto.CalendarRequest;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -25,8 +26,9 @@ public class CalendarController {
     @GetMapping
     public ResponseEntity getAllCalendars() {
         try {
-            long id = 1L;
-            CalendarListResponse response = calendarService.getAllCalendars(id);
+            Long memberID = AuthenticationUtil.getMemberId();
+
+            CalendarListResponse response = calendarService.getAllCalendars(memberID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_USER_CALENDAR, response), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.READ_USER_CALENDAR_FAIL), HttpStatus.BAD_REQUEST);
@@ -43,8 +45,9 @@ public class CalendarController {
     public ResponseEntity createCalendar(@RequestBody @Valid CalendarRequest calendarRequest) {
         try {
             // bearer 토큰 추출 대신 id = 1인 유저 가정
-            Long id = 1L;
-            calendarService.createCalendar(id, calendarRequest);
+            Long memberID = AuthenticationUtil.getMemberId();
+
+            calendarService.createCalendar(memberID, calendarRequest);
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_USER_CALENDAR), HttpStatus.CREATED);
         } catch (InvalidDateException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST,  ResponseMessage.CREATE_USER_CALENDAR_ERROR), HttpStatus.BAD_REQUEST);
@@ -63,8 +66,8 @@ public class CalendarController {
     public ResponseEntity deleteCalendar(@PathVariable Long calendarId) {
         try {
             // bearer 토큰 추출 대신 id = 1인 유저 가정
-            Long id = 1L;
-            calendarService.deleteCalendar(calendarId, id);
+            Long memberID = AuthenticationUtil.getMemberId();
+            calendarService.deleteCalendar(calendarId, memberID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_USER_CALENDAR), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_USER_CALENDAR_FAIL), HttpStatus.BAD_REQUEST);

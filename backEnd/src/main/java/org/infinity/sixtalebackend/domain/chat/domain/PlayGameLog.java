@@ -19,7 +19,7 @@ public class PlayGameLog {
     @Id
     private String id; // 자동으로 들어감
     private Long roomID;
-    private Long sheetID;
+    private Long playMemberID;
     @Enumerated(EnumType.STRING)
     private GameType gameType;
     private String content;

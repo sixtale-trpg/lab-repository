@@ -45,7 +45,9 @@
                   alt="닉네임 박스"
                   class="nickname-box-image"
                 />
-                <span class="nickname-text">{{ characterData.name }}</span>
+                <span class="nickname-text" :title="characterData.name">
+                  {{ characterData.name }}
+                </span>
               </div>
               <!-- 추가 정보 항목은 여기 추가 -->
             </div>
@@ -140,10 +142,10 @@ watch(
     if (newUser) {
       characterData.value = {
         image: newUser.profileImage || defaultImage, // props.user.profileImage 경로 확인
-        name: newUser.name || '오소리 탈춤 사냥꾼',
+        name: newUser.name || '',
         race: newUser.race || '인간',
         job: newUser.job || '전사',
-        background: newUser.background || '기본 배경 설명',
+        background: newUser.background || '',
       };
     }
   },
@@ -238,13 +240,14 @@ watch(
 }
 
 .nickname-box {
-  display: flex;
+  display: inline-flex; /* 박스를 텍스트 길이에 따라 자동 조절 */
   align-items: center;
+  justify-content: center;
   position: relative;
 }
 
 .nickname-box-image {
-  width: auto;
+  width: auto; /* 이미지의 너비를 텍스트 길이에 맞게 자동 조절 */
   height: 55px;
 }
 
@@ -255,6 +258,24 @@ watch(
   color: white;
   font-size: 1.0rem;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%; /* 말줄임 효과를 위해 최대 너비 설정 */
+  cursor: pointer; /* 툴팁을 위해 커서 변경 */
+}
+
+.nickname-text:hover::after {
+  content: attr(title); /* title 속성을 툴팁으로 표시 */
+  position: absolute;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  z-index: 10;
+  top: -25%; /* 필요에 따라 위치 조정 */
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .modal-overlay {

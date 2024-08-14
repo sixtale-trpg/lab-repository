@@ -25,50 +25,57 @@
 <script setup>
 import VoiceChatButton from '../../VoiceChatButton.vue'; // VoiceChatButton 컴포넌트 임포트
 import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
-import { ref, computed, onMounted } from 'vue';
-import { useRoute,useRouter } from 'vue-router';
-
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getRoomInfo } from '@/common/api/RoomsAPI'; // 방 정보 API 가져오기
 
 const route = useRoute();
 const router = useRouter();
 const roomId = ref(null);
 
 const props = defineProps({
-  gm: {
-    type: Object,
-    required: true,
-  },
   isGM: {
     type: Boolean,
     required: true,
   },
 });
 
+// GM 정보 객체 생성
+const gm = ref({
+  id: null, // GM의 고유 ID
+  name: '', // GM의 닉네임
+  profileImage: '', // GM 프로필 이미지
+});
+
 // 게임 로그 소켓을 캐릭터 시트에서 구독
 onMounted(async () => {
-  try{
+  try {
     roomId.value = route.params.roomId;
+    const roomInfo = await getRoomInfo(roomId.value);
+
+    // GM 정보 설정
+    gm.value.id = roomInfo.gmID;
+    gm.value.name = roomInfo.gmNickname;
+    gm.value.profileImage = roomInfo.gmImageURL || require('@/assets/images/users/default.png');
+
     GameLogWebSocketService.connect(roomId.value);
-  }catch (error) {
+  } catch (error) {
     console.error('Error fetching room info or connecting to WebSocket:', error);
   }
 
   GameLogWebSocketService.onMessageReceived((message) => {
-      switch(message.gameType){
-        case "GAME_START":
-          // 게임 시작 시 페이지 이동
-          router.push(`/game/${route.params.roomId}/in-game`);
-          break;
-        default:
-          // 다른 메시지 타입의 처리 로직
-          break;
-      }
-      console.log(message);
-      // messages.value.push(message);
-      // saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
-    });
-
-})
+    switch (message.gameType) {
+      case "GAME_START":
+        // 게임 시작 시 페이지 이동
+        router.push(`/game/${route.params.roomId}/in-game`);
+        break;
+      default:
+        // 다른 메시지 타입의 처리 로직
+        break;
+    }
+    console.log(message);
+  });
+});
 
 const emit = defineEmits(['start-game']);
 
@@ -83,21 +90,13 @@ const startGame = () => {
   emit('start-game');
 };
 
-// 더미 데이터로 GM 정보 설정
+// GM 관련 이미지 설정
 const gmBoxImage = require('@/assets/images/character_sheet/gm_box.png');
 const gmMarkImage = require('@/assets/images/character_sheet/gm_mark.png');
 const startButtonImagePath = require('@/assets/images/room/start_button.png');
 const gmMaster = require('@/assets/images/character_sheet/Game_Master.png');
-
-// 테스트 용도의 더미 데이터
-const gm = {
-  id: 9, // GM의 고유 ID를 하드코딩으로 설정
-  name: '미카엘', // GM의 닉네임
-  profileImage: require('@/assets/images/users/gm.png'), // GM 프로필 이미지
-};
-
-console.log('GM ID:', gm.id); // GM ID 로그 출력
 </script>
+
 
 <style scoped>
 .gm-section-container {
@@ -159,14 +158,18 @@ console.log('GM ID:', gm.id); // GM ID 로그 출력
 }
 
 .gm-mark-image {
-  width: 13%;
-  height: 13%;
+  width: 15%;
+  height: 15%;
   margin: 3%;
 }
 
 .gm-name {
-  font-size: 0.8rem;
+  font-size: 1.2rem;
   margin: 0;
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  color: rgb(214, 205, 170);
 }
 
 .start-game-button {

@@ -67,4 +67,7 @@ public class CharacterSheetRequest {
 
     @NotNull
     private Integer exp;
+
+    @NotBlank
+    private String imageURL;
 }

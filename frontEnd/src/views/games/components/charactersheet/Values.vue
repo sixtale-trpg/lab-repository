@@ -7,6 +7,7 @@
         :key="belief.beliefID"
         :class="['action-card', { selected: localFormData.beliefId === belief.beliefID }]"
         @click="selectBelief(belief.beliefID)"
+        :style="getCardStyle(belief.beliefID)"
       >
         <div class="card-content">
           <span class="card-title">{{ belief.beliefName }}</span>
@@ -22,7 +23,9 @@ import { reactive, toRefs, watch, ref, onMounted } from 'vue';
 
 const props = defineProps({
   formData: Object,
-  currentOptions: Array
+  currentOptions: Array,
+  jobId: Number,  
+  ruleId: Number,
 });
 
 const { formData } = toRefs(props);
@@ -34,6 +37,7 @@ const localFormData = reactive({ ...formData.value });
 // Watcher로 localFormData가 변경될 때 부모 컴포넌트로 데이터 전송
 watch(localFormData, (newValue) => {
   emit('update:belief-id', newValue.beliefId);
+  console.log('부모로 전송한 가치관 ID:', newValue.beliefId); // 선택한 가치관 ID를 콘솔에 출력
 });
 
 // 경고 메시지 표시 여부
@@ -42,6 +46,7 @@ const showWarning = ref(false);
 function selectBelief(beliefID) {
   localFormData.beliefId = beliefID; // beliefId로 데이터 저장
   emit('update:belief-id', beliefID); // 부모에게 변경된 데이터 전송
+  console.log('선택한 가치관 ID:', beliefID); // 선택한 가치관 ID를 콘솔에 출력
   showWarning.value = false; // 선택 시 경고 메시지 숨기기
 }
 
@@ -54,8 +59,25 @@ function checkForEmptyBelief() {
 onMounted(() => {
   checkForEmptyBelief();
 });
-</script>
 
+const actionListImage = require('@/assets/images/character_sheet/ActionList.png');
+const actionListSelectImage = require('@/assets/images/character_sheet/ActionListSelect.png');
+
+// 카드 스타일을 가져오는 함수
+function getCardStyle(beliefID) {
+  return {
+    backgroundImage: `url(${localFormData.beliefId === beliefID ? actionListSelectImage : actionListImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    padding: '20px',
+    color: '#fff',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    cursor: 'pointer',
+    border: localFormData.beliefId === beliefID ? '2px solid white' : 'none',
+  };
+}
+</script>
 
 <style scoped>
 .values-container {
@@ -75,21 +97,21 @@ onMounted(() => {
 }
 
 .action-card {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
-  padding: 20px;
-  cursor: pointer;
-  transition: background 0.3s;
   width: 200px;
+  height: auto;
+  transition: transform 0.3s, box-shadow 0.3s;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .action-card:hover {
-  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .action-card.selected {
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .card-content {
@@ -109,6 +131,8 @@ onMounted(() => {
   font-size: 1.2rem;
   text-align: left; 
   width: 100%;
+  word-wrap: break-word;
+  white-space: pre-wrap; /* Preserve formatting including line breaks */
 }
 
 .warning-text {

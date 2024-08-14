@@ -105,12 +105,14 @@ const sendButtonImage = require('@/assets/images/ingame/Send_Button.png');
 const backgroundStyle = {
   backgroundImage: `url(${backgroundImage})`,
   backgroundSize: '100%',
+  backgroundRepeat: "no-repeat",
   backgroundPosition: 'center',
   padding: '10px',
   boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
+  
 };
 
 // 전송 버튼 스타일 설정
@@ -119,8 +121,11 @@ const sendButtonStyle = {
   height: '40px',
   backgroundImage: `url(${sendButtonImage})`,
   backgroundSize: 'contain',
+  backgroundPosition: 'center',
+  backgroundColor: 'transparent', // 배경색을 투명하게 설정
   border: 'none',
   cursor: 'pointer',
+  backgroundRepeat: "no-repeat",
 };
 
 // 메시지 전송 함수
@@ -168,6 +173,12 @@ const selectTab = (key) => {
   flex-direction: column;
   height: 100%;
   border: 2px solid #000;
+  background-size: 100% 100% !important; /* 배경 이미지가 컨테이너에 맞게 늘어나도록 설정 */
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+.chat-input button {
+  background-color: transparent; /* 버튼의 배경색을 투명하게 설정 */
 }
 
 .tabs {
@@ -180,13 +191,13 @@ const selectTab = (key) => {
   padding: 10px;
   cursor: pointer;
   border: 1px solid #333;
-  color: white;
+  color: rgb(214, 205, 170);
   background: linear-gradient(to bottom, #444, #222);
 }
 
 .tabs button.active {
   background-color: #555;
-  color: #fff;
+  color: rgb(214, 205, 170);
 }
 
 .tabs button.all {
@@ -210,7 +221,7 @@ const selectTab = (key) => {
   padding: 10px;
   overflow-y: auto;
   border: 1px solid #444;
-  color: white;
+  color: rgb(214, 205, 170);
 }
 
 .chat-input {
@@ -225,11 +236,11 @@ const selectTab = (key) => {
   padding: 8px;
   border: 1px solid #444;
   background-color: #222;
-  color: white;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .chat-input input::placeholder {
-  color: white;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .whisper-dropdown {
@@ -238,15 +249,15 @@ const selectTab = (key) => {
   padding: 5px;
   border: 1px solid #444;
   background-color: #333;
-  color: white;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .whisper-chat {
   padding: 10px;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid rgba(255, 255, 255, 0.7);
 }
 
 .chat-content > div {
-  color: #fff;
+  color: rgba(255, 255, 255, 0.7);
 }
 </style>

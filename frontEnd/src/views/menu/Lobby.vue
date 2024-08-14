@@ -105,6 +105,7 @@ import { getRoomList, getRoomInfo, enterRoom, getJoinedRooms } from '@/common/ap
 import { getMemberInfo } from '@/common/api/mypageAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
 import PasswordModal from '@/views/menu/components/PasswordModal.vue';
+import WebSocketService from '@/store/websocket/waiting';
 
 const router = useRouter();
 
@@ -222,26 +223,43 @@ const getStatusImage = (status) => {
 
 
 const handleEnterRoom = async (room) => {
-  if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
-    alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
-    return;
-  }
-  
-  selectedRoomId.value = room.id;
-  
-  if (room.isLocked) {
-    showPasswordModal.value = true;
-  } else {
-    try {
+  try {
+    // 방 정보 가져오기
+    const roomInfo = await getRoomInfo(room.id);
+    console.log('Room info:', roomInfo);
+
+    // 현재 사용자가 해당 방의 GM인지 확인
+    if (roomInfo.gmNickname === user.value.nickName) {
+      const confirmMessage = '현재 방의 GM으로 참여 중입니다. GM으로 다시 입장하시겠습니까?';
+      if (confirm(confirmMessage)) {
+        router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
+      }
+      return;
+    }
+
+    if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
+      alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
+      return;
+    }
+
+    selectedRoomId.value = room.id;
+
+    WebSocketService.connect(room.id,userId.value);
+
+    if (room.isLocked) {
+      showPasswordModal.value = true;
+    } else {
       const result = await enterRoomWithCheck(room.id);
       if (result) {
         router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
       }
-    } catch (error) {
-      alert(error.message);
     }
+  } catch (error) {
+    console.error('Error entering room:', error);
+    alert('방에 입장할 수 없습니다.');
   }
 };
+
 
 const handlePasswordSubmit = async ({ roomId, password }) => {
   try {
@@ -744,6 +762,11 @@ onMounted(async () => {
   align-items: center;
 }
 
+.pagination-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
+}
 /* .create-room-button {
   width: 200px;
   height: 50px;
@@ -765,6 +788,12 @@ onMounted(async () => {
   font-family: 'Abhaya Libre ExtraBold', sans-serif;
   font-style: normal;
   font-weight: 800;
+}
+
+.create-room-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
 }
 
 /* .pagination-button {

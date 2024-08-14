@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetUpda
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 public interface CharacterSheetService {
     void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID, MultipartFile[] files) throws IOException;
@@ -14,7 +15,7 @@ public interface CharacterSheetService {
     CharacterSheetResponse getCharacterSheet(Long roomID, Long playMemberID);
     void deleteCharacterSheet(Long roomID, Long playMemberID);
 
-    void updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest);
+    Map<String, String> updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest);
 
     void updateCharacterSheetInPlaying(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest);
 }

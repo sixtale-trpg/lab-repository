@@ -5,11 +5,12 @@ import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterSheetEqui
 import org.infinity.sixtalebackend.domain.character_sheet.dto.CharacterUpdateEquipmentRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CharacterSheetEquipmentService {
     CharacterSheetEquipmentResponse getCharacterSheetEquipment(Long roomID, Long playMemberID);
-    void addCharacterEquipment(Long roomID, Long playMemberID, CharacterEquipmentRequest equipmentRequest);
-    void deleteCharacterEquipment(Long roomID, Long playMemberID, Long equipmentID);
+    Map<String, String> addCharacterEquipment(Long roomID, Long playMemberID, CharacterEquipmentRequest equipmentRequest);
+    Map<String, String> deleteCharacterEquipment(Long roomID, Long playMemberID, Long equipmentID);
 
     void updateCharacterEquipment(Long roomID, Long playMemberID, CharacterUpdateEquipmentRequest equipmentUpdateRequest);
 }

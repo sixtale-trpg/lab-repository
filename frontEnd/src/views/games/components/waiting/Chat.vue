@@ -83,12 +83,14 @@ onMounted(async () => {
 
   try {
     // API를 통해 방 정보 가져오기
-    roomInfo.value = await getRoomInfo(initialRoomId).then((res) => {
-      console.log("사용자", user.value);
-      WebSocketService.connect(res.id, user.value.id);
-      return res;
-    });
-    console.log("Room Info:", roomInfo.value);
+    // roomInfo.value = await getRoomInfo(initialRoomId).then((res) => {
+    //   console.log("사용자", user.value);
+    //   WebSocketService.connect(res.id, user.value.id);
+    //   return res;
+    // });
+    WebSocketService.connect(route.params.roomId, user.value.id);
+
+    // console.log("Room Info:", roomInfo.value);
   } catch (error) {
     console.error("Error fetching room info:", error);
   }

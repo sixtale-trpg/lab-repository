@@ -36,7 +36,9 @@
                   class="avatar-frame"
                 />
               </div>
-              <div :style="gmNameStyle" class="gm-name">{{ gm.name }}</div>
+              <div :style="gmNameStyle" class="gm-name" :title="gm.name">
+                {{ truncatedGMName }}
+              </div>
             </div>
             <button
               :disabled="!isGM"
@@ -51,7 +53,9 @@
         <div class="details">
           <div class="rule-scenario">
             <div :style="gameInfoStyle" class="game-info">
-              <div :style="vectorImage">게임 룰</div>
+              <div class="title">
+                <div :style="vectorImage">게임 룰</div>
+              </div>
               <div class="content cursor" @click="openRulebookModal">
                 <div
                   :style="gameRuleContainerStyle"
@@ -69,11 +73,10 @@
                 class="content scenario-content cursor"
                 @click="openScenarioModal"
               >
-                <img
-                  :src="scenarioImagePath"
-                  alt="시나리오 이미지"
-                  class="scenario-image"
-                />
+              <img
+                :src="scenarioImagePath"
+                class="scenario-image"
+              />
                 <div class="scenario-text">{{ scenario }}</div>
               </div>
             </div>
@@ -160,9 +163,7 @@ const fetchRoomDetails = async () => {
     scenario.value = roomInfo.scenarioTitle;
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
-
-    // 현재 사용자가 GM인지 확인하여 설정
-    // isGM.value = roomInfo.isCurrentUserGM; // API에서 isCurrentUserGM 값을 반환한다고 가정
+    scenarioImagePath.value = roomInfo.scenarioImageURL; // 시나리오 이미지 경로 설정
 
     users.value = roomInfo.playMemberList.map((member) => ({
       id: member.playMemberID,
@@ -271,7 +272,7 @@ const ruleBoxImagePath = require("@/assets/images/room/rule_box.png");
 const ruleBox1ImagePath = require("@/assets/images/room/rule_box1.png");
 const scenario_boxPath = require("@/assets/images/room/scenario_box.png");
 const vectorImagePath = require("@/assets/images/room/Vector.png");
-const scenarioImagePath = require("@/assets/images/room/scenario_main.png");
+const scenarioImagePath = ref("");
 const calendarBoxImagePath = require("@/assets/images/room/calendar_box.png");
 
 // 배경 이미지 스타일 설정
@@ -317,7 +318,15 @@ const gmNameStyle = computed(() => ({
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
+  // cursor: "pointer", // 툴팁을 위해 추가
 }));
+
+// GM 닉네임을 줄여서 표시하기 위한 computed property
+const truncatedGMName = computed(() => {
+  return gm.value.name.length > 10
+    ? gm.value.name.slice(0, 10) + '...'
+    : gm.value.name;
+});
 
 const profileImageContainerStyle = {
   position: "relative",
@@ -382,10 +391,20 @@ const gameRuleContainerStyle = {
   backgroundSize: "contain",
   backgroundRepeat: "no-repeat",
   backgroundPosition: "center",
+  borderRadius: "10px",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  height: "100%",
+  width: "60%",
+  height: "60%",
+  fontFamily: "'Abhaya Libre ExtraBold', sans-serif",
+  fontStyle: "normal",
+  fontWeight: 800,
+  fontSize: "28px",
+  lineHeight: "100%",
+  color: "rgb(214, 205, 170)",
+  background: "rgba(101, 78, 53, 0.49)",
+  boxShadow: "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
 };
 
 const calendarContainerStyle = {
@@ -548,7 +567,8 @@ const calendarContainerStyle = {
 }
 
 .scenario-image {
-  width: 30%;
+  width: 20%;
+  height: 100%;
   margin-right: -30px;
 }
 
@@ -558,12 +578,17 @@ const calendarContainerStyle = {
 }
 
 .game-info .title {
+  /* background: rgba(101, 78, 53, 0.49); */
+  /* box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15); */
+  border-radius: 10px;
+  color: rgb(214, 205, 170);
+  /* padding: 10px 20px; */
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  color: #ffffff;
-  font-size: 1.2em;
+  
   /* cursor: pointer; 제목을 클릭할 수 있게 변경 */
 }
 

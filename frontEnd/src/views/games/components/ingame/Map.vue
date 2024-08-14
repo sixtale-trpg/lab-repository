@@ -508,6 +508,7 @@ const changeMap = async (description) => {
         });
 
         console.log("Updated Map Info:", mapInfo);
+        console.log("Map Events on this map:", mapInfo.placeEvents); // 여기서 맵 이벤트 콘솔 출력
       } else {
         console.warn("Invalid map data or placeEvents is undefined");
       }

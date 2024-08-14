@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8083") // 프론트엔드 도메인
 public class VoiceChatController {
 
     @Value("${OPENVIDU_URL}")

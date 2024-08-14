@@ -341,16 +341,30 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         log.info("캐릭터 시트 및 관련 데이터 삭제 완료");
     }
 
+    /**
+     * 골드 수정
+     */
     @Override
     @Transactional
-    public void updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest) {
+    public Map<String, String> updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest) {
         PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMember(playMember)
                 .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
 
-        characterSheet.setCurrentMoney(characterGoldUpdateRequest.getCurrentMoney());
+        int currentGold = characterSheet.getCurrentMoney();
+        int updateGold = characterGoldUpdateRequest.getCurrentMoney();
+        characterSheet.setCurrentMoney(updateGold);
         characterSheetRepository.save(characterSheet);
+
+        // 응답을 위한 map 생성
+        Map<String, String> result = new HashMap<>();
+        result.put("roomID", roomID.toString());
+        result.put("sheetID", characterSheet.getId().toString());
+        result.put("currentGold", String.valueOf(currentGold));
+        result.put("updateGold", String.valueOf(updateGold));
+
+        return result;
     }
 
     /**
@@ -405,5 +419,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 stat.setStatWeight(statRequest.getStatWeight());
             }
         });
+        characterStatRepository.saveAll(characterSheet.getCharacterStats());
+
     }
 }

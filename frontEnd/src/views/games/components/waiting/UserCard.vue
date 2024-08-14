@@ -12,15 +12,6 @@
         <img :src="avatarFrameImage" alt="테두리" class="avatar-frame" />
       </div>
     </div>
-    <div class="user-actions">
-      <!-- GM만 볼 수 있고 유저가 있는 경우에만 강퇴 버튼을 표시 -->
-      <img
-        v-if="isGM && memberId"
-        src="@/assets/images/room/kick.png"
-        alt="강퇴"
-        @click="showKickModal = true"
-      />
-    </div>
     <div :style="userNameStyle" class="user-name" :title="user.name">
       {{ truncatedName }}
     </div>
@@ -36,15 +27,6 @@
       :user="user"
       @close="showAddFriendModal = false"
     />
-    <!-- KickModal을 호출하여 유저 정보를 전달 -->
-    <KickModal
-      v-if="showKickModal"
-      :user="user"
-      :roomId="roomId"
-      :memberId="memberId"
-      @close="showKickModal = false"
-      @kick="handleKick"
-    />
   </div>
 </template>
 
@@ -52,7 +34,6 @@
 import { ref, computed, defineProps } from 'vue';
 import Userinfo from '@/views/games/components/Modal/UserInfo.vue';
 import AddFriendModal from '@/views/games/components/Modal/AddFriendModal.vue';
-import KickModal from '@/views/games/components/Modal/KickModal.vue';
 import defaultImage from '@/assets/images/users/default.png';
 import avatarFrameImage from '@/assets/images/room/avatar_frame.png';
 import profileBoxImage from '@/assets/images/room/profile_box.png';
@@ -81,7 +62,6 @@ const props = defineProps({
 
 const showUserModal = ref(false);
 const showAddFriendModal = ref(false);
-const showKickModal = ref(false);
 
 const userCardStyle = computed(() => ({
   backgroundImage: `url(${profileBoxImage})`,
@@ -101,7 +81,7 @@ const userNameStyle = computed(() => ({
   width: '90%',
   textAlign: 'center',
   display: 'inline-block',
-  height: '15%',
+  height: '100%',
   lineHeight: '1.0',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -118,27 +98,6 @@ const truncatedName = computed(() => {
 const openUserProfile = () => {
   if (props.user.id) {
     showUserModal.value = true;
-  }
-};
-
-// 사용자가 강퇴되면 처리하는 함수
-const handleKick = (kickedUser) => {
-  console.log(`${kickedUser.name} 님이 강퇴되었습니다.`);
-  
-  // 배열에서 강퇴된 유저를 제거
-// 배열에서 강퇴된 유저를 제거
-const index = users.value.findIndex(user => user.memberId === kickedUser.memberId);
-if (index !== -1) {
-  users.value.splice(index, 1);
-}
-
-  showKickModal.value = false;
-
-  // 배열이 업데이트된 후 다음 작업을 수행
-  if (users.value.length > 0) {
-    // 다음 유저를 강퇴할 로직을 작성
-  } else {
-    console.log('더 이상 강퇴할 유저가 없습니다.');
   }
 };
 </script>
@@ -170,8 +129,8 @@ if (index !== -1) {
 
 .profile-image-container {
   position: relative;
-  width: 100%;
-  height: 95%;
+  width: 90%;
+  height: 85%;
   overflow: hidden;
   border-radius: 50%;
   background-color: #291707;
@@ -198,21 +157,6 @@ if (index !== -1) {
   border-radius: 50%;
 }
 
-.user-actions {
-  display: flex;
-  gap: 5%;
-  position: absolute;
-  top: 2%;
-  right: -2%;
-  z-index: 1;
-}
-
-.user-actions img {
-  width: 65%;
-  height: auto;
-  cursor: pointer;
-}
-
 .user-name {
   text-align: center;
   font-size: 90%;
@@ -235,11 +179,6 @@ if (index !== -1) {
 @media (max-width: 768px) {
   .user-card {
     padding: 5%;
-  }
-
-  .user-actions img {
-    width: 20%;
-    height: auto;
   }
 }
 </style>

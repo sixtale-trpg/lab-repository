@@ -113,10 +113,11 @@ const currentImage = computed(() => {
 <style scoped>
 .map-view {
   position: relative;
-  height: 80%; 
+  height: 100%; 
   border-radius: 10px;
-  width: 70%; 
+  width: 100%; 
   box-sizing: border-box; 
+  border: 3px solid #4A3A2E;
 }
 
 .map-controls {
@@ -139,6 +140,6 @@ const currentImage = computed(() => {
   width: 100%;
   height: 100%;
   border-radius: 30px;
-  padding: 15px;
+  /* padding: 15px; */
 }
 </style>

@@ -40,6 +40,9 @@
     </div>
   </div>
   <!-- 경고 메시지 -->
+  <div>
+    <p class="sheet-info-description">캐릭터 시트는 1사람당 1개만 작성할 수 있습니다.</p>
+  </div>
   <div v-if="showWarning" class="warning-text">입력하지 않은 값이 있습니다!</div>
   <div class="history-section">
     <div class="history-title-container">
@@ -66,7 +69,9 @@ import { ref, reactive, toRefs, watch } from 'vue';
 
 const props = defineProps({
   formData: Object,
-  currentOptions: Array 
+  currentOptions: Array,
+  jobId: Number,  
+  ruleId: Number,
 });
 
 const { formData } = toRefs(props);
@@ -90,31 +95,34 @@ watch(localFormData, (newValue) => {
   emit('update:name', newValue.name);
   emit('update:background', newValue.background);
   emit('update:race-id', newValue.raceId);
+  console.log('이름:', newValue.name); // 이름을 콘솔에 출력
+  console.log('히스토리:', newValue.background); // 히스토리를 콘솔에 출력
+  console.log('선택된 종족 ID:', newValue.raceId); // 선택된 종족을 콘솔에 출력
 });
 
 function emitNameChange() {
   emit('update:name', localFormData.name);
   checkForEmptyFields();
+  console.log('이름:', localFormData.name); // 이름을 콘솔에 출력
 }
 
 function emitBackgroundChange() {
   emit('update:background', localFormData.background);
   checkForEmptyFields();
+  console.log('히스토리:', localFormData.background); // 히스토리를 콘솔에 출력
 }
 
 function selectRace(raceId) {
   localFormData.raceId = raceId;
   emit('update:race-id', raceId);
   checkForEmptyFields();
+  console.log('선택된 종족 ID:', raceId); // 선택된 종족을 콘솔에 출력
 }
 
 function checkForEmptyFields() {
   showWarning.value = !localFormData.name || !localFormData.raceId || !localFormData.background;
 }
 </script>
-
-
-
 
 <style scoped>
 .character-info-container {
@@ -200,6 +208,14 @@ function checkForEmptyFields() {
   padding: 10px;
   cursor: pointer;
   transition: background 0.3s;
+}
+
+.sheet-info-description {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0;
+  text-align: center;
+  justify-content: center;
 }
 
 .action-card:hover {

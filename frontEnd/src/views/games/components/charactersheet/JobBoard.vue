@@ -8,11 +8,12 @@
         :image="job.imageURL" 
         :description="job.description"
         :selectedBy="job.selectedBy"
-        @select-card="openCharacterSheet(job.id)"  
-        
+        :disabled="isJobDisabled(job.id)"  
+        @select-card="!isJobDisabled(job.id) && openCharacterSheet(job.id)" 
       />
     </div>
-    <CharacterSheetModal v-if="showModal"  :job="selectedJob" @close="closeModal" />
+    <!-- CharacterSheetModal에서 save-success 이벤트를 수신 -->
+    <CharacterSheetModal v-if="showModal" :job="selectedJob" @close="closeModal" @save-success="handleSaveSuccess" />
   </div>
 </template>
 
@@ -22,7 +23,6 @@ import { useRoute } from 'vue-router';
 import JobCard from './JobCard.vue';
 import CharacterSheetModal from './CharacterSheetModal.vue';
 import { fetchJobList } from '@/common/api/JobAPI.js';
-import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
 import { getRoomInfo } from '@/common/api/RoomsAPI.js';
 
 const route = useRoute();
@@ -32,8 +32,10 @@ const playMemberID = route.params.playMemberID;
 const jobs = ref([]);
 const showModal = ref(false);
 const selectedJob = ref(null);
-const existingCharacterSheet = ref(null);
 const ruleId = ref(null);
+
+// 캐릭터 시트가 작성된 직업 ID를 저장하는 배열로 변경
+const createdCharacterSheetJobs = ref([]);
 
 const fetchRoomInfo = async () => {
   try {
@@ -56,36 +58,31 @@ const loadJobs = async () => {
   }
 };
 
-const openCharacterSheet = async (jobID) => {
-  try {
-    const characterSheet = await getCharacterSheet(roomID, playMemberID);
-    existingCharacterSheet.value = characterSheet;
-
-    if (characterSheet) {
-      if (characterSheet.jobID !== jobID) {
-        alert('이미 다른 직업으로 캐릭터 시트를 작성하였습니다.');
-        return;
-      }
-      selectedJob.value = characterSheet;
-    } else {
-      selectedJob.value = jobs.value.find(j => j.id === jobID);
-    }
-
-    showModal.value = true;
-  } catch (error) {
-    console.error('Error checking character sheet:', error);
-    alert('캐릭터 시트를 확인하는 중 오류가 발생했습니다.');
-  }
+const openCharacterSheet = (jobID) => {
+  selectedJob.value = jobs.value.find(j => j.id === jobID);
+  showModal.value = true;
 };
 
 const closeModal = () => {
   showModal.value = false;
 };
 
+// 캐릭터 시트 저장 성공 시 처리
+const handleSaveSuccess = () => {
+  // 캐릭터 시트가 작성된 직업 ID를 배열에 추가
+  if (selectedJob.value && !createdCharacterSheetJobs.value.includes(selectedJob.value.id)) {
+    createdCharacterSheetJobs.value.push(selectedJob.value.id);
+  }
+  closeModal(); // 모달을 닫음
+};
+
+// 직업이 비활성화되어야 하는지 여부를 반환
+const isJobDisabled = (jobID) => {
+  return createdCharacterSheetJobs.value.includes(jobID); // 작성된 직업만 비활성화
+};
+
 onMounted(fetchRoomInfo);
 </script>
-
-
 
 
 <style scoped>

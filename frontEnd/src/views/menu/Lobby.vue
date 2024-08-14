@@ -106,7 +106,6 @@ import { getMemberInfo } from '@/common/api/mypageAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
 import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
 import PasswordModal from '@/views/menu/components/PasswordModal.vue';
-import WebSocketService from '@/store/websocket/waiting';
 
 const router = useRouter();
 

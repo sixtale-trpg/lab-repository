@@ -9,16 +9,22 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfig {
+
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-
-        http
-                .authorizeHttpRequests(authorize ->
+         http
+//                 .csrf().disable()  // 필요에 따라 CSRF 비활성화
+                 .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class) // CORS 필터 추가
+                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers("/", "/members/auth/login").permitAll()
                                 .anyRequest().permitAll()
@@ -39,7 +45,18 @@ public class SecurityConfig {
 
         return http.build();
     }
-
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("https://i11d108.p.ssafy.io");
+        config.addAllowedOrigin("http://localhost:8083");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/api/v1/**", config);
+        return new CorsFilter(source);
+    }
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder(){
         return new BCryptPasswordEncoder();

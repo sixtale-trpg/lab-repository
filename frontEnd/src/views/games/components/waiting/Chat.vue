@@ -26,11 +26,7 @@
     </div>
     <div :style="chatWindowStyle" class="chat-window">
       <!-- 필터링된 메시지 출력 -->
-      <div
-        v-for="message in filteredMessages"
-        :key="message.id"
-        class="chat-message"
-      >
+      <div v-for="message in filteredMessages" :key="message.id" class="chat-message">
         <span class="sender">{{ message.sender }}:</span>
         <span class="text">{{ message.text }}</span>
       </div>
@@ -43,11 +39,7 @@
         :style="chatInputStyle"
         class="chat-input"
       />
-      <button
-        @click="sendMessage"
-        :style="sendButtonStyle"
-        class="send-button"
-      ></button>
+      <button @click="sendMessage" :style="sendButtonStyle" class="send-button"></button>
     </div>
   </div>
 </template>
@@ -115,8 +107,9 @@ const sendMessage = () => {
   if (newMessage.value.trim() === "") return;
 
   const messageData = {
-    roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
-    memberID: 1, // 사용자 ID, 실제 값으로 설정
+    roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 채팅방 ID
+    sender: "Me", // 발신자 이름, 실제 사용자 이름으로 변경 필요
+    recipient: selectedTab.value === "whisper" ? "recipientUsername" : "", // 귓속말 대상자, 귓속말일 때만 설정
     content: newMessage.value, // 메시지 내용
     type: selectedTab.value === "WHISPER" ? "WHISPER" : "CHAT", // 메시지 유형
     roomType: roomInfo.value ? roomInfo.value.type : null, // 방 정보에서 roomType 사용
@@ -254,12 +247,7 @@ const sendButtonStyle = {
   flex-grow: 1;
   overflow-y: auto;
   padding: 10px;
-  background-color: rgba(
-    41,
-    23,
-    7,
-    0.8
-  ); /* 가독성을 위한 약간의 오버레이 추가 */
+  background-color: rgba(41, 23, 7, 0.8); /* 가독성을 위한 약간의 오버레이 추가 */
   margin-bottom: 10px;
   border-radius: 5px;
 }

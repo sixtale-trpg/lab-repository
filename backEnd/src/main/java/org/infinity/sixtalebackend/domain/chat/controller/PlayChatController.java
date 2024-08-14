@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.chat.dto.ChatMessageRequest;
 import org.infinity.sixtalebackend.domain.chat.dto.GameMessageDto;
 import org.infinity.sixtalebackend.domain.chat.service.PlayGameLogService;
 import org.infinity.sixtalebackend.domain.chat.service.PlayLogService;
+import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
 import org.infinity.sixtalebackend.global.common.response.DefaultResponse;
 import org.infinity.sixtalebackend.global.common.response.ResponseMessage;
 import org.infinity.sixtalebackend.global.common.response.StatusCode;
@@ -64,7 +65,7 @@ public class PlayChatController {
     @GetMapping("/play/chat/whisper/log/{roomID}")
     public ResponseEntity<?> getPlayWhisperChatLogList(@PathVariable Long roomID,Pageable pageable) {
         try {
-            Long memberID = 2L;
+            Long memberID = AuthenticationUtil.getMemberId();
             ChatMessageListResponse chatMessageListResponse = playLogService.getPlayChatWisperLogList(roomID,memberID,pageable);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_PLAY_WHISPER_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
         }catch(Exception e){
@@ -81,7 +82,7 @@ public class PlayChatController {
     @GetMapping("/play/chat/all/log/{roomID}")
     public ResponseEntity<?> getPlayChatAllLogList(@PathVariable Long roomID,Pageable pageable) {
         try {
-            Long memberID = 2L;
+            Long memberID = AuthenticationUtil.getMemberId();
             ChatMessageListResponse chatMessageListResponse = playLogService.getPlayChatAllLogList(roomID,memberID,pageable);
             return new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.READ_PLAY_ALL_CHAT_LOG_LIST,chatMessageListResponse), HttpStatus.OK);
         }catch(Exception e){

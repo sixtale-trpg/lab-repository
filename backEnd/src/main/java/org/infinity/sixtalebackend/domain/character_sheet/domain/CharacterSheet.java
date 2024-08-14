@@ -85,7 +85,7 @@ public class CharacterSheet {
     @ColumnDefault("0")
     private Integer exp;
 
-    @Column(nullable = false, name="image_url")
+    @Column(nullable = false, name="image_url", columnDefinition = "TEXT")
     private String imageURL;
 
     @OneToMany(mappedBy = "characterSheet", cascade = CascadeType.ALL, orphanRemoval = true)

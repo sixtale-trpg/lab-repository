@@ -30,7 +30,9 @@ public class MemberController {
     @PostMapping(value = "",consumes = "multipart/*")
     public ResponseEntity<?> createMemberInfo(String nickName, @RequestPart("files") MultipartFile[] files){
         try {
-            Long memberId = 1L;
+
+            Long memberId = AuthenticationUtil.getMemberId();
+
             MemberResponseDto memberResponseDto = memberService.createMemberInfo(memberId,nickName,files);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.CREATED_MEMBER_INFO,memberResponseDto),HttpStatus.OK);
         }catch(Exception e){

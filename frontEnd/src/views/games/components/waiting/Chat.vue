@@ -27,8 +27,8 @@
     <div :style="chatWindowStyle" class="chat-window">
       <!-- 필터링된 메시지 출력 -->
       <div v-for="message in filteredMessages" :key="message.id" class="chat-message">
-        <span class="sender">{{ message.sender }}:</span>
-        <span class="text">{{ message.text }}</span>
+        <span class="sender">{{ message.nickName }}:</span>
+        <span class="text">{{ message.content }}</span>
       </div>
     </div>
     <div :style="inputContainerStyle" class="input-container">
@@ -49,6 +49,7 @@ import { ref, computed, onMounted, defineProps } from "vue";
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
 import { getRoomInfo } from "@/common/api/RoomsAPI";
 import { getMemberInfo } from "@/common/api/mypageAPI";
+import { useRoute, useRouter } from "vue-router";
 
 // 이미지 동적 로드
 const background1 = require("@/assets/images/room/chat/chat_background1.png");
@@ -64,6 +65,9 @@ const newMessage = ref("");
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const roomInfo = ref(null); // 방 정보를 저장할 변수
 const user = ref({});
+const route = useRoute();
+// 로그로직 추가해야한다 ! //
+const router = useRouter();
 
 // 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
 const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
@@ -80,20 +84,18 @@ onMounted(async () => {
       console.error("Failed to fetch member info:", error);
     });
 
-  try {
-    // API를 통해 방 정보 가져오기
-    roomInfo.value = await getRoomInfo(initialRoomId).then((res) => {
-      console.log("사용자", user.value);
-      WebSocketService.connect(res.id, user.value.id);
-      return res;
-    });
-    console.log("Room Info:", roomInfo.value);
-  } catch (error) {
-    console.error("Error fetching room info:", error);
-  }
+
+  WebSocketService.connect(route.params.roomId, user.value.id);
 
   // 서버로부터 메시지를 수신할 때마다 콜백 실행
   WebSocketService.onMessageReceived((message) => {
+    console.log("경민"+" "+message)
+    switch(message.type){
+      case "ENTER":
+        console.log("222")
+      case "TALK":
+        console.log("222111")
+    }
     messages.value.push(message); // 메시지 목록에 추가
   });
 });
@@ -106,23 +108,25 @@ const sendMessage = () => {
   if (newMessage.value.trim() === "") return;
 
   const messageData = {
-    roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 채팅방 ID
-    sender: "Me", // 발신자 이름, 실제 사용자 이름으로 변경 필요
-    recipient: selectedTab.value === "whisper" ? "recipientUsername" : "", // 귓속말 대상자, 귓속말일 때만 설정
+    roomID: parseInt(route.params.roomId,10), // 채팅방 ID
+    memberID: user.value.id,
+    // recipient: selectedTab.value === "whisper" ? "recipientUsername" : "", // 귓속말 대상자, 귓속말일 때만 설정
     content: newMessage.value, // 메시지 내용
     type: selectedTab.value === "WHISPER" ? "WHISPER" : "CHAT", // 메시지 유형
-    roomType: roomInfo.value ? roomInfo.value.type : null, // 방 정보에서 roomType 사용
+    //roomType: roomInfo.value ? roomInfo.value.type : null, // 방 정보에서 roomType 사용
   };
 
   // 메시지를 화면에 즉시 추가
-  messages.value.push({
-    id: Date.now(),
-    sender: "Me", // 로컬 사용자의 이름
-    text: newMessage.value,
-    type: messageData.type,
-  });
+  // messages.value.push({
+  //   id: Date.now(),
+  //   sender: "Me", // 로컬 사용자의 이름
+  //   text: newMessage.value,
+  //   type: messageData.type,
+  // });
 
-  WebSocketService.sendMessage(messageData, user.value.id); // 서버로 메시지 전송
+  //WebSocketService.sendMessage(messageData, user.value.id); // 서버로 메시지 전송
+  WebSocketService.sendMessage(messageData);
+
   newMessage.value = ""; // 입력 필드 초기화
   console.log("메시지가 추가되었습니다:", newMessage.value);
 };

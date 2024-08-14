@@ -469,19 +469,6 @@ const changeMap = async (description) => {
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
 
-      // 웹소켓 메시지 전송
-      // Log the map change event
-      const messageData = {
-        gameType: 'MAP_CHANGE',
-        roomID: parseInt(roomId.value, 10),
-        currentMapID: 0,// 현재 선택된 맵 ID
-        nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
-      };
-
-      GameLogWebSocketService.sendMessage(messageData);
-
-    // GameLogWebSocketService.sendMessage(messageData);
-
     try {
       const newMapId = description.nextMapId;
       const mapInfo = await getMapPlace(roomId.value, newMapId);
@@ -507,6 +494,16 @@ const changeMap = async (description) => {
           };
         });
 
+        // 웹소켓 메시지 전송
+        // Log the map change event
+        // const messageData = {
+        //   gameType: 'MAP_CHANGE',
+        //   roomID: parseInt(roomId.value, 10),
+        //   currentMapID: 0,// 현재 선택된 맵 ID
+        //   nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
+        // };
+
+        // GameLogWebSocketService.sendMessage(messageData);
         console.log("Updated Map Info:", mapInfo);
         console.log("Map Events on this map:", mapInfo.placeEvents); // 여기서 맵 이벤트 콘솔 출력
       } else {
@@ -555,13 +552,13 @@ const toggleNpcList = () => {
   isNpcListOpen.value = !isNpcListOpen.value;
 };
 
-onMounted(async () => {
-  InGameWebSocketService.connect(roomId.value);
-  // 서버로부터 메시지를 수신할 때마다 콜백 실행
-  InGameWebSocketService.onMessageReceived((message) => {
-    messages.value.push(message); // 메시지 목록에 추가
-  });
-});
+// onMounted(async () => {
+//   InGameWebSocketService.connect(roomId.value);
+//   // 서버로부터 메시지를 수신할 때마다 콜백 실행
+//   InGameWebSocketService.onMessageReceived((message) => {
+//     messages.value.push(message); // 메시지 목록에 추가
+//   });
+// });
 
 onUnmounted(() => {
   eventBus.off("dice-rolled", handleDiceRolled);

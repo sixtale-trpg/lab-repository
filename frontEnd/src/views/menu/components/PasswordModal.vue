@@ -3,7 +3,7 @@
     <div class="modal-content" :style="modalStyle">
       <div class="modal-header">
         <img :src="titleImage" alt="Background" class="modal-title-image" />
-        <h5>비밀방 입장</h5>
+        <h5>비밀번호 입력</h5>
       </div>
       <div class="modal-body">
         <div class="input-container">

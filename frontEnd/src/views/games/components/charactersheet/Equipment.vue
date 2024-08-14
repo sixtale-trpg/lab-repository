@@ -2,7 +2,10 @@
   <div class="equipment-selection-container">
     <div class="equipment-decripton-title">
       <p>캐릭터 시트에 들어갈 장비를 선택하세요 <br> 종류당 1개씩만 선택 가능합니다.</p>
+      <p>하중은 능력치 탭에서 선택한 <br> 근력 수치의 영향을 받습니다. <br> 
+        HP는 체력수치의 영향을 받습니다 <br> 능력치를 먼저 입력하세요! </p>
       <p>현재 하중: {{ calculateCurrentWeight }} / {{ calculateLimitWeight }}</p>
+      <p>최대 HP: {{ calculateLimitHP }}</p>
     </div>
     <div v-if="equipmentGroups.length > 0">
       <div class="equipment-group" v-for="(group, groupIndex) in equipmentGroups" :key="groupIndex">
@@ -36,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'; // Vue Composition API 기능들 import
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { fetchJobList } from '@/common/api/JobAPI.js';
 
 const props = defineProps({
@@ -46,17 +49,19 @@ const props = defineProps({
   ruleId: Number
 });
 
-const emit = defineEmits(['update:character-equipment']);
+const emit = defineEmits(['update:character-equipment', 'update:current-hp', 'update:limit-hp']);
 
 const selectedEquipment = reactive({});
 const jobWeight = ref(0);
+const jobHP = ref(0); // 직업의 기본 HP
 const currentWeight = ref(0); // 현재 하중
 
 // 부모 컴포넌트로부터 전달된 characterEquipment 값을 로컬 상태로 초기화
 onMounted(async () => {
-  await fetchJobWeight();
+  await fetchJobAttributes();
   initializeSelectedEquipment();
   resetCurrentWeight(); // 현재 하중 초기화 및 계산
+  updateHP(); // 초기 HP 계산 및 부모에 반영
 });
 
 // 부모에서 전달된 characterEquipment를 통해 선택된 장비 초기화
@@ -70,23 +75,31 @@ const initializeSelectedEquipment = () => {
   }
 };
 
-// jobWeight 값 가져오기
-const fetchJobWeight = async () => {
+// 직업의 무게와 HP 가져오기
+const fetchJobAttributes = async () => {
   try {
     const jobList = await fetchJobList(props.ruleId);
     const job = jobList.find(job => job.id === props.jobId);
     if (job) {
       jobWeight.value = job.weight;
+      jobHP.value = job.hp; // 직업의 기본 HP 저장
+      updateHP(); // 직업의 HP에 따라 초기 설정
     }
   } catch (error) {
-    console.error('Error fetching job weight:', error);
+    console.error('Error fetching job attributes:', error);
   }
 };
 
 // 한계 하중 계산 (직업의 기본 무게 + 근력 스탯)
 const calculateLimitWeight = computed(() => {
   const strengthStat = props.formData.stat.find(stat => stat.statID === 1);
-  return jobWeight.value + (strengthStat ? strengthStat.statValue : 0);
+  return Number(jobWeight.value) + Number(strengthStat ? strengthStat.statValue : 0);
+});
+
+// 최대 HP 계산 (직업의 기본 HP + 체력 스탯)
+const calculateLimitHP = computed(() => {
+  const staminaStat = props.formData.stat.find(stat => stat.statID === 3);
+  return Number(jobHP.value) + Number(staminaStat ? staminaStat.statValue : 0);
 });
 
 // 현재 하중 계산 (선택된 아이템의 무게 합산)
@@ -106,8 +119,22 @@ const resetCurrentWeight = () => {
 // 부모의 현재 하중을 덮어씌우는 함수
 const updateParentCurrentWeight = () => {
   props.formData.currentWeight = currentWeight.value;
+  props.formData.limitWeight = calculateLimitWeight.value; 
   emit('update:character-equipment', Object.values(selectedEquipment));
+  console.log('선택된 장비들:', Object.values(selectedEquipment));
+  console.log('Updated currentWeight:', props.formData.currentWeight); // 로그 추가
 };
+
+// 부모 컴포넌트에 한계 HP와 현재 HP 업데이트
+const updateHP = () => {
+  const limitHp = calculateLimitHP.value;
+  props.formData.limitHp = limitHp;  // 한계 HP를 직접 부모의 formData에 할당
+  props.formData.currentHp = limitHp;  // 현재 HP도 한계 HP로 설정
+  console.log('Updated limitHp:', props.formData.limitHp); // 로그 추가
+  console.log('Updated currentHp:', props.formData.currentHp); // 로그 추가
+};
+
+
 
 // 선택된 아이템의 무게를 계산하고 업데이트
 const selectEquipment = (typeId, item) => {
@@ -171,7 +198,14 @@ const getCategoryStyle = () => {
     justifyContent: 'center',
   };
 };
+
+// watch로 stat 배열이 변경될 때 한계 HP를 자동 업데이트
+watch(() => props.formData.stat, () => {
+  updateHP();
+});
+
 </script>
+
 
 <style scoped>
 .equipment-decripton-title {

@@ -28,7 +28,9 @@ public class MemberDetailController {
     @PostMapping("")
     public ResponseEntity<?> createMemberDetail(@RequestBody @Valid MemberDetailRequestDto memberDetailRequestDto){
         try {
-            Long memberID = 1L;
+            Long memberID = AuthenticationUtil.getMemberId();
+
+
             memberDetailService.createMemberDetail(memberDetailRequestDto,memberID);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.CREATED,ResponseMessage.CREATED_MEMBER_DETAIL,null),HttpStatus.CREATED);
         }catch(Exception e){

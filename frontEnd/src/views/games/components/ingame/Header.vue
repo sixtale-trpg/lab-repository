@@ -120,13 +120,18 @@ const toggleGrid = () => {
 </script>
 
 <style scoped>
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
+.header {
   background-color: #382A20;
-  color: white;
+  color: rgb(191, 176, 142);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 100%;
+}
+.header-title, .header-center h1 {
+  font-family: 'Abhaya Libre', sans-serif;
+  font-weight: 800;
+  font-style: normal;
 }
 
 .icon-container {
@@ -163,7 +168,7 @@ const toggleGrid = () => {
 }
 
 .close-icon-container {
-  background-color: white; /* 하얀색 배경 */
+  background-color: transparent; /* 하얀색 배경 */
   padding: 3px;
   border-radius: 5px;
 }

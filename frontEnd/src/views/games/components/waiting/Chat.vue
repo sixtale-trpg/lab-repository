@@ -3,21 +3,21 @@
     <div class="chat-tabs">
       <!-- 탭 클릭 시 탭 전환 -->
       <div
-        @click="selectTab('all')"
+        @click="selectTab('ALL')"
         :class="{ tab: true, active: selectedTab.value === 'ALL' }"
         :style="tabAllStyle"
       >
         <span>전체</span>
       </div>
       <div
-        @click="selectTab('chat')"
+        @click="selectTab('CHAT')"
         :class="{ tab: true, active: selectedTab.value === 'CHAT' }"
         :style="tabChatStyle"
       >
         <span>채팅</span>
       </div>
       <div
-        @click="selectTab('whisper')"
+        @click="selectTab('WHISPER')"
         :class="{ tab: true, active: selectedTab.value === 'WHISPER' }"
         :style="tabWhisperStyle"
       >
@@ -25,6 +25,12 @@
       </div>
     </div>
     <div :style="chatWindowStyle" class="chat-window">
+      <div v-if="selectedTab === 'WHISPER'" class="d-flex">
+        <div class="text-white me-2">상대 선택</div>
+        <select v-model="selectedUser" class="whisper-dropdown flex-grow-1">
+          <option v-for="user in props.users" :key="user.id" :value="user">{{ user.name }}</option>
+        </select>
+      </div>
       <!-- 필터링된 메시지 출력 -->
       <div v-for="message in filteredMessages" :key="message.id" class="chat-message">
         <span class="sender">{{ message.nickName }}:</span>
@@ -45,11 +51,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineProps } from "vue";
+import { ref, computed, onMounted, defineProps, watch } from "vue";
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
-import { getRoomInfo } from "@/common/api/RoomsAPI";
 import { getMemberInfo } from "@/common/api/mypageAPI";
 import { useRoute, useRouter } from "vue-router";
+
+const props = defineProps({
+  users: {
+    type: Array,
+    required: true
+  }
+});
 
 // 이미지 동적 로드
 const background1 = require("@/assets/images/room/chat/chat_background1.png");
@@ -68,9 +80,11 @@ const user = ref({});
 const route = useRoute();
 // 로그로직 추가해야한다 ! //
 const router = useRouter();
+const selectedUser = ref(null);
 
-// 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
-const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
+watch(selectedUser, (newSelectedUser) => {
+  console.log("newSelectedUser:", newSelectedUser);
+});
 
 // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
 onMounted(async () => {
@@ -83,7 +97,6 @@ onMounted(async () => {
     .catch((error) => {
       console.error("Failed to fetch member info:", error);
     });
-
 
   WebSocketService.connect(route.params.roomId, user.value.id);
 
@@ -116,15 +129,6 @@ const sendMessage = () => {
     //roomType: roomInfo.value ? roomInfo.value.type : null, // 방 정보에서 roomType 사용
   };
 
-  // 메시지를 화면에 즉시 추가
-  // messages.value.push({
-  //   id: Date.now(),
-  //   sender: "Me", // 로컬 사용자의 이름
-  //   text: newMessage.value,
-  //   type: messageData.type,
-  // });
-
-  //WebSocketService.sendMessage(messageData, user.value.id); // 서버로 메시지 전송
   WebSocketService.sendMessage(messageData);
 
   newMessage.value = ""; // 입력 필드 초기화

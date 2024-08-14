@@ -13,7 +13,7 @@
             :memberId="user.memberId"
           />
         </div>
-        <Chat class="chat-section" />
+        <Chat class="chat-section" :users="users" />
       </div>
       <div class="right-section">
         <div :style="topSectionStyle" class="top-section">

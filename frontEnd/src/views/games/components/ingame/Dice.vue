@@ -27,6 +27,9 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import eventBus from '@/common/lib/eventBus.js';
+// 액션 인포모달에서 액션 선택 시, 주사위가 자동으로 세팅되게끔
+import { selectedDice } from '@/store/state.js';
+import { watch } from 'vue';
 
 const diceList = reactive([
   { diceId: 4, name: 'D4', image: require('@/assets/images/ingame/Dice4_2.png'), count: 0, animate: false },
@@ -37,6 +40,21 @@ const diceList = reactive([
   { diceId: 20, name: 'D20', image: require('@/assets/images/ingame/Dice20_2.png'), count: 0, animate: false },
   { diceId: 100, name: 'D100', image: require('@/assets/images/ingame/Dice100_2.png'), count: 0, animate: false },
 ]);
+
+watch(
+  selectedDice,
+  (newDice) => {
+    if (newDice.type && newDice.count) {
+      const selectedDiceItem = diceList.find(dice => dice.diceId === parseInt(newDice.type.replace('D', '')));
+      if (selectedDiceItem) {
+        selectedDiceItem.count = newDice.count;
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+
 
 const hoverPosition = ref({ x: 0, y: 0 });
 const hoverText = ref('');
@@ -84,6 +102,13 @@ const resetDiceCounts = () => {
   diceList.forEach(dice => {
     dice.count = 0;
   });
+
+  // 주사위를 초기화할 때, selectedDice를 초기화
+  selectedDice.value = {
+    type: null,
+    count: 0
+  };
+
   eventBus.emit('reset-dice');
 };
 

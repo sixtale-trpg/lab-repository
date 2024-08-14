@@ -4,11 +4,11 @@
       <template #header="{ date }">
         <el-button-group>
           <el-button size="small" @click="changeMonth(-1)" class="arrow-button">
-            <img :src="arrowImage" alt="Previous Month" />
+            <img :src="arrowImageLeft" alt="Previous Month" />
           </el-button>
           <span>{{ formatDate(date) }}</span>
           <el-button size="small" @click="changeMonth(1)" class="arrow-button">
-            <img :src="arrowImage" alt="Next Month" style="transform: rotate(180deg);" />
+            <img :src="arrowImageRight" alt="Next Month" />
           </el-button>
         </el-button-group>
       </template>
@@ -78,6 +78,8 @@ import 'bootstrap';
 import scheduleModal from '@/assets/images/room/calendar_modal/background.png';
 import titleImage from '@/assets/images/room/calendar_modal/title.png';
 import arrowImage from '@/assets/images/room/calendar_modal/arrow.png';
+import arrowImageRight from '@/assets/images/room/calendar_modal/Arrow_Right.png';
+import arrowImageLeft from '@/assets/images/room/calendar_modal/Arrow_Left.png';
 import cancelImage from '@/assets/images/room/calendar_modal/cancel.png';
 import dropdownArrowBox from '@/assets/images/room/calendar_modal/dropdown_arrow_box.png';
 import dropdownBox from '@/assets/images/room/calendar_modal/dropdown_box.png';

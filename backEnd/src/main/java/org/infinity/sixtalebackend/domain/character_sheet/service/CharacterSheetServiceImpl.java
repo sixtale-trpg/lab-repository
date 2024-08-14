@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.domain.character_sheet.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterAction;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterEquipment;
 import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
@@ -11,6 +12,7 @@ import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterAc
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterEquipmentRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
 import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterStatRepository;
+import org.infinity.sixtalebackend.domain.character_sheet.util.CustomMultipartFile;
 import org.infinity.sixtalebackend.domain.equipment.domain.EquipmentType;
 import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
@@ -23,7 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,6 +58,107 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      * 캐릭터 시트 작성
      * 무게 합 프론트에서 보내줄 것임
      */
+    @Override
+    @Transactional
+    public void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID) throws IOException {
+        PlayMember playMember = playMemberRepository.findByMemberIdAndRoomId(memberID, roomID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
+
+        Job job = jobRepository.findById(characterSheetRequest.getJobId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Job ID"));
+
+        Belief belief = beliefRepository.findById(characterSheetRequest.getBeliefId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Belief ID"));
+
+        Race race = raceRepository.findById(characterSheetRequest.getRaceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
+
+        byte[] byteArray = null;
+        URL url = new URL(characterSheetRequest.getImageURL());
+        // image url의 input stream, byte 배열로 저장할 output stream 열기
+        try(InputStream inputStream = url.openStream();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            // ImageIO.read()로 image url의 이미지 데이터 읽어오기
+            BufferedImage urlImage = ImageIO.read(inputStream);
+            // 메모리에 로드 된 이미지 데이터를 output stream에 jpg 확장자로 저장
+            ImageIO.write(urlImage, "jpg", bos);
+            // byte 배열로 변환
+            byteArray = bos.toByteArray();
+        }
+
+        MultipartFile multipartFile = new CustomMultipartFile(byteArray, characterSheetRequest.getImageURL());
+        MultipartFile[] files = new MultipartFile[1];
+        files[0] = multipartFile;
+        List<String> listUrl = s3Service.upload(files, "room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId());
+
+        // 캐릭터 시트 저장
+        CharacterSheet characterSheet = CharacterSheet.builder()
+                .playMember(playMember)
+                .job(job)
+                .belief(belief)
+                .race(race)
+                .name(characterSheetRequest.getName())
+                .appearance(characterSheetRequest.getAppearance())
+                .background(characterSheetRequest.getBackground())
+                .currentWeight(characterSheetRequest.getCurrentWeight())
+                .currentHp(characterSheetRequest.getCurrentHp())
+                .currentMoney(characterSheetRequest.getCurrentMoney())
+                .limitWeight(characterSheetRequest.getLimitWeight())
+                .limitHp(characterSheetRequest.getLimitHp())
+                .glove(characterSheetRequest.getGlove())
+                .inspirationScore(characterSheetRequest.getInspirationScore())
+                .level(characterSheetRequest.getLevel())
+                .exp(characterSheetRequest.getExp())
+                .imageURL(listUrl.get(0))
+                .build();
+        characterSheetRepository.save(characterSheet);
+
+        //캐릭터 스탯 저장
+        List<CharacterStat> characterStats = characterSheetRequest.getStat().stream()
+                .map(statRequest -> CharacterStat.builder()
+                        .playMember(playMember)
+                        .characterSheet(characterSheet)
+                        .stat(statRepository.findById(statRequest.getStatID())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid Stat ID")))
+                        .statValue(statRequest.getStatValue())
+                        .statWeight(statRequest.getStatWeight())
+                        .build())
+                .collect(Collectors.toList());
+        characterStatRepository.saveAll(characterStats);
+
+        log.info("스탯 저장");
+
+        // 캐릭터 액션 저장
+        List<CharacterAction> characterActions = characterSheetRequest.getCharacterAction().stream()
+                .map(actionRequest -> CharacterAction.builder()
+                        .characterSheet(characterSheet)
+                        .playMember(playMember)
+                        .jobAction(jobActionRepository.findById(actionRequest.getActionID())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid Action ID")))
+                        .actionOption(actionRequest.getActionOptionId() != null ?
+                                actionOptionRepository.findById(actionRequest.getActionOptionId()).orElse(null) :
+                                null)
+                        .build())
+                .collect(Collectors.toList());
+        characterActionRepository.saveAll(characterActions);
+        log.info("액션 저장");
+
+        // 캐릭터 장비 저장
+        List<CharacterEquipment> characterEquipments = characterSheetRequest.getCharacterEquipment().stream()
+                .map(equipmentRequest -> CharacterEquipment.builder()
+                        .playMember(playMember)
+                        .characterSheet(characterSheet) // PlayMember 대신 CharacterSheet 사용
+                        .equipment(scenarioEquipmentRepository.findById(equipmentRequest.getEquipmentId())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid Equipment ID")))
+                        .currentCount(equipmentRequest.getCurrentCount())
+                        .weight(equipmentRequest.getWeight())
+                        .build())
+                .collect(Collectors.toList());
+
+        characterEquipmentRepository.saveAll(characterEquipments);
+        log.info("장비 저장");
+    }
+    /*
     @Override
     @Transactional
     public void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID, MultipartFile[] files) throws IOException {
@@ -140,6 +247,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         characterEquipmentRepository.saveAll(characterEquipments);
         log.info("장비 저장");
     }
+     */
 
     /**
      * 캐릭터 시트 수정(플레이 전)

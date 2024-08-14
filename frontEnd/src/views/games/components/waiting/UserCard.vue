@@ -118,6 +118,7 @@ const openUserProfile = () => {
   width: 90%;
   height: 100%;
   overflow: hidden;
+  border: 1px solid #4A3A2E;
 }
 
 .user-profile {

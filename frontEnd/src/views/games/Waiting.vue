@@ -338,7 +338,7 @@ const profileImageContainerStyle = {
 
 const topSectionStyle = {
   display: "flex",
-  height: "55%",
+  height: "50%",
 };
 
 const startGameButtonStyle = {
@@ -374,17 +374,19 @@ const vectorImage = computed(() => ({
 }));
 
 const gameInfoStyle = computed(() => ({
-  backgroundImage: `url(${ruleBox1ImagePath})`,
+  // backgroundImage: `url(${ruleBox1ImagePath})`,
   backgroundSize: "cover",
   backgroundPosition: "center",
   height: "100%",
+  border: "1px solid #4A3A2E",
 }));
 
 const scenarioInfoStyle = computed(() => ({
-  backgroundImage: `url(${scenario_boxPath})`,
+  // backgroundImage: `url(${scenario_boxPath})`,
   backgroundSize: "cover",
   backgroundPosition: "center",
   height: "100%",
+  border: "1px solid #4A3A2E",
 }));
 
 const gameRuleContainerStyle = {
@@ -410,7 +412,7 @@ const gameRuleContainerStyle = {
 };
 
 const calendarContainerStyle = {
-  backgroundImage: `url(${calendarBoxImagePath})`,
+  // backgroundImage: `url(${calendarBoxImagePath})`,
   backgroundSize: "cover",
   backgroundPosition: "center",
   display: "flex",
@@ -420,6 +422,7 @@ const calendarContainerStyle = {
   borderRadius: "10px",
   width: "48%",
   height: "100%",
+  border: "1px solid #4A3A2E",
 };
 </script>
 
@@ -429,6 +432,7 @@ const calendarContainerStyle = {
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
+  min-height: 768px;
 }
 
 .content {
@@ -491,6 +495,7 @@ const calendarContainerStyle = {
   height: 70%;
   width: 100%;
   justify-content: center;
+  border: 1px solid #5a4d41;
 }
 
 .gm-profile {
@@ -508,6 +513,7 @@ const calendarContainerStyle = {
   object-fit: cover;
   border-radius: 50%;
   cursor: pointer;
+  border: 1px solid #5a4d41;
 }
 
 .avatar-frame {
@@ -698,6 +704,7 @@ const calendarContainerStyle = {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(4, 1fr);
     height: auto;
+    border: 1px solid #4A3A2E;
   }
 
   .chat-section {

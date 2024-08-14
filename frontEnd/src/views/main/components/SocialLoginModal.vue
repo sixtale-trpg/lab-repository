@@ -141,7 +141,7 @@ const closeModal = () => {
 // Google OAuth 로그인 처리
 const googleLogin = () => {
   const clientId = "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
-  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
+  const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/google";
   const responseType = "code";
   const scope = "email profile";
 
@@ -172,7 +172,7 @@ const googleLogin = () => {
 // Naver OAuth 로그인 처리
 const naverLogin = () => {
   const clientId = "jCJ25DM0P7fbySK5L9Fd";
-  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/naver";
+  const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/naver";
   const responseType = "code";
 
   const url = `https://nid.naver.com/oauth2.0/authorize?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}`;

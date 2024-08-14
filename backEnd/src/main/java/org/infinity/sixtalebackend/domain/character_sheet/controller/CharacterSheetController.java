@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rooms/{roomID}/sheets")
@@ -29,15 +30,11 @@ public class CharacterSheetController {
      */
     @PostMapping
     public ResponseEntity createCharacterSheet(@PathVariable Long roomID,
-                                               @RequestPart(value = "files", required = false) MultipartFile[] files,
-                                               @RequestPart(value = "characterSheetRequest") @Valid CharacterSheetRequest characterSheetRequest) {
+                                               @RequestBody @Valid CharacterSheetRequest characterSheetRequest) {
         try {
             // 로그인 유저 아이디 가져오기
-//            Long memberId = AuthenticationUtil.getMemberId();
-
-            //memberID = 1L 가정
-            Long memberID = 1L;
-            characterSheetService.createCharacterSheet(roomID, characterSheetRequest, memberID, files);
+            Long memberID = AuthenticationUtil.getMemberId();
+            characterSheetService.createCharacterSheet(roomID, characterSheetRequest, memberID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_CHARACTER_SHEET), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
@@ -47,6 +44,27 @@ public class CharacterSheetController {
             return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+//    @PostMapping
+//    public ResponseEntity createCharacterSheet(@PathVariable Long roomID,
+//                                               @RequestPart(value = "files", required = false) MultipartFile[] files,
+//                                               @RequestPart(value = "characterSheetRequest") @Valid CharacterSheetRequest characterSheetRequest) {
+//        try {
+//            // 로그인 유저 아이디 가져오기
+//            Long memberID = AuthenticationUtil.getMemberId();
+//
+//            //memberID = 1L 가정
+////            Long memberID = 1L;
+//            characterSheetService.createCharacterSheet(roomID, characterSheetRequest, memberID, files);
+//            return new ResponseEntity(DefaultResponse.res(StatusCode.CREATED, ResponseMessage.CREATE_CHARACTER_SHEET), HttpStatus.CREATED);
+//        } catch (IllegalArgumentException e) {
+//            log.error(e.getMessage());
+//            return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.CREATE_CHARACTER_SHEET_FAIL), HttpStatus.BAD_REQUEST);
+//        } catch (Exception e) {
+//            log.error(e.getMessage());
+//            return new ResponseEntity(DefaultResponse.res(StatusCode.INTERNAL_SERVER_ERROR, ResponseMessage.INTERNAL_SERVER_ERROR), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     /**
      * 캐릭터 시트 수정(플레이 전)
@@ -121,8 +139,8 @@ public class CharacterSheetController {
     @PutMapping("{playMemberID}/gold")
     public ResponseEntity updateCharacterGold(@PathVariable Long roomID, @PathVariable Long playMemberID,  @RequestBody @Valid CharacterGoldUpdateRequest characterGoldUpdateRequest) {
         try {
-            characterSheetService.updateCharacterGold(roomID, playMemberID, characterGoldUpdateRequest);
-            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_CHARACTER_GOLD), HttpStatus.OK);
+            Map<String, String> responseData = characterSheetService.updateCharacterGold(roomID, playMemberID, characterGoldUpdateRequest);
+            return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.UPDATE_CHARACTER_GOLD, responseData), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());
             return new ResponseEntity(DefaultResponse.res(StatusCode.BAD_REQUEST, ResponseMessage.UPDATE_CHARACTER_GOLD_FAIL), HttpStatus.BAD_REQUEST);

@@ -1,6 +1,7 @@
 package org.infinity.sixtalebackend.domain.member.util;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -12,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import java.security.Key;
 import java.util.Date;
 
-@Component
 @Slf4j
+@Component
 public class JWTUtil {
 
         private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
@@ -24,10 +25,11 @@ public class JWTUtil {
     }
 
     public static String generateToken(Long userId) {
+
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .signWith(SECRET_KEY)
                 .compact();
     }
 

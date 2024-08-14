@@ -95,7 +95,7 @@ import AddItemModal from "@/views/games/components/Modal/AddItemModal.vue";
 import ItemInfoModal from "@/views/games/components/Modal/ItemInfoModal.vue";
 import GoldModal from "@/views/games/components/Modal/GoldModal.vue";
 import ConfirmDeleteModal from "@/views/games/components/Modal/ConfirmDeleteModal.vue";
-import ChangeWeightWebSocketService from "@/store/websocket/changeWeight"; // WebSocket 서비스 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 const route = useRoute();
 const items = ref([]);
@@ -377,6 +377,22 @@ onMounted(async () => {
     currentGold.value = 0;
     jobId.value = null;
   }
+
+  // 메세지 받아오는것
+  GameLogWebSocketService.onMessageReceived(async (message) => {
+      console.log(message)
+      switch(message.gameType){
+        case "GOLD":
+          await fetchUserItems(message.playMemberID)
+          break;
+        case "WEIGHT":
+          await fetchUserItems(message.playMemberID)
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+    })
 });
 </script>
 

@@ -61,7 +61,7 @@ console.log('GM 정보:', gm.value); // GM 정보 로그 출력
   height: 100%;
   text-align: center;
   padding: 5px;
-  color: #ffffff;
+  color: #e6ddc4;
   overflow: hidden;
   display: flex;
   flex-direction: row;
@@ -76,6 +76,7 @@ console.log('GM 정보:', gm.value); // GM 정보 로그 출력
 
 .gm-name {
   margin: 0;
+  color: #E1D3A8;
   white-space: nowrap;
   font-size: 1.1rem;
   overflow: hidden;

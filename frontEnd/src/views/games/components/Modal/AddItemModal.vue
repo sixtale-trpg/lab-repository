@@ -71,7 +71,7 @@ import { ref, computed, defineProps, defineEmits, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { getEquipmentList, addEquipment } from "@/common/api/InventoryAPI.js";
 import { selectedPlayMemberID } from "@/store/state.js";
-import ChangeWeightWebSocketService from "@/store/websocket/changeWeight"; // WebSocket 서비스 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 const route = useRoute();
 
@@ -145,17 +145,17 @@ const addItem = async () => {
         //웹소켓 메시지 데이터
         const messageData = {
           gameType: "WEIGHT",
-          roomID: response.data.roomID,
-          sheetID: response.data.sheetID,
+          roomID: parseInt(response.data.roomID, 10),
+          sheetID: parseInt(response.data.sheetID, 10),
+          // playMemberID: selectedPlayMemberID.value,
           currentWeight: oldWeight,
           updateWeight: newWeight,
         };
-        console.log("messageData",messageData);
+        console.log("messageData", messageData);
 
-        
         //웹소켓 전달
-        ChangeWeightWebSocketService.sendMessage(messageData);
-      
+        GameLogWebSocketService.sendMessage(messageData);
+
         closeModal();
       } catch (error) {
         console.error("Failed to add item to the server:", error);
@@ -164,10 +164,9 @@ const addItem = async () => {
   }
 };
 
-
 onMounted(() => {
   fetchEquipmentList();
-  ChangeWeightWebSocketService.connect(route.params.roomId);
+  GameLogWebSocketService.connect(route.params.roomId);
 });
 
 const modalContentStyle = computed(() => ({

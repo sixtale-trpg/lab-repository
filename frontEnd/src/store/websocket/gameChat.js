@@ -1,7 +1,7 @@
 import { Stomp } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
-class SheetSocketService {
+class GameChatSocketService {
   constructor() {
     this.stompClient = null;
     this.connected = false;
@@ -40,8 +40,8 @@ class SheetSocketService {
         // 모든 메시지 타입에 대해 등록된 콜백 함수 실행
         for (const messageType in this.callbacks) {
           if (this.callbacks.hasOwnProperty(messageType)) {
-            this.subscribeToUrl(`/sub/sheet/chat/room/${this.roomID}`);
-            this.subscribeToUrl(`/sub/sheet/chat/whisper/${this.roomID}/${this.memberID}`);
+            this.subscribeToUrl(`/sub/play/chat/room/${this.roomID}`);
+            this.subscribeToUrl(`/sub/play/chat/whisper/${this.roomID}/${this.memberID}`);
           }
         }
       },
@@ -60,8 +60,8 @@ class SheetSocketService {
     this.callbacks[messageType].push(callback);
 
     if (this.connected) {
-      this.subscribeToUrl(`/sub/sheet/chat/room/${this.roomID}`);
-      this.subscribeToUrl(`/sub/sheet/chat/whisper/${this.roomID}/${this.memberID}`);
+      this.subscribeToUrl(`/sub/play/chat/room/${this.roomID}`);
+      this.subscribeToUrl(`/sub/play/chat/whisper/${this.roomID}/${this.memberID}`);
     } else if (!this.isConnecting) {
       this.connect(this.roomID, this.memberID);
     }
@@ -71,7 +71,7 @@ class SheetSocketService {
   sendMessage(message) {
     if (this.connected) {
       console.log("Sending message:", message);
-      this.stompClient.send("/pub/sheet/chat/message", {}, JSON.stringify(message)); // 메시지 전송
+      this.stompClient.send("/pub/play/chat/message", {}, JSON.stringify(message)); // 메시지 전송
     } else {
       console.error("WebSocket is not connected");
     }
@@ -98,4 +98,4 @@ class SheetSocketService {
   }
 }
 
-export default new SheetSocketService();
+export default new GameChatSocketService();

@@ -15,9 +15,9 @@
           <p>{{ msg.content }}</p>
         </div>
         <div class="message-input">
-      <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
-      <button @click="sendMessage">Send</button>
-    </div>
+          <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+          <button @click="sendMessage">Send</button>
+        </div>
       </div>
       <!-- <div class="message-input">
     <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
@@ -74,19 +74,19 @@ onMounted(async () => {
     // 룸 id 받아옴
     roomId.value = route.params.roomId;
     console.log("Room ID from route:", roomId.value);
-    GameLogWebSocketService.connect(roomId.value)
+    GameLogWebSocketService.connect(roomId.value);
 
     const response = await getMapList(roomId.value);
     mapData.value = response.mapList || [];
 
     // 메세지 받아오는것
     GameLogWebSocketService.onMessageReceived((message) => {
-      console.log(message)
-      console.log(11)
-      switch(message.gameType){
+      console.log(message);
+      console.log(11);
+      switch (message.gameType) {
         case "MAP_CHANGE":
           // 현재 선택된 맵의 데이터 가져오기
-          let selectedMap = mapData.value[message.nextMapID-1];
+          let selectedMap = mapData.value[message.nextMapID - 1];
           mapStore.setSelectedMap(selectedMap);
           break;
         case "GAME_START":
@@ -115,100 +115,101 @@ onMounted(async () => {
 });
 
 // 메시지 배열의 깊은 변경을 감지
-watch(messages, (newMessages) => {
-  scrollToBottom();
-}, { deep: true });
+watch(
+  messages,
+  (newMessages) => {
+    scrollToBottom();
+  },
+  { deep: true }
+);
 
 // const sendMessage = () => {
 //   if (newMessage.value.trim() === '') return;
 
 //   const messageData = {
-//     gameType: 'MAP_CHANGE', 
-//     roomID: roomId.value, 
-//     currentMapID: 1, 
+//     gameType: 'MAP_CHANGE',
+//     roomID: roomId.value,
+//     currentMapID: 1,
 //     nextMapID: 2,
 //   };
 
 //   // Send the message to the server
-//   GameLogWebSocketService.sendMessage(messageData); 
+//   GameLogWebSocketService.sendMessage(messageData);
 //   newMessage.value = ''; // Clear the input field
 // };
 
-  
-  const activeTab = ref('allLogs');
-  
-  // 이미지 경로 설정
-  const backgroundImage = require('@/assets/images/ingame/Border7.png');
-  
-  // 배경 스타일 설정
-  const backgroundStyle = {
-    backgroundImage: `url(${backgroundImage})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    padding: '10px',
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  };
-  
-  const selectTab = (key) => {
-    activeTab.value = key;
-  };
-  </script>
-  
-  <style scoped>
-  .log-section-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 300px !important;
-    max-height: 300px !important;
-  }
-  
-  .tabs {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0;
-  }
-  
-  .tab {
-    flex: 1;
-    padding: 5px; /* 높이를 줄임 */
-    cursor: pointer;
-    border: 1px solid #333;
-    color: white;
-    background: linear-gradient(to bottom, #1A4E23, #102F12); 
-    text-align: center; /* 텍스트 중앙 배치 */
-  }
-  
-  .tab.active {
-    background-color: #555;
-    color: #fff;
-  }
-  
-  .log-content {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    border: 1px solid #444;
-    color: white;
+const activeTab = ref("allLogs");
 
-  }
-  
-  /* 스크롤바 스타일링 */
-  .log-content::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .log-content::-webkit-scrollbar-track {
-    background: #a56722;
-    border-radius: 5px;
-  }
-  
-  .log-content::-webkit-scrollbar-thumb {
-    background-color: #274e13;
-    border-radius: 5px;
-    border: 1px solid #a56722;
-  }
-  </style>
-  
+// 이미지 경로 설정
+const backgroundImage = require("@/assets/images/ingame/Border7.png");
+
+// 배경 스타일 설정
+const backgroundStyle = {
+  backgroundImage: `url(${backgroundImage})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  padding: "10px",
+  boxSizing: "border-box",
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
+};
+
+const selectTab = (key) => {
+  activeTab.value = key;
+};
+</script>
+
+<style scoped>
+.log-section-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px !important;
+  max-height: 300px !important;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 5px; /* 높이를 줄임 */
+  cursor: pointer;
+  border: 1px solid #333;
+  color: white;
+  background: linear-gradient(to bottom, #1a4e23, #102f12);
+  text-align: center; /* 텍스트 중앙 배치 */
+}
+
+.tab.active {
+  background-color: #555;
+  color: #fff;
+}
+
+.log-content {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  border: 1px solid #444;
+  color: white;
+}
+
+/* 스크롤바 스타일링 */
+.log-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-content::-webkit-scrollbar-track {
+  background: #a56722;
+  border-radius: 5px;
+}
+
+.log-content::-webkit-scrollbar-thumb {
+  background-color: #274e13;
+  border-radius: 5px;
+  border: 1px solid #a56722;
+}
+</style>

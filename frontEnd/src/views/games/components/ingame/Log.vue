@@ -14,10 +14,10 @@
         <div v-for="msg in messages" :key="msg.id">
           <p>{{ msg.content }}</p>
         </div>
-        <!-- <div class="message-input">
+        <div class="message-input">
       <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
       <button @click="sendMessage">Send</button>
-    </div> -->
+    </div>
       </div>
       <!-- <div class="message-input">
     <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
@@ -74,50 +74,20 @@ onMounted(async () => {
     // 룸 id 받아옴
     roomId.value = route.params.roomId;
     console.log("Room ID from route:", roomId.value);
+    GameLogWebSocketService.connect(roomId.value)
 
     const response = await getMapList(roomId.value);
     mapData.value = response.mapList || [];
 
     // 메세지 받아오는것
     GameLogWebSocketService.onMessageReceived((message) => {
+      console.log(message)
+      console.log(11)
       switch(message.gameType){
         case "MAP_CHANGE":
           // 현재 선택된 맵의 데이터 가져오기
-          let selectedMap = mapData.value[message.nextMapID];
-          console.log(typeof selectedMap)
-          // selectedMap이 숫자가 아닌 경우, 숫자로 변환 (문자열 등일 경우)
-          if (typeof selectedMap === 'string') {
-            selectedMap = parseInt(selectedMap, 10);
-          }
-          // selectedMap이 숫자인지 확인
-          if (typeof selectedMap === 'number') {
-            // selectedMap의 값을 1 감소시키기
-            const newSelectedMap = selectedMap - 1;
-            // 감소시킨 값을 저장하기
-            mapStore.setSelectedMap(newSelectedMap);
-          }
-          break;
-        case "GAME_START":
-          // 게임 시작 시 페이지 이동
-          router.push(`/game/${route.params.roomId}/in-game`);
-          break;
-        default:
-          // 다른 메시지 타입의 처리 로직
-          break;
-      }
-      messages.value.push(message);
-      scrollToBottom();
-      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
-    });
-
-    // Handle incoming messages
-    // 메세지 받아오는것
-    GameLogWebSocketService.onMessageReceived(async (message) => {
-      console.log("message!!!: ", message);
-      switch (message.gameType) {
-        case "MAP_CHANGE":
-          const selectedMap = mapData.value[message.nextMapID];
-          mapStore.setSelectedMap(selectedMap); //맵 저장
+          let selectedMap = mapData.value[message.nextMapID-1];
+          mapStore.setSelectedMap(selectedMap);
           break;
         case "GAME_START":
           // 게임 시작 시 페이지 이동
@@ -125,13 +95,15 @@ onMounted(async () => {
           break;
         case "WEIGHT":
           // 시트 업데이트
-          // await fetchUpdate(playMemberID);
+          // fetchUpdate(playMemberID);
           break;
+        // case "GOLD":
         default:
           // 다른 메시지 타입의 처리 로직
           break;
       }
       messages.value.push(message);
+      scrollToBottom();
       saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
     });
 

@@ -222,26 +222,41 @@ const getStatusImage = (status) => {
 
 
 const handleEnterRoom = async (room) => {
-  if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
-    alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
-    return;
-  }
-  
-  selectedRoomId.value = room.id;
-  
-  if (room.isLocked) {
-    showPasswordModal.value = true;
-  } else {
-    try {
+  try {
+    // 방 정보 가져오기
+    const roomInfo = await getRoomInfo(room.id);
+    console.log('Room info:', roomInfo);
+
+    // 현재 사용자가 해당 방의 GM인지 확인
+    if (roomInfo.gmNickname === user.value.nickName) {
+      const confirmMessage = '현재 방의 GM으로 참여 중입니다. GM으로 다시 입장하시겠습니까?';
+      if (confirm(confirmMessage)) {
+        router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
+      }
+      return;
+    }
+
+    if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
+      alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
+      return;
+    }
+
+    selectedRoomId.value = room.id;
+
+    if (room.isLocked) {
+      showPasswordModal.value = true;
+    } else {
       const result = await enterRoomWithCheck(room.id);
       if (result) {
         router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
       }
-    } catch (error) {
-      alert(error.message);
     }
+  } catch (error) {
+    console.error('Error entering room:', error);
+    alert('방에 입장할 수 없습니다.');
   }
 };
+
 
 const handlePasswordSubmit = async ({ roomId, password }) => {
   try {

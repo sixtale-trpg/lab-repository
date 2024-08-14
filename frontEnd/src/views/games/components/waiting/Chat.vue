@@ -58,7 +58,7 @@ const route = useRoute();
 const router = useRouter();
 
 // 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
-const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
+const initialRoomId = route.params.roomId; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
 
 // const userId = ref(0);
 
@@ -125,19 +125,27 @@ const getTabStyle = (tab) => {
 
 const getTabImage = (tab) => {
   switch (tab) {
-    case 'all': return tabAllImage;
-    case 'chat': return tabChatImage;
-    case 'whisper': return tabWhisperImage;
-    default: return tabAllImage;
+    case "all":
+      return tabAllImage;
+    case "chat":
+      return tabChatImage;
+    case "whisper":
+      return tabWhisperImage;
+    default:
+      return tabAllImage;
   }
 };
 
 const getTabText = (tab) => {
   switch (tab) {
-    case 'all': return '전체';
-    case 'chat': return '채팅';
-    case 'whisper': return '귓속말';
-    default: return '';
+    case "all":
+      return "전체";
+    case "chat":
+      return "채팅";
+    case "whisper":
+      return "귓속말";
+    default:
+      return "";
   }
 };
 
@@ -208,7 +216,7 @@ const chatSectionStyle = {
   padding: "10px",
   margin: "10px",
   boxSizing: "border-box",
-  border: "1px solid #4A3A2E"
+  border: "1px solid #4A3A2E",
 };
 
 const chatWindowStyle = {
@@ -270,7 +278,7 @@ const inputContainerStyle = {
   backgroundSize: "cover",
   borderRadius: "5px",
   padding: "5px",
-  border: "1px solid #4A3A2E"
+  border: "1px solid #4A3A2E",
 };
 
 const chatInputStyle = {
@@ -295,7 +303,7 @@ const sendButtonStyle = {
   margin: "0", // 마진 제거
   outline: "none",
   cursor: "pointer",
-  border: "1px solid #4A3A2E"
+  border: "1px solid #4A3A2E",
 };
 </script>
 

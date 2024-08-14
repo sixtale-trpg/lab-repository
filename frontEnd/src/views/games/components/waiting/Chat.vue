@@ -1,27 +1,14 @@
 <template>
   <div :style="chatSectionStyle" class="chat-section">
     <div class="chat-tabs">
-      <!-- 탭 클릭 시 탭 전환 -->
       <div
-        @click="selectTab('all')"
-        :class="{ tab: true, active: selectedTab.value === 'ALL' }"
-        :style="tabAllStyle"
+        v-for="tab in ['all', 'chat', 'whisper']"
+        :key="tab"
+        @click="selectTab(tab)"
+        :class="{ tab: true }"
+        :style="getTabStyle(tab)"
       >
-        <span>전체</span>
-      </div>
-      <div
-        @click="selectTab('chat')"
-        :class="{ tab: true, active: selectedTab.value === 'CHAT' }"
-        :style="tabChatStyle"
-      >
-        <span>채팅</span>
-      </div>
-      <div
-        @click="selectTab('whisper')"
-        :class="{ tab: true, active: selectedTab.value === 'WHISPER' }"
-        :style="tabWhisperStyle"
-      >
-        <span>귓속말</span>
+        <span>{{ getTabText(tab) }}</span>
       </div>
     </div>
     <div :style="chatWindowStyle" class="chat-window log-content">
@@ -57,6 +44,7 @@ const background2 = require("@/assets/images/room/chat/chat_background2.png");
 const tabAllImage = require("@/assets/images/room/chat/chat_all.png");
 const tabChatImage = require("@/assets/images/room/chat/chat_common.png");
 const tabWhisperImage = require("@/assets/images/room/chat/chat_whisper.png");
+const tabSelectImage = require("@/assets/images/room/chat/chat_select.png");
 const inputBackground = require("@/assets/images/room/chat/chat_input.png");
 const sendButtonImage = require("@/assets/images/room/chat/Send_Button.png");
 
@@ -127,6 +115,32 @@ const selectTab = (tab) => {
   selectedTab.value = tab.toUpperCase(); // 탭 선택
 };
 
+const getTabStyle = (tab) => {
+  const isSelected = selectedTab.value === tab.toUpperCase();
+  return {
+    ...tabStyle,
+    backgroundImage: `url(${isSelected ? tabSelectImage : getTabImage(tab)})`,
+  };
+};
+
+const getTabImage = (tab) => {
+  switch (tab) {
+    case 'all': return tabAllImage;
+    case 'chat': return tabChatImage;
+    case 'whisper': return tabWhisperImage;
+    default: return tabAllImage;
+  }
+};
+
+const getTabText = (tab) => {
+  switch (tab) {
+    case 'all': return '전체';
+    case 'chat': return '채팅';
+    case 'whisper': return '귓속말';
+    default: return '';
+  }
+};
+
 const sendMessage = () => {
   if (newMessage.value.trim() === "") return;
 
@@ -194,33 +208,38 @@ const chatSectionStyle = {
   padding: "10px",
   margin: "10px",
   boxSizing: "border-box",
+  border: "1px solid #4A3A2E"
 };
 
 const chatWindowStyle = {
   flexGrow: 1,
   overflowY: "auto",
-  padding: "10px",
+  // padding: "10px",
   backgroundImage: `url(${background1})`,
   backgroundRepeat: "no-repeat",
   backgroundPosition: "center center",
   backgroundSize: "cover",
-  marginBottom: "10px",
+  // marginBottom: "10px",
   borderRadius: "5px",
+  marginTop: "0",
 };
 
 const tabStyle = {
   cursor: "pointer",
-  width: "20%", // 필요에 따라 너비 조정
-  height: "auto", // 필요에 따라 높이 조정
-  backgroundSize: "cover",
+  width: "120px",
+  height: "30px",
+  backgroundSize: "contain",
+  backgroundRepeat: "no-repeat",
   backgroundPosition: "center",
-  borderRadius: "5px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  fontSize: "14px",
+  padding: "0",
+  margin: "0",
   color: "white",
   fontWeight: "bold",
-  transition: "background-color 0.3s, border 0.3s", // 부드러운 효과를 위한 전환 추가
+  transition: "background-image 0.3s",
 };
 
 const tabAllStyle = {
@@ -239,8 +258,8 @@ const tabWhisperStyle = {
 };
 
 const activeTabStyle = {
-  backgroundColor: "rgba(255, 255, 255, 0.3)", // 활성 탭의 배경색 변경
-  border: "5px solid #fff", // 활성 탭에 테두리 추가
+  backgroundColor: "rgba(255, 255, 255, 0.3)",
+  border: "2px solid #fff",
 };
 
 const inputContainerStyle = {
@@ -251,6 +270,7 @@ const inputContainerStyle = {
   backgroundSize: "cover",
   borderRadius: "5px",
   padding: "5px",
+  border: "1px solid #4A3A2E"
 };
 
 const chatInputStyle = {
@@ -275,30 +295,39 @@ const sendButtonStyle = {
   margin: "0", // 마진 제거
   outline: "none",
   cursor: "pointer",
+  border: "1px solid #4A3A2E"
 };
 </script>
 
 <style scoped>
 .chat-tabs {
   display: flex;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  justify-content: flex-start;
 }
 
-.tab.active {
-  background-color: rgba(255, 255, 255, 0.3);
-  border: 2px solid #fff;
+.tab {
+  flex-grow: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .chat-window {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 10px;
+  /* padding: 10px; */
   background-color: rgba(41, 23, 7, 0.8); /* 가독성을 위한 약간의 오버레이 추가 */
   margin-bottom: 10px;
   border-radius: 5px;
+  margin-top: 0; /* 상단 마진 제거 */
+  padding-top: 0; /* 상단 패딩 제거 */
 }
 
 .chat-message {
-  margin-bottom: 5px;
+  /* margin-bottom: 5px; */
   color: white;
 }
 
@@ -313,7 +342,7 @@ input::placeholder {
 @media (max-width: 768px) {
   .chat-section {
     height: auto;
-    margin: 5px;
+    /* margin: 5px; */
   }
 
   .chat-tabs {
@@ -321,7 +350,7 @@ input::placeholder {
   }
 
   .chat-tabs div {
-    margin: 5px 0;
+    /* margin: 5px 0; */
   }
 }
 

@@ -5,15 +5,15 @@
         <img src="@/assets/images/ingame/Rulebook.png" alt="Rulebook" @click="openRulebookModal" />
         <img src="@/assets/images/ingame/Scenario.png" alt="Scenario" @click="openScenarioModal" />
         <img src="@/assets/images/ingame/Map.png" alt="Map" @click="openMapModal" />
-        <img 
+        <!-- <img 
           src="@/assets/images/ingame/MuteAll.png" 
           alt="Mute All" 
           @click="toggleMuteAll" 
           :class="{ active: isMuteAllActive }" 
-        />
+        /> -->
       </template>
       <template v-else>
-        <h1>{{ scenarioTitle }}</h1>
+        <h1 class="header-title">{{ scenarioTitle }}</h1>
       </template>
     </div>
     <div class="header-center">
@@ -125,12 +125,16 @@ onMounted(() => {
 
 .header {
   background-color: #382A20;
-  color: white;
+  color: rgb(191, 176, 142);
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 0 20px;
   height: 100%;
+}
+.header-title, .header-center h1 {
+  font-family: 'Abhaya Libre', sans-serif;
+  font-weight: 800;
+  font-style: normal;
 }
 
 .header-left {
@@ -168,11 +172,11 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.close-icon-container {
-  background-color: white;
-  padding: 5px;
-  border-radius: 5px;
-}
+/* .close-icon-container {
+  background-color: #251C15;
+  padding: 10px;
+  border-radius: 100%;
+} */
 
 .active {
   filter: brightness(1.5);

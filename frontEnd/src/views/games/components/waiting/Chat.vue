@@ -94,6 +94,7 @@ onMounted(async () => {
 
   // 서버로부터 메시지를 수신할 때마다 콜백 실행
   WebSocketService.onMessageReceived((message) => {
+    console.log(message)
     messages.value.push(message); // 메시지 목록에 추가
   });
 });

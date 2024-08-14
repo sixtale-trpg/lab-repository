@@ -159,14 +159,18 @@ console.log('GM ID:', gm.id); // GM ID 로그 출력
 }
 
 .gm-mark-image {
-  width: 13%;
-  height: 13%;
+  width: 15%;
+  height: 15%;
   margin: 3%;
 }
 
 .gm-name {
-  font-size: 0.8rem;
+  font-size: 1.5rem;
   margin: 0;
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  color: rgb(214, 205, 170);
 }
 
 .start-game-button {

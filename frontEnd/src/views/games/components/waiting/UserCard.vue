@@ -70,12 +70,13 @@ const userCardStyle = computed(() => ({
 }));
 
 const userNameStyle = computed(() => ({
-  backgroundImage: `url(${nameBoxImage})`,
+  // backgroundImage: `url(${nameBoxImage})`,
   backgroundSize: 'cover',
+  backgroundColor: '#251C15',
   backgroundPosition: 'center',
   padding: '4% 10%',
   borderRadius: '5px',
-  color: '#ffffff',
+  color: '#e6ddc4',
   border: '1px solid #5a4d41',
   marginTop: '0%',
   width: '90%',
@@ -86,6 +87,7 @@ const userNameStyle = computed(() => ({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
+  
 }));
 
 const truncatedName = computed(() => {

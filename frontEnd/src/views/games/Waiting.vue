@@ -56,28 +56,20 @@
               <div class="title">
                 <div :style="vectorImage">게임 룰</div>
               </div>
-              <div class="content cursor" @click="openRulebookModal">
-                <div
-                  :style="gameRuleContainerStyle"
-                  class="game-rule-container"
-                >
+              <div class="content">
+                <div :style="gameRuleContainerStyle" class="game-rule-container" @click="openRulebookModal">
                   <div class="game-rule-text">{{ gameRule }}</div>
                 </div>
               </div>
             </div>
+
             <div :style="scenarioInfoStyle" class="game-info">
               <div class="title">
                 <div :style="vectorImage">시나리오</div>
               </div>
-              <div
-                class="content scenario-content cursor"
-                @click="openScenarioModal"
-              >
-                <img
-                  :src="scenarioImagePath"
-                  class="scenario-image"
-                />
-                <div class="scenario-text">{{ scenario }}</div>
+              <div class="content scenario-content">
+                <img :src="scenarioImagePath" class="scenario-image" />
+                <div class="scenario-text" @click="openScenarioModal">{{ scenario }}</div>
               </div>
             </div>
           </div>
@@ -150,7 +142,6 @@ const selectedUser = ref(null);
 const router = useRouter();
 const route = useRoute();
 
-// 현재 로그인한 사용자의 닉네임을 가져오기 위한 변수.
 const nickName = ref("");
 
 onMounted(() => {
@@ -308,9 +299,12 @@ const gmCardStyle = computed(() => ({
 }));
 
 const gmNameStyle = computed(() => ({
-  backgroundImage: `url(${nameBoxImagePath})`,
+  // backgroundImage: `url(${nameBoxImagePath})`,
   backgroundSize: "cover",
+  backgroundColor: '#251C15',
   backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  alignItems: "center",
   padding: "0% 0%",
   borderRadius: "5px",
   color: "#ffffff",
@@ -370,8 +364,13 @@ const disabledButtonStyle = {
 const vectorImage = computed(() => ({
   backgroundImage: `url(${vectorImagePath})`,
   width: "40%",
-  backgroundSize: "cover",
   backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  fontFamily: "'Abhaya Libre ExtraBold', sans-serif",
+  fontStyle: "normal",
+  fontWeight: 800,
+  paddingLeft: "20px",
+  fontSize: "15px",
 }));
 
 const gameInfoStyle = computed(() => ({
@@ -397,16 +396,17 @@ const gameRuleContainerStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  width: "60%",
-  height: "60%",
+  width: "80%",
+  height: "80%",
   fontFamily: "'Abhaya Libre ExtraBold', sans-serif",
   fontStyle: "normal",
   fontWeight: 800,
-  fontSize: "18px",
+  fontSize: "23px",
   lineHeight: "100%",
   color: "rgb(214, 205, 170)",
   background: "rgba(101, 78, 53, 0.49)",
   boxShadow: "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
+  cursor: "pointer",
 };
 
 const calendarContainerStyle = {
@@ -565,23 +565,40 @@ const calendarContainerStyle = {
 
 .scenario-content {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .scenario-image {
-  width: 20%;
-  height: 100%;
-  margin-right: -30px;
+  width: 60%;
+  height: auto;
+  margin-right: 10px;
 }
 
 .scenario-text {
-  flex: 1;
-  color: #ffffff;
+  color: rgb(214, 205, 170);
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 13px;
+  padding: 10px;
+  width: 80%; /* 이미지와 같은 너비로 설정 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  white-space: normal; /* 여러 줄 허용 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  font-weight: 800;
+  -webkit-line-clamp: 2; /* 최대 2줄까지 표시 */
+  -webkit-box-orient: vertical;
 }
 
 .game-info .title {
   border-radius: 10px;
   color: rgb(214, 205, 170);
+  padding: 10px;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -598,14 +615,38 @@ const calendarContainerStyle = {
 
 .game-info .content {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  border-radius: 5px;
-  color: #ffffff;
-  border: 1px solid #5a4d41;
+  padding: 10px;
+  height: 100%;
+}
+
+.game-rule-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 80%;
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.game-rule-text {
+  color: rgb(214, 205, 170);
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 120%;
   text-align: center;
-  font-size: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 최대 2줄까지 표시 */
+  -webkit-box-orient: vertical;
 }
 
 .calendar {
@@ -613,6 +654,7 @@ const calendarContainerStyle = {
   justify-content: center;
   align-items: center;
   padding: 23px;
+  background-color: #251C15;
   border-radius: 10px;
   width: 48%;
   height: 78%;
@@ -676,5 +718,48 @@ const calendarContainerStyle = {
     width: 100%;
     margin-bottom: 10px;
   }
+}
+
+.game-rule-container {
+  cursor: pointer;
+}
+
+.game-rule-container:hover {
+  /* transform: scale(1.05); */
+  /* box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1); */
+}
+
+.scenario-content {
+  cursor: default;  /* 기본 커서로 변경 */
+}
+
+/* .game-rule-text, .scenario-text {
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+.scenario-text:hover {
+  /* background-color: rgba(255, 255, 255, 0.1); */
+  cursor: pointer;
+}
+
+.scenario-text {
+  transform: scale(1);  /* 초기 스케일 설정 */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* .scenario-text:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+} */
+
+.scenario-image {
+  pointer-events: none;
 }
 </style>

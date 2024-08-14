@@ -108,7 +108,7 @@ public class RuleServiceImpl implements RuleService {
         Rule rule = ruleRepository.findById(ruleID).get();
         Job job = jobRepository.findById(jobID).get();
         // 직업 액션
-        List<JobAction> jobActionList = jobActionRepository.findByRule(rule);
+        List<JobAction> jobActionList = jobActionRepository.findByRuleAndJob(rule, job);
         List<JobActionResponse> jobActions = jobActionList.stream()
                 .map(m -> JobActionResponse.builder()
                         .id(m.getId())

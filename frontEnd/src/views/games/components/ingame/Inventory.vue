@@ -296,7 +296,7 @@ const hideTooltip = (event) => {
   }
 };
 
-const handleItemSelected = (item) => {
+const handleItemSelected = async (item) => {
   console.log("Item selected:", item);
   const existingItemIndex = items.value.findIndex(
     (existingItem) => existingItem.equipmentId === item.equipmentId
@@ -315,11 +315,15 @@ const handleItemSelected = (item) => {
   }
   updateCurrentWeight();
 
-  // Vue는 배열의 변경을 감지할 수 있도록 배열을 재할당합니다.
+
   items.value = [...items.value];
+
+  // 여기서 추가된 아이템을 바로 반영하기 위해 서버에서 다시 데이터 불러오기
+  await fetchUserItems(selectedPlayMemberID.value);
 
   closeAddItemModal();
 };
+
 
 const handleItemAdded = async (addedItem) => {
   console.log("Item added:", addedItem);

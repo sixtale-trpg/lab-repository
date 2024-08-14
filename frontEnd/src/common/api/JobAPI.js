@@ -35,3 +35,22 @@ export const fetchJobList = async (ruleId) => {
       throw error;
     }
   };
+
+
+  // 직업별 선택지 목록 조회
+export const getJobSelectOption = async (ruleID, jobID) => {
+  const headers = getHeaders();
+  const url = `/api/v1/rules/${ruleID}/jobs/${jobID}`;
+  console.log(`Fetching job select options from: ${url}`);
+
+  try {
+    const response = await axios.get(url, { headers });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching job select options:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+    }
+    throw error; // 에러 발생 시 상위에서 처리할 수 있도록 에러 던짐
+  }
+};

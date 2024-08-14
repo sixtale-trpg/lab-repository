@@ -15,6 +15,8 @@ import UserInfo from "@/views/mypage/UserInfo";
 import UserEdit from "@/views/mypage/UserInfoEdit";
 import UserLikeScenario from "@/views/mypage/UserLikeScenario";
 import UserStyle from "@/views/mypage/UserStyle";
+import AuthCallback from "@/views/AuthCallback"; // 추가: AuthCallback 컴포넌트 임포트
+import { getToken } from '@/services/authService';
 
 const routes = [
   {
@@ -106,11 +108,30 @@ const routes = [
       },
     ],
   },
+  {
+    path: "/auth/callback", // 추가: 소셜 로그인 후 리디렉션 처리 경로
+    name: "AuthCallback",
+    component: AuthCallback,
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const token = getToken();
+
+  // 페이지 이동 시마다 JWT 토큰을 콘솔에 출력
+  if (token) {
+    console.log("현재 JWT 토큰:", token);
+  } else {
+    console.log("JWT 토큰이 존재하지 않습니다.");
+  }
+
+  // 페이지 이동 허용
+  next();
 });
 
 router.afterEach((to) => {

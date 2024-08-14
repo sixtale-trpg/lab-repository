@@ -41,7 +41,7 @@ const navigateToLobby = () => {
 }
 
 .carousel-item {
-  height: 1000px;
+  height: 850px;
   /* background-color: #ffffff; */
   background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%), linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
 }

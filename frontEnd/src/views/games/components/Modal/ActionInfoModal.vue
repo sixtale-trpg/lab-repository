@@ -64,6 +64,11 @@ const closeModal = () => {
 };
 
 const selectAction = () => {
+  console.log(props.action)
+  // 여기
+  // 메시지 보내는 로직 추가
+  // ACTION
+  // playMemberID ? 
   emit('select', props.action);
   closeModal();
 };

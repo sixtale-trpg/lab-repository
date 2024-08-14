@@ -121,18 +121,18 @@ export const getRoomInfo = async (roomId) => {
   }
 };
 
-// 게임방에서 유저 강퇴
-export const kickUserFromRoom = async (roomId, playerId) => {
+// 게임방에서 나가기
+export const leaveRoom = async (roomId) => {
   try {
     const response = await axios.delete(`${BASE_URL}/${roomId}/players`, {
       headers: getHeaders(),
-      data: {
-        playerId: playerId
-      }
     });
     return response.data;
   } catch (error) {
-    console.error('Error kicking user:', error);
+    console.error('Error leaving the room:', error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+    }
     throw error;
   }
 };

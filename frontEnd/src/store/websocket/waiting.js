@@ -62,7 +62,7 @@ class WebSocketService {
     this.stompClient.subscribe(url, (message) => {
       console.log(`Message received from ${url}:`, message.body);
       const parsedMessage = JSON.parse(message.body);
-      if (this.callback) {
+      if (this.messageCallback) {
         this.messageCallback(parsedMessage);
       }
     });

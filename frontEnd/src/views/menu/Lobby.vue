@@ -104,6 +104,7 @@ import { useRouter } from 'vue-router';
 import { getRoomList, getRoomInfo, enterRoom, getJoinedRooms } from '@/common/api/RoomsAPI';
 import { getMemberInfo } from '@/common/api/mypageAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
+import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
 import PasswordModal from '@/views/menu/components/PasswordModal.vue';
 
 const router = useRouter();
@@ -250,6 +251,19 @@ const handleEnterRoom = async (room) => {
     } else {
       const result = await enterRoomWithCheck(room.id);
       if (result) {
+
+        // enter 메세지 보내기
+        const messageData = {
+          type: "ENTER", // 메시지 유형
+          roomID: room.id, // 가져온 방 정보에서 roomID 사용
+          memberID: userId.value, // 사용자 ID, 실제 값으로 설정
+          content: ""
+        };
+
+        console.log(room.id + " "+userId.value);
+
+        WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+
         router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
       }
     }
@@ -446,6 +460,14 @@ onMounted(async () => {
   await fetchUserInfo();
   await fetchRooms();
   showAllRooms();
+  // getMemberInfo()
+  //       .then((response) => {
+  //         memberID.value = response.data.data.id;
+  //         console.log(memberID.value);
+  //       })
+  //       .catch((error) => {
+  //         console.error("Failed to fetch member info:", error);
+  //       });
 });
 </script>
 

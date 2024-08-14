@@ -507,13 +507,26 @@ const calendarContainerStyle = {
   flex: 1;
 }
 
+.profile-image-container {
+  position: relative;
+  width: 100%; /* 너비를 100%로 설정 */
+  padding-bottom: 100%; /* 정사각형을 유지 */
+  overflow: hidden;
+  border-radius: 50%; /* 원형으로 유지 */
+  background-color: #291707;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .profile-image {
-  width: 90%;
-  height: 90%;
-  object-fit: cover;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 1px solid #5a4d41;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 이미지 비율을 유지하면서 컨테이너를 완전히 채움 */
+  border-radius: 50%; /* 이미지를 원형으로 만듦 */
+  position: absolute; /* 이미지가 컨테이너 내에서 정렬되도록 함 */
+  top: 0;
+  left: 0;
 }
 
 .avatar-frame {

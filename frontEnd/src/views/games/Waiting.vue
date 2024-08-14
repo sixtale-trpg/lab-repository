@@ -150,7 +150,7 @@ const selectedUser = ref(null);
 const router = useRouter();
 const route = useRoute();
 
-// 현재 로그인한 사용자의 닉네임을 가져오기 위한 변수
+// 현재 로그인한 사용자의 닉네임을 가져오기 위한 변수.
 const nickName = ref("");
 
 onMounted(() => {

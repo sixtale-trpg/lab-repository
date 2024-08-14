@@ -83,6 +83,11 @@ const selectAction = () => {
     // 주사위 정보를 store의 상태에 저장
     setSelectedDice(props.action.diceType, props.action.diceCount);
   }
+  console.log(props.action)
+  // 여기
+  // 메시지 보내는 로직 추가
+  // ACTION
+  // playMemberID ? 
   emit('select', props.action);
   closeModal();
 };

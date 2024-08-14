@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontEnd
+    container_name: SIXTALE-frontend
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+      - /home/ubuntu/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - backend-network
+
+  backend:
+    build:
+      context: ./backEnd
+    container_name: SIXTALE-backend
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://i11d108.p.ssafy.io:3306/S11P12D108?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true"
+      SPRING_DATASOURCE_USERNAME: "sixtale"
+      SPRING_DATASOURCE_PASSWORD: "qlswlshtmxpvksl0912"
+      SPRING_DATA_MONGODB_URI: "mongodb://i11d108.p.ssafy.io:27017/S11P12D108?authSource=admin"
+    networks:
+      - backend-network
+  
+networks:
+  backend-network:

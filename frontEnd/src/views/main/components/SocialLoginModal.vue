@@ -25,7 +25,7 @@ const closeModal = () => {
 const googleLogin = async () => {
   const clientId =
     "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
-  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
+  const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/google";
   const responseType = "code";
   const scope = "email profile";
 
@@ -36,7 +36,7 @@ const googleLogin = async () => {
 
 const naverLogin = async () => {
   const clientId = "jCJ25DM0P7fbySK5L9Fd";
-  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/naver";
+  const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/naver";
   const responseType = "code";
   // const scope = 'email profile_image'
 

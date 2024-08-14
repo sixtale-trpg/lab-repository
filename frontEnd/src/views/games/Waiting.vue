@@ -4,41 +4,72 @@
     <div class="content">
       <div class="left-section">
         <div class="user-cards">
-          <UserCard v-for="user in allUsers" :key="user.id || user.placeholder" :user="user" :isGM="isGM" :roomId="roomId" :memberId="user.memberId" />
+          <UserCard
+            v-for="user in allUsers"
+            :key="user.id || user.placeholder"
+            :user="user"
+            :isGM="isGM"
+            :roomId="roomId"
+            :memberId="user.memberId"
+          />
         </div>
         <Chat class="chat-section" />
       </div>
       <div class="right-section">
         <div :style="topSectionStyle" class="top-section">
-          <Map :roomId="roomId" :mapList="mapList" :isGM="isGM" />
+          <Map :roomId="roomId" :mapList="mapList" :gmName="gm.name" />
           <div :style="gmCardStyle" class="gm-section">
             <div class="gm-info">
-              <div :style="profileImageContainerStyle" class="profile-image-container">
-                <img :src="gm.profileImage || defaultImage" alt="GM 프로필" class="profile-image" @click="showGMModal = true"/>
-                <img :src="avatarFrameImagePath" alt="테두리" class="avatar-frame" />
+              <div
+                :style="profileImageContainerStyle"
+                class="profile-image-container"
+              >
+                <img
+                  :src="gm.profileImage || defaultImage"
+                  alt="GM 프로필"
+                  class="profile-image"
+                  @click="showGMModal = true"
+                />
+                <img
+                  :src="avatarFrameImagePath"
+                  alt="테두리"
+                  class="avatar-frame"
+                />
               </div>
-              <div :style="gmNameStyle" class="gm-name">{{ gm.name }}</div>
+              <div :style="gmNameStyle" class="gm-name" :title="gm.name">
+                {{ truncatedGMName }}
+              </div>
             </div>
-            <button :disabled="!isGM" :style="[startGameButtonStyle, !isGM ? disabledButtonStyle : {}]" class="start-game-button" @click="startGame">게임 시작</button>
+            <button
+              :disabled="nickName !== gm.name"
+              :style="[startGameButtonStyle, nickName !== gm.name ? disabledButtonStyle : {}]"
+              class="start-game-button"
+              @click="startGame"
+            >
+              게임 시작
+            </button>
           </div>
         </div>
         <div class="details">
           <div class="rule-scenario">
             <div :style="gameInfoStyle" class="game-info">
-              <div :style="vectorImage">게임 룰</div>
-              <div class="content cursor" @click="openRulebookModal">
-                <div :style="gameRuleContainerStyle" class="game-rule-container">
+              <div class="title">
+                <div :style="vectorImage">게임 룰</div>
+              </div>
+              <div class="content">
+                <div :style="gameRuleContainerStyle" class="game-rule-container" @click="openRulebookModal">
                   <div class="game-rule-text">{{ gameRule }}</div>
                 </div>
               </div>
             </div>
+
             <div :style="scenarioInfoStyle" class="game-info">
               <div class="title">
                 <div :style="vectorImage">시나리오</div>
               </div>
-              <div class="content scenario-content cursor" @click="openScenarioModal">
-                <img :src="scenarioImagePath" alt="시나리오 이미지" class="scenario-image" />
-                <div class="scenario-text">{{ scenario }}</div>
+              <div class="content scenario-content">
+                <img :src="scenarioImagePath" class="scenario-image" />
+                <div class="scenario-text" @click="openScenarioModal">{{ scenario }}</div>
               </div>
             </div>
           </div>
@@ -46,52 +77,61 @@
         </div>
       </div>
     </div>
-    <Userinfo v-if="showUserModal" :user="selectedUser" @close="showUserModal = false" />
+    <Userinfo
+      v-if="showUserModal"
+      :user="selectedUser"
+      @close="showUserModal = false"
+    />
     <Userinfo v-if="showGMModal" :user="gm" @close="showGMModal = false" />
-    <ScenarioModal v-if="isScenarioModalOpen" :scenario="scenarioDetails" @close="closeScenarioModal" />
+    <ScenarioModal
+      v-if="isScenarioModalOpen"
+      :scenario="scenarioDetails"
+      @close="closeScenarioModal"
+    />
     <RulebookModal :isOpen="isRulebookModalOpen" @close="closeRulebookModal" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useStore } from 'vuex';
-import RoomHeader from './components/waiting/RoomHeader.vue';
-import UserCard from './components/waiting/UserCard.vue';
-import Chat from './components/waiting/Chat.vue';
-import Map from './components/waiting/Map.vue';
-import Calendar from './components/Calendar.vue';
-import RulebookModal from './components/Modal/RulebookModal.vue';
-import ScenarioModal from './components/Modal/ScenarioModal.vue';
-import Userinfo from './components/Modal/UserInfo.vue';
-import { getRoomInfo, getMapList } from '@/common/api/RoomsAPI';  // API 함수들
-import defaultImage from '@/assets/images/users/default.png';
+import { ref, computed, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useStore } from "vuex";
+import RoomHeader from "./components/waiting/RoomHeader.vue";
+import UserCard from "./components/waiting/UserCard.vue";
+import Chat from "./components/waiting/Chat.vue";
+import Map from "./components/waiting/Map.vue";
+import Calendar from "./components/Calendar.vue";
+import RulebookModal from "./components/Modal/RulebookModal.vue";
+import ScenarioModal from "./components/Modal/ScenarioModal.vue";
+import Userinfo from "./components/Modal/UserInfo.vue";
+import { getRoomInfo, getMapList } from "@/common/api/RoomsAPI";
+import defaultImage from "@/assets/images/users/default.png";
+import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 가져오기 API
 
 const store = useStore();
 
 const roomDetails = ref({
-  title: '',
+  title: "",
   currentPlayers: 0,
   totalPlayers: 0,
-  status: '',
+  status: "",
 });
 
 const users = ref([]);
 const gm = ref({
-  name: '',
-  profileImage: '',
+  name: "",
+  profileImage: "",
 });
 
-const isGM = ref(true); // 현재 접속한 사용자가 GM인지 여부 설정
-const nextSchedule = ref('');
-const gameRule = ref('');
-const scenario = ref('');
+const isGM = ref(true); 
+const nextSchedule = ref("");
+const gameRule = ref("");
+const scenario = ref("");
 const scenarioDetails = ref({});
 const showScenarioDetails = ref(false);
 const roomId = ref(null);
 
-const mapList = ref([]);  // MapList를 저장할 상태 변수
+const mapList = ref([]); 
 
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
@@ -102,11 +142,27 @@ const selectedUser = ref(null);
 const router = useRouter();
 const route = useRoute();
 
+const nickName = ref("");
+
+onMounted(() => {
+  getMemberInfo()
+    .then((response) => {
+      nickName.value = response.data.data.nickName;
+    })
+    .catch((error) => {
+      console.error("Failed to fetch member info:", error);
+    });
+
+  roomId.value = route.params.roomId;
+  fetchRoomDetails();
+  fetchMapList(); 
+});
+
 const fetchRoomDetails = async () => {
   try {
     const roomId = route.params.roomId;
     const roomInfo = await getRoomInfo(roomId);
-    
+
     roomDetails.value.title = roomInfo.title;
     roomDetails.value.currentPlayers = roomInfo.currentCount;
     roomDetails.value.totalPlayers = roomInfo.maxCount;
@@ -116,20 +172,18 @@ const fetchRoomDetails = async () => {
     scenario.value = roomInfo.scenarioTitle;
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
+    scenarioImagePath.value = roomInfo.scenarioImageURL; 
 
-    // 현재 사용자가 GM인지 확인하여 설정
-    // isGM.value = roomInfo.isCurrentUserGM; // API에서 isCurrentUserGM 값을 반환한다고 가정
-
-    users.value = roomInfo.playMemberList.map(member => ({
+    users.value = roomInfo.playMemberList.map((member) => ({
       id: member.playMemberID,
       memberId: member.memberID,
       name: member.playMemberNickname,
       profileImage: member.playMemberImageURL || defaultImage,
     }));
-    
-    console.log('users', users.value);
+
+    console.log("users", users.value);
   } catch (error) {
-    console.error('Error fetching room details:', error);
+    console.error("Error fetching room details:", error);
   }
 };
 
@@ -139,19 +193,12 @@ const fetchMapList = async () => {
     if (fetchedMaps.mapList && Array.isArray(fetchedMaps.mapList)) {
       mapList.value = fetchedMaps.mapList;
     } else {
-      console.log('No maps found or fetchedMaps.mapList is not an array.');
+      console.log("No maps found or fetchedMaps.mapList is not an array.");
     }
   } catch (error) {
-    console.error('Error fetching map list:', error);
+    console.error("Error fetching map list:", error);
   }
 };
-
-// 컴포넌트가 마운트될 때 데이터 로드
-onMounted(() => {
-  roomId.value = route.params.roomId;
-  fetchRoomDetails();
-  fetchMapList();  // MapList 로드
-});
 
 const selectDate = (date) => {
   nextSchedule.value = date;
@@ -167,7 +214,6 @@ const closeRulebookModal = () => {
 
 const openScenarioModal = () => {
   fetchScenarioDetails();
-  // isScenarioModalOpen.value = true;
 };
 
 const closeScenarioModal = () => {
@@ -175,24 +221,23 @@ const closeScenarioModal = () => {
 };
 
 const startGame = () => {
-  // 게임 캐릭터 시트 페이지로 이동
-  router.push({ name: 'CharacterSheet', params: { roomId: route.params.roomId } });
+  router.push({
+    name: "CharacterSheet",
+    params: { roomId: route.params.roomId },
+  });
 };
 
 const fetchScenarioDetails = async () => {
   try {
-    // 시나리오 정보를 백엔드에서 가져오는 부분
     scenarioDetails.value = {
-      title: '왕자와 죽음의 개',
-      writer_id: 'writer123',
-      summary: '이 시나리오는...',
-      description: '상세 설명 내용...'
+      title: "왕자와 죽음의 개",
+      writer_id: "writer123",
+      summary: "이 시나리오는...",
+      description: "상세 설명 내용...",
     };
-    
-    // 모달을 열기
     isScenarioModalOpen.value = true;
   } catch (error) {
-    console.error('Error fetching scenario details:', error);
+    console.error("Error fetching scenario details:", error);
   }
 };
 
@@ -205,149 +250,179 @@ const toggleScenarioDetails = () => {
 // 사용자 카드가 8개 되도록 빈 사용자 카드 추가
 const allUsers = computed(() => {
   const placeholders = 8 - users.value.length;
-  const placeholderCards = Array.from({ length: placeholders }, (_, index) => ({ id: `placeholder-${index + 1}`, name: '', profileImage: '' }));
+  const placeholderCards = Array.from({ length: placeholders }, (_, index) => ({
+    id: `placeholder-${index + 1}`,
+    name: "",
+    profileImage: "",
+  }));
   return [...users.value, ...placeholderCards];
 });
 
 // 배경 이미지 경로 설정
-const backgroundImagePath = require('@/assets/images/room/main_background.png');
-const profileBoxImagePath = require('@/assets/images/room/profile_box.png');
-const nameBoxImagePath = require('@/assets/images/room/name_box.png');
-const avatarFrameImagePath = require('@/assets/images/room/avatar_frame.png');
-const startButtonImagePath = require('@/assets/images/room/start_button.png');
-const infoIconPath = require('@/assets/images/room/info.png');
-const ruleBoxImagePath = require('@/assets/images/room/rule_box.png');
-const ruleBox1ImagePath = require('@/assets/images/room/rule_box1.png');
-const scenario_boxPath = require('@/assets/images/room/scenario_box.png');
-const vectorImagePath = require('@/assets/images/room/Vector.png');
-const scenarioImagePath = require('@/assets/images/room/scenario_main.png');
-const calendarBoxImagePath = require('@/assets/images/room/calendar_box.png');
+const backgroundImagePath = require("@/assets/images/room/main_background.png");
+const profileBoxImagePath = require("@/assets/images/room/profile_box.png");
+const nameBoxImagePath = require("@/assets/images/room/name_box.png");
+const avatarFrameImagePath = require("@/assets/images/room/avatar_frame.png");
+const startButtonImagePath = require("@/assets/images/room/start_button.png");
+const infoIconPath = require("@/assets/images/room/info.png");
+const ruleBoxImagePath = require("@/assets/images/room/rule_box.png");
+const ruleBox1ImagePath = require("@/assets/images/room/rule_box1.png");
+const scenario_boxPath = require("@/assets/images/room/scenario_box.png");
+const vectorImagePath = require("@/assets/images/room/Vector.png");
+const scenarioImagePath = ref("");
+const calendarBoxImagePath = require("@/assets/images/room/calendar_box.png");
 
 // 배경 이미지 스타일 설정
 const waitingContainerStyle = computed(() => ({
   backgroundImage: `url(${backgroundImagePath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  height: '100vh',
-  width: '100vw',
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  height: "100vh",
+  width: "100vw",
 }));
 
 // GM Card 스타일 설정
 const gmCardStyle = computed(() => ({
   backgroundImage: `url(${profileBoxImagePath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  borderRadius: '10px',
-  height: '80%',
-  padding: '5%',
-  width: '90%',
-  overflow: 'hidden',
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "space-between",
+  borderRadius: "10px",
+  height: "80%",
+  padding: "5%",
+  width: "90%",
+  overflow: "hidden",
 }));
 
 const gmNameStyle = computed(() => ({
-  backgroundImage: `url(${nameBoxImagePath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  padding: '0% 0%',
-  borderRadius: '5px',
-  color: '#ffffff',
-  border: '1px solid #5a4d41',
-  marginTop: '8%',
-  width: '110%',
-  textAlign: 'center',
-  display: 'inline-block',
-  height: '15%',
-  lineHeight: '1.5',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  // backgroundImage: `url(${nameBoxImagePath})`,
+  backgroundSize: "cover",
+  backgroundColor: '#251C15',
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  alignItems: "center",
+  padding: "0% 0%",
+  borderRadius: "5px",
+  color: "#ffffff",
+  border: "1px solid #5a4d41",
+  marginTop: "8%",
+  width: "110%",
+  textAlign: "center",
+  display: "inline-block",
+  height: "15%",
+  lineHeight: "1.5",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 }));
 
+const truncatedGMName = computed(() => {
+  return gm.value.name.length > 10 ? gm.value.name.slice(0, 10) + '...' : gm.value.name;
+});
+
 const profileImageContainerStyle = {
-  position: 'relative',
-  width: '110%', /* 고정된 크기 */
-  height: '80%', /* 고정된 크기 */
-  overflow: 'hidden', /* 이미지가 넘치지 않도록 설정 */
-  borderRadius: '50%', /* 컨테이너를 원형으로 설정 */
-  backgroundColor: '#291707', /* 배경색을 카드 배경색과 일치시키기 */
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  position: "relative",
+  width: "110%",
+  height: "80%",
+  overflow: "hidden",
+  borderRadius: "50%",
+  backgroundColor: "#291707",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 
 const topSectionStyle = {
-  display: 'flex',
-  height: '55%',
+  display: "flex",
+  height: "50%",
 };
 
 const startGameButtonStyle = {
   backgroundImage: `url(${startButtonImagePath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  width: '100%',
-  padding: '4%',
-  color: 'white',
-  borderRadius: '5px',
-  cursor: 'pointer',
-  marginTop: '8%',
-  border: 'none',
-  textAlign: 'center',
-  marginLeft: '6%',  // 버튼을 오른쪽으로 이동시키기 위해 추가
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  width: "100%",
+  padding: "4%",
+  color: "white",
+  borderRadius: "5px",
+  cursor: "pointer",
+  marginTop: "8%",
+  border: "none",
+  textAlign: "center",
+  marginLeft: "6%",
 };
 
 const disabledButtonStyle = {
-  cursor: 'not-allowed',
-  opacity: '0.5',
+  cursor: "not-allowed",
+  opacity: "0.5",
 };
 
 const vectorImage = computed(() => ({
   backgroundImage: `url(${vectorImagePath})`,
-  width: '40%',
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
+  width: "40%",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  fontFamily: "'Abhaya Libre ExtraBold', sans-serif",
+  fontStyle: "normal",
+  fontWeight: 800,
+  paddingLeft: "20px",
+  fontSize: "15px",
 }));
 
 const gameInfoStyle = computed(() => ({
-  backgroundImage: `url(${ruleBox1ImagePath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  height: '100%',
+  // backgroundImage: `url(${ruleBox1ImagePath})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  height: "100%",
+  border: "1px solid #4A3A2E",
 }));
 
 const scenarioInfoStyle = computed(() => ({
-  backgroundImage: `url(${scenario_boxPath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  height: '100%',
+  // backgroundImage: `url(${scenario_boxPath})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  height: "100%",
+  border: "1px solid #4A3A2E",
 }));
 
 const gameRuleContainerStyle = {
   backgroundImage: `url(${ruleBoxImagePath})`,
-  backgroundSize: 'contain',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  height: '100%',
+  backgroundSize: "contain",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "center",
+  borderRadius: "10px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  width: "80%",
+  height: "80%",
+  fontFamily: "'Abhaya Libre ExtraBold', sans-serif",
+  fontStyle: "normal",
+  fontWeight: 800,
+  fontSize: "23px",
+  lineHeight: "100%",
+  color: "rgb(214, 205, 170)",
+  background: "rgba(101, 78, 53, 0.49)",
+  boxShadow: "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
+  cursor: "pointer",
 };
 
 const calendarContainerStyle = {
-  backgroundImage: `url(${calendarBoxImagePath})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: '23px',
-  borderRadius: '10px',
-  width: '48%',
-  height: '100%',
+  // backgroundImage: `url(${calendarBoxImagePath})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  padding: "23px",
+  borderRadius: "10px",
+  width: "48%",
+  height: "100%",
+  border: "1px solid #4A3A2E",
 };
 </script>
 
@@ -357,6 +432,7 @@ const calendarContainerStyle = {
   flex-direction: column;
   height: 100vh;
   box-sizing: border-box;
+  min-height: 768px;
 }
 
 .content {
@@ -393,7 +469,7 @@ const calendarContainerStyle = {
   flex-direction: column;
   padding-top: 15px;
   box-sizing: border-box;
-  overflow: hidden; /* overflow hidden 추가 */
+  overflow: hidden;
 }
 
 .top-section {
@@ -419,6 +495,7 @@ const calendarContainerStyle = {
   height: 70%;
   width: 100%;
   justify-content: center;
+  border: 1px solid #5a4d41;
 }
 
 .gm-profile {
@@ -433,9 +510,10 @@ const calendarContainerStyle = {
 .profile-image {
   width: 90%;
   height: 90%;
-  object-fit: cover; /* 이미지가 컨테이너를 왜곡 없이 덮도록 설정 */
+  object-fit: cover;
   border-radius: 50%;
   cursor: pointer;
+  border: 1px solid #5a4d41;
 }
 
 .avatar-frame {
@@ -449,8 +527,8 @@ const calendarContainerStyle = {
 }
 
 .info-icon {
-  width: 1.04vw; /* 20px을 뷰포트 너비의 1.04%로 설정 */
-  height: 1.04vw; /* 동일한 비율로 설정하여 정사각형 유지 */
+  width: 1.04vw;
+  height: 1.04vw;
   cursor: pointer;
   position: absolute;
   top: 12%;
@@ -487,33 +565,51 @@ const calendarContainerStyle = {
   border-radius: 10px;
   margin-bottom: 5px;
   height: 50%;
-  background-size: cover; /* 이미지가 컨테이너를 덮도록 설정 */
-  background-position: center; /* 이미지가 컨테이너 중심에 위치하도록 설정 */
+  background-size: cover;
+  background-position: center;
 }
 
 .scenario-content {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .scenario-image {
-  width: 30%;
-  margin-right: -30px;
+  width: 60%;
+  height: auto;
+  margin-right: 10px;
 }
 
 .scenario-text {
-  flex: 1;
-  color: #ffffff;
+  color: rgb(214, 205, 170);
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 13px;
+  padding: 10px;
+  width: 80%; /* 이미지와 같은 너비로 설정 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  white-space: normal; /* 여러 줄 허용 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  font-weight: 800;
+  -webkit-line-clamp: 2; /* 최대 2줄까지 표시 */
+  -webkit-box-orient: vertical;
 }
 
 .game-info .title {
+  border-radius: 10px;
+  color: rgb(214, 205, 170);
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  color: #ffffff;
-  font-size: 1.2em;
-  /* cursor: pointer; 제목을 클릭할 수 있게 변경 */
 }
 
 .info-icon-large {
@@ -525,14 +621,38 @@ const calendarContainerStyle = {
 
 .game-info .content {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  border-radius: 5px;
-  color: #ffffff;
-  border: 1px solid #5a4d41;
+  padding: 10px;
+  height: 100%;
+}
+
+.game-rule-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 80%;
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.game-rule-text {
+  color: rgb(214, 205, 170);
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 120%;
   text-align: center;
-  font-size: 1.0em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 최대 2줄까지 표시 */
+  -webkit-box-orient: vertical;
 }
 
 .calendar {
@@ -540,7 +660,7 @@ const calendarContainerStyle = {
   justify-content: center;
   align-items: center;
   padding: 23px;
-  /* background-color: #291707; */
+  background-color: #251C15;
   border-radius: 10px;
   width: 48%;
   height: 78%;
@@ -563,11 +683,11 @@ const calendarContainerStyle = {
 }
 
 .cursor {
-  cursor: pointer; /* 제목을 클릭할 수 있게 변경 */
+  cursor: pointer;
 }
 
 .disabled {
-  cursor: not-allowed; /* 비활성화된 상태일 때의 커서 스타일 */
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
@@ -584,6 +704,7 @@ const calendarContainerStyle = {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(4, 1fr);
     height: auto;
+    border: 1px solid #4A3A2E;
   }
 
   .chat-section {
@@ -604,5 +725,48 @@ const calendarContainerStyle = {
     width: 100%;
     margin-bottom: 10px;
   }
+}
+
+.game-rule-container {
+  cursor: pointer;
+}
+
+.game-rule-container:hover {
+  /* transform: scale(1.05); */
+  /* box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1); */
+}
+
+.scenario-content {
+  cursor: default;  /* 기본 커서로 변경 */
+}
+
+/* .game-rule-text, .scenario-text {
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+.scenario-text:hover {
+  /* background-color: rgba(255, 255, 255, 0.1); */
+  cursor: pointer;
+}
+
+.scenario-text {
+  transform: scale(1);  /* 초기 스케일 설정 */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* .scenario-text:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+} */
+
+.scenario-image {
+  pointer-events: none;
 }
 </style>

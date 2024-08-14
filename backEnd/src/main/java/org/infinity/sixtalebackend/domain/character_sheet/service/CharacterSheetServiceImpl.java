@@ -54,6 +54,89 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      */
     @Override
     @Transactional
+    public void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID) throws IOException {
+        PlayMember playMember = playMemberRepository.findByMemberIdAndRoomId(memberID, roomID)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
+
+        Job job = jobRepository.findById(characterSheetRequest.getJobId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Job ID"));
+
+        Belief belief = beliefRepository.findById(characterSheetRequest.getBeliefId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Belief ID"));
+
+        Race race = raceRepository.findById(characterSheetRequest.getRaceId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
+
+        // 캐릭터 시트 저장
+        CharacterSheet characterSheet = CharacterSheet.builder()
+                .playMember(playMember)
+                .job(job)
+                .belief(belief)
+                .race(race)
+                .name(characterSheetRequest.getName())
+                .appearance(characterSheetRequest.getAppearance())
+                .background(characterSheetRequest.getBackground())
+                .currentWeight(characterSheetRequest.getCurrentWeight())
+                .currentHp(characterSheetRequest.getCurrentHp())
+                .currentMoney(characterSheetRequest.getCurrentMoney())
+                .limitWeight(characterSheetRequest.getLimitWeight())
+                .limitHp(characterSheetRequest.getLimitHp())
+                .glove(characterSheetRequest.getGlove())
+                .inspirationScore(characterSheetRequest.getInspirationScore())
+                .level(characterSheetRequest.getLevel())
+                .exp(characterSheetRequest.getExp())
+                .imageURL(characterSheetRequest.getImageURL())
+                .build();
+        characterSheetRepository.save(characterSheet);
+
+        //캐릭터 스탯 저장
+        List<CharacterStat> characterStats = characterSheetRequest.getStat().stream()
+                .map(statRequest -> CharacterStat.builder()
+                        .playMember(playMember)
+                        .characterSheet(characterSheet)
+                        .stat(statRepository.findById(statRequest.getStatID())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid Stat ID")))
+                        .statValue(statRequest.getStatValue())
+                        .statWeight(statRequest.getStatWeight())
+                        .build())
+                .collect(Collectors.toList());
+        characterStatRepository.saveAll(characterStats);
+
+        log.info("스탯 저장");
+
+        // 캐릭터 액션 저장
+        List<CharacterAction> characterActions = characterSheetRequest.getCharacterAction().stream()
+                .map(actionRequest -> CharacterAction.builder()
+                        .characterSheet(characterSheet)
+                        .playMember(playMember)
+                        .jobAction(jobActionRepository.findById(actionRequest.getActionID())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid Action ID")))
+                        .actionOption(actionRequest.getActionOptionId() != null ?
+                                actionOptionRepository.findById(actionRequest.getActionOptionId()).orElse(null) :
+                                null)
+                        .build())
+                .collect(Collectors.toList());
+        characterActionRepository.saveAll(characterActions);
+        log.info("액션 저장");
+
+        // 캐릭터 장비 저장
+        List<CharacterEquipment> characterEquipments = characterSheetRequest.getCharacterEquipment().stream()
+                .map(equipmentRequest -> CharacterEquipment.builder()
+                        .playMember(playMember)
+                        .characterSheet(characterSheet) // PlayMember 대신 CharacterSheet 사용
+                        .equipment(scenarioEquipmentRepository.findById(equipmentRequest.getEquipmentId())
+                                .orElseThrow(() -> new IllegalArgumentException("Invalid Equipment ID")))
+                        .currentCount(equipmentRequest.getCurrentCount())
+                        .weight(equipmentRequest.getWeight())
+                        .build())
+                .collect(Collectors.toList());
+
+        characterEquipmentRepository.saveAll(characterEquipments);
+        log.info("장비 저장");
+    }
+    /*
+    @Override
+    @Transactional
     public void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID, MultipartFile[] files) throws IOException {
         PlayMember playMember = playMemberRepository.findByMemberIdAndRoomId(memberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
@@ -140,6 +223,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         characterEquipmentRepository.saveAll(characterEquipments);
         log.info("장비 저장");
     }
+     */
 
     /**
      * 캐릭터 시트 수정(플레이 전)
@@ -341,16 +425,30 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         log.info("캐릭터 시트 및 관련 데이터 삭제 완료");
     }
 
+    /**
+     * 골드 수정
+     */
     @Override
     @Transactional
-    public void updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest) {
+    public Map<String, String> updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest) {
         PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMember(playMember)
                 .orElseThrow(() -> new IllegalArgumentException("Character Sheet not found"));
 
-        characterSheet.setCurrentMoney(characterGoldUpdateRequest.getCurrentMoney());
+        int currentGold = characterSheet.getCurrentMoney();
+        int updateGold = characterGoldUpdateRequest.getCurrentMoney();
+        characterSheet.setCurrentMoney(updateGold);
         characterSheetRepository.save(characterSheet);
+
+        // 응답을 위한 map 생성
+        Map<String, String> result = new HashMap<>();
+        result.put("roomID", roomID.toString());
+        result.put("sheetID", characterSheet.getId().toString());
+        result.put("currentGold", String.valueOf(currentGold));
+        result.put("updateGold", String.valueOf(updateGold));
+
+        return result;
     }
 
     /**
@@ -405,5 +503,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 stat.setStatWeight(statRequest.getStatWeight());
             }
         });
+        characterStatRepository.saveAll(characterSheet.getCharacterStats());
+
     }
 }

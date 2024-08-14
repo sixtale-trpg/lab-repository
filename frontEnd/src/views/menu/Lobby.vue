@@ -2,10 +2,23 @@
   <div class="lobby-container">
     <div class="rectangle-box">
       <div class="button-container">
-        <button class="refresh-button" @click="refreshRooms">
-          <img src="@/assets/images/lobby/refresh.png" alt="Refresh" class="refresh-icon" />
-        </button>
-        <button 
+        <div class="action-buttons">
+          <button class="refresh-button" @click="refreshRooms">
+            <img src="@/assets/images/lobby/refresh.png" alt="Refresh" class="refresh-icon" />
+          </button>
+          <button class="create-room-button" @click="openCreateRoomModal">방 만들기</button>
+        </div>
+        <div class="pagination">
+          <button class="pagination-button" @click="prevPage" :disabled="currentPage === 0">
+            <img src="@/assets/images/lobby/Arrow_Left.png" alt="Previous" class="pagination-arrow" />
+          </button>
+          <span>{{ currentPage + 1 }} / {{ totalPages }}</span>
+          <button class="pagination-button" @click="nextPage" :disabled="currentPage === totalPages - 1">
+            <img src="@/assets/images/lobby/Arrow_Right.png" alt="Next" class="pagination-arrow" />
+          </button>
+        </div>
+      </div>
+              <!-- <button 
           class="view-all-rooms-button" 
           @click="showAllRooms" 
           :class="{ active: isAllRooms }"
@@ -20,8 +33,8 @@
           :disabled="!isAllRooms"
         >
           참가중인 방 보기
-        </button>
-      </div>
+        </button> -->
+        <div class="rooms-container-wrapper">
       <div class="rooms-container" v-if="!isLoading && rooms.length > 0">
         <div 
         v-for="room in rooms" 
@@ -67,23 +80,12 @@
         </div>
       </div>
     </div>
+      </div>
   </div>
   <div v-if="isLoading" class="loading-message">방 목록을 불러오는 중...</div>
       <div v-else-if="rooms.length === 0 && !isLoading" class="empty-rooms-message">
         현재 이용 가능한 방이 없습니다.
       </div>
-  <div class="pagination-container">
-    <div class="pagination">
-      <button class="pagination-button" @click="prevPage" :disabled="currentPage === 0">
-        <img src="@/assets/images/lobby/Arrow_Left.png" alt="Previous" class="pagination-arrow" />
-      </button>
-      <span>{{ currentPage + 1 }} / {{ totalPages }}</span>
-      <button class="pagination-button" @click="nextPage" :disabled="currentPage === totalPages - 1">
-        <img src="@/assets/images/lobby/Arrow_Right.png" alt="Next" class="pagination-arrow" />
-      </button>
-    </div>
-    <button class="create-room-button" @click="openCreateRoomModal">방 만들기</button>
-  </div>
     </div>
     <CreateRoomModal v-if="isCreateRoomModalOpen" @close="closeCreateRoomModal" />
   </div>
@@ -102,6 +104,7 @@ import { useRouter } from 'vue-router';
 import { getRoomList, getRoomInfo, enterRoom, getJoinedRooms } from '@/common/api/RoomsAPI';
 import { getMemberInfo } from '@/common/api/mypageAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
+import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
 import PasswordModal from '@/views/menu/components/PasswordModal.vue';
 
 const router = useRouter();
@@ -220,26 +223,56 @@ const getStatusImage = (status) => {
 
 
 const handleEnterRoom = async (room) => {
-  if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
-    alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
-    return;
-  }
-  
-  selectedRoomId.value = room.id;
-  
-  if (room.isLocked) {
-    showPasswordModal.value = true;
-  } else {
-    try {
-      const result = await enterRoomWithCheck(room.id);
-      if (result) {
+  try {
+    // 방 정보 가져오기
+    const roomInfo = await getRoomInfo(room.id);
+    console.log('Room info:', roomInfo);
+
+    // 현재 사용자가 해당 방의 GM인지 확인
+    if (roomInfo.gmNickname === user.value.nickName) {
+      const confirmMessage = '현재 방의 GM으로 참여 중입니다. GM으로 다시 입장하시겠습니까?';
+      if (confirm(confirmMessage)) {
         router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
       }
-    } catch (error) {
-      alert(error.message);
+      return;
     }
+
+    if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
+      alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
+      return;
+    }
+
+    selectedRoomId.value = room.id;
+
+    WebSocketService.connect(room.id,userId.value);
+
+    if (room.isLocked) {
+      showPasswordModal.value = true;
+    } else {
+      const result = await enterRoomWithCheck(room.id);
+      if (result) {
+
+        // enter 메세지 보내기
+        const messageData = {
+          type: "ENTER", // 메시지 유형
+          roomID: room.id, // 가져온 방 정보에서 roomID 사용
+          memberID: userId.value, // 사용자 ID, 실제 값으로 설정
+          content: ""
+        };
+
+        console.log(room.id + " "+userId.value);
+
+        WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+
+        router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
+      }
+    }
+  } catch (error) {
+    console.error('Error entering room:', error);
+    alert('방에 입장할 수 없습니다.');
   }
 };
+
 
 const handlePasswordSubmit = async ({ roomId, password }) => {
   try {
@@ -315,7 +348,7 @@ const fetchRooms = async () => {
   isLoading.value = true;
   
   try {
-    let response = await getRoomList('', 0, 1000, ''); // 모든 방을 가져옵니다.
+    let response = await getRoomList('', 0, 1000, '');
     
     if (response && response.data) {
       let allRooms = Array.isArray(response.data) ? response.data : 
@@ -329,14 +362,8 @@ const fetchRooms = async () => {
         allRooms = allRooms.filter(room => joinedRoomIds.value.includes(room.id));
       }
 
-      // 방 정렬: WAITING, PLAYING, UPCOMING 순서로, 각 상태 내에서는 ID 순서로
-      const statusOrder = { 'WAITING': 0, 'PLAYING': 1, 'UPCOMING': 2 };
-      allRooms.sort((a, b) => {
-        if (statusOrder[a.status] !== statusOrder[b.status]) {
-          return statusOrder[a.status] - statusOrder[b.status];
-        }
-        return a.id - b.id;
-      });
+      // 방 정렬: 생성 날짜 최신순으로 정렬
+      allRooms.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       // 페이지네이션 계산
       totalElements.value = allRooms.length;
@@ -433,38 +460,59 @@ onMounted(async () => {
   await fetchUserInfo();
   await fetchRooms();
   showAllRooms();
+  // getMemberInfo()
+  //       .then((response) => {
+  //         memberID.value = response.data.data.id;
+  //         console.log(memberID.value);
+  //       })
+  //       .catch((error) => {
+  //         console.error("Failed to fetch member info:", error);
+  //       });
 });
 </script>
 
 <style scoped>
 .lobby-container {
-  padding: 40px;  /* 상하좌우 여백 추가 */
+  padding: 100px 40px 40px;  /* 상단 여백 증가 */
   background: url('~@/assets/images/lobby/Background.png');
-  background-size: cover;  /* 배경 이미지가 컨테이너를 덮도록 설정 */
-  background-position: center;  /* 배경 이미지 중앙 정렬 */
+  background-size: cover;
+  background-position: center;
   color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
+  min-height: 100vh;
 }
 
 .rectangle-box {
-  width: 100%;  /* 너비를 100%로 설정 */
-  max-width: 1471px;  /* 최대 너비 설정 */
-  height: auto;  /* 높이를 자동으로 조정 */
-  min-height: 900px;  /* 최소 높이 설정 */
+  width: 100%;
+  max-width: 1471px;
+  min-height: 900px;
   background: rgba(91, 78, 71, 0.15);
   box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 39px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;  /* 내부 여백 추가 */
+  padding: 20px;
   z-index: 1;
-  
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 50px;
+  margin-bottom: 20px;
+}
+
+.rooms-container-wrapper {
+  position: relative;
+  flex-grow: 1;
+  min-height: 600px;
+  padding: 0 20px;  /* 좌우 패딩 추가 */
 }
 
 .rooms-container {
@@ -473,7 +521,6 @@ onMounted(async () => {
   gap: 20px;
   width: 100%;
   justify-content: center;
-  margin-top: 10px; /* 상단 여백 */
   overflow: visible;
   z-index: 1;
 }
@@ -543,23 +590,19 @@ onMounted(async () => {
 }
 
 .room-number-box {
-  background: #554B45;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-  width: 91px;
-  height: 35px;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%; 
 }
 
 .room-number {
-  font-family: 'Abhaya Libre ExtraBold';
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
   font-style: normal;
   font-weight: 800;
   font-size: 28px;
   line-height: 100%;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgb(214, 205, 170);
 }
 
 .room-title-box {
@@ -705,24 +748,51 @@ onMounted(async () => {
   position: relative;
 } */
 
-.pagination {
+.action-buttons {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 10px;
 }
 
-/* .pagination {
+.pagination {
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination span {
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 100%;
+  color: rgb(214, 205, 170);
+}
+
+.pagination-button, .refresh-button, .create-room-button {
+  height: 50px;
+  background: rgba(101, 78, 53, 0.49);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: rgb(214, 205, 170);
+  border: none;
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-} */
+}
 
-.create-room-button {
+.pagination-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
+}
+/* .create-room-button {
   width: 200px;
   height: 50px;
   position: absolute;
-  right: 10%; /* 오른쪽 끝에 배치 */
+  right: 10%;
   background-color: rgba(101, 78, 53, 0.49);
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
@@ -731,9 +801,23 @@ onMounted(async () => {
   border: none;
   border-radius: 10px;
   cursor: pointer;
+} */
+
+.create-room-button {
+  width: 120px;
+  padding: 0 15px;
+  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-style: normal;
+  font-weight: 800;
 }
 
-.pagination-button {
+.create-room-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
+}
+
+/* .pagination-button {
   width: 126px;
   height: 50px;
   background: rgba(101, 78, 53, 0.49);
@@ -744,6 +828,10 @@ onMounted(async () => {
   align-items: center;
   cursor: pointer;
   border: none;
+} */
+
+.pagination-button {
+  width: 50px;
 }
 
 .pagination-button:disabled {
@@ -751,23 +839,23 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 
-.pagination-arrow {
-  width: auto; /* 가로 비율 자동 조정 */
-  height: auto; /* 세로 비율 자동 조정 */
-  max-width: 30px; /* 최대 너비 설정 */
-  max-height: 19px; /* 최대 높이 설정 */
-}
+/* .pagination-arrow {
+  width: auto; 
+  height: auto; 
+  max-width: 30px; 
+  max-height: 19px; 
+} */
 
-.button-container {
+/* .button-container {
   display: flex;
-  justify-content: center; /* 가운데 정렬 */
+  justify-content: space-between;
   align-items: center;
-  gap: 20px; /* 버튼 사이의 간격 설정 */
-  margin-top: 20px; /* 상단 여백 추가 */
-  margin-bottom: 20px; /* 하단 여백 추가 */
-  position: relative; /* z-index 적용을 위한 설정 */
-  z-index: 1; /* 높은 z-index 설정 */
-}
+  width: 100%;
+  padding: 0 20px;
+  margin-bottom: 20px;
+} */
+
+
 
 .view-all-rooms-button,
 .view-joined-rooms-button {
@@ -783,6 +871,19 @@ onMounted(async () => {
   align-items: center;
 }
 
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+
 .loading-message,
 .empty-rooms-message {
   width: 100%;
@@ -790,6 +891,10 @@ onMounted(async () => {
   padding: 20px;
   font-size: 1.2em;
   color: rgba(255, 255, 255, 0.7);
+  position: absolute;  /* 추가 */
+  top: 50%;  /* 추가 */
+  left: 50%;  /* 추가 */
+  transform: translate(-50%, -50%);  /* 추가 */
 }
 
 .view-all-rooms-button.active,
@@ -806,7 +911,7 @@ onMounted(async () => {
   box-shadow: none; /* 그림자 효과 제거 */
 }
 
-.refresh-button {
+/* .refresh-button {
   background: rgba(101, 78, 53, 0.49);
   box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
@@ -817,7 +922,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20px; /* 전체 방 보기 버튼과의 간격 조정 */
+  margin-right: 20px;
+} */
+.empty-rooms-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.refresh-button {
+  width: 50px;
+  padding: 0;
 }
 
 .refresh-button:active {
@@ -826,8 +942,54 @@ onMounted(async () => {
   transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
 }
 
-.refresh-icon {
-  width: 20px; /* 새로고침 아이콘의 크기 */
+/* .refresh-icon {
+  width: 20px; 
   height: 20px;
+} */
+
+.pagination-arrow, .refresh-icon {
+  width: auto;
+  height: auto;
+  max-width: 20px;
+  max-height: 20px;
+}
+
+@media (max-width: 1200px) {
+  .room-card {
+    width: calc(100% - 40px);  /* 한 줄에 하나의 카드만 표시 */
+  }
+}
+
+@media (max-width: 768px) {
+  .lobby-container {
+    padding: 80px 20px 20px;
+  }
+
+  .button-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .rooms-container-wrapper {
+    padding: 0 10px;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.rectangle-box {
+  min-height: calc(100vh - 120px);
 }
 </style>

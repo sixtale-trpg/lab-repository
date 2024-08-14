@@ -4,11 +4,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.service.AuthServiceImpl;
 import org.infinity.sixtalebackend.domain.member.service.MemberSerivceImpl;
 import org.infinity.sixtalebackend.domain.member.util.JWTUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.infinity.sixtalebackend.global.common.authentication.AuthenticationUtil;
@@ -25,13 +27,15 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/members")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthServiceImpl authService;
     private final JWTUtil jwtUtil;
     private final MemberSerivceImpl memberSerivceImpl;
 
+    @Value("${redirect.url}")
+    private String redirectUrl;
     /**
      * 로그인
      */
@@ -51,7 +55,7 @@ public class AuthController {
             cookie.setMaxAge(86400); // 1일
 
             response.addCookie(cookie);
-            response.sendRedirect("http://localhost:8083");
+            response.sendRedirect(redirectUrl);
 
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.LOGIN_SUCCESS, accessToken), HttpStatus.OK);
         } catch(Exception e){

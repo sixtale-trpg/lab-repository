@@ -16,7 +16,7 @@ import java.util.Map;
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GameMessageDto {
-    @JsonProperty("type")
+    @JsonProperty("gameType")
     private GameType gameType; // 메시지 유형 (예: GAME_START, MAP_CHANGE 등)
 
     @JsonProperty("createdAt")
@@ -25,8 +25,8 @@ public class GameMessageDto {
     @JsonProperty("roomID")
     private Long roomID; // 게임 방 ID
 
-    @JsonProperty("sheetID")
-    private Long sheetID; // 시트 ID (플레이어 또는 NPC 시트)
+    @JsonProperty("playMemberID")
+    private Long playMemberID; // 플레이 멤버 ID (플레이어 또는 NPC 시트)
 
     @JsonProperty("currentMapID")
     private Long currentMapID; // 현재 맵 ID (맵 변경 시 사용)
@@ -64,6 +64,9 @@ public class GameMessageDto {
     @JsonProperty("events")
     private List<GameEvent> events; // 게임 이벤트 (여러 이벤트를 처리할 수 있음)
 
+    @JsonProperty("tokens")
+    private List<TokenMove> tokens; // 토큰 이동 (좌표 이동 시 사용)
+
     @JsonProperty("content")
     private String content; // 추가적인 설명 또는 메시지 내용
 
@@ -83,14 +86,32 @@ public class GameMessageDto {
     @Builder
     public static class GameEvent {
         @JsonProperty("npcEventID")
-        private Long npcEventID; // NPC 이벤트 ID
+        private Long npcEventID; // NPC 이벤트 ID (HP 변경 시 사용)
+
         @JsonProperty("currentHP")
         private Integer currentHP; // 현재 HP (이벤트 HP 변경 시 사용)
+
         @JsonProperty("updateHP")
         private Integer updateHP; // 업데이트된 HP (이벤트 HP 변경 시 사용)
+
         @JsonProperty("currentPosition")
         private Map<String, Integer> currentPosition; // 현재 위치 (좌표 이동 시 사용)
+
         @JsonProperty("updatePosition")
         private Map<String, Integer> updatePosition; // 업데이트된 위치 (좌표 이동 시 사용)
+    }
+
+    @Getter
+    @Data
+    @Builder
+    public static class TokenMove {
+        @JsonProperty("playMemberID")
+        private Long playMemberID; // 플레이 멤버 ID (토큰 이동 시 사용)
+
+        @JsonProperty("currentPosition")
+        private Map<String, Integer> currentPosition;
+
+        @JsonProperty("updatePosition")
+        private Map<String, Integer> updatePosition;
     }
 }

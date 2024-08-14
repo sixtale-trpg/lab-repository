@@ -23,12 +23,12 @@
         </button>
       </div>
       <div class="rooms-container" v-if="!isLoading && rooms.length > 0">
-      <div 
-      v-for="room in rooms" 
-      :key="room.id" 
-      class="room-card" 
-      :class="{ 'disabled': room.status === 'PLAYING' || room.currentCount === room.maxCount }"
-      @click="enterRoom(room)"
+        <div 
+        v-for="room in rooms" 
+        :key="room.id" 
+        class="room-card" 
+        :class="{ 'disabled': room.status === 'PLAYING' || room.currentCount === room.maxCount }"
+        @click="handleEnterRoom(room)"
       >
     <div class="room-image">
         <img :src="room.scenarioImageURL" alt="Room Image" />
@@ -87,15 +87,23 @@
     </div>
     <CreateRoomModal v-if="isCreateRoomModalOpen" @close="closeCreateRoomModal" />
   </div>
+  <PasswordModal 
+    v-if="showPasswordModal"
+    :show="showPasswordModal"
+    :roomId="selectedRoomId"
+    @close="closePasswordModal"
+    @submit="handlePasswordSubmit"
+  />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getRoomList } from '@/common/api/RoomsAPI';
+import { getRoomList, getRoomInfo, enterRoom, getJoinedRooms } from '@/common/api/RoomsAPI';
+import { getMemberInfo } from '@/common/api/mypageAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
 import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
-import { getMemberInfo } from "@/common/api/mypageAPI";
+import PasswordModal from '@/views/menu/components/PasswordModal.vue';
 
 const router = useRouter();
 
@@ -110,7 +118,52 @@ const currentPage = ref(0);
 const roomsPerPage = 6;
 const totalElements = ref(0);
 const totalPages = ref(0);
-const memberID = ref(0);
+
+const user = ref({});
+const userId = ref(null);
+const showPasswordModal = ref(false);
+const selectedRoomId = ref(null);
+
+const joinedRoomIds = ref([]);
+
+const filterJoinedRooms = async () => {
+  if (!userId.value) {
+    console.error('User ID is not available');
+    alert('사용자 정보를 가져올 수 없습니다. 다시 로그인해 주세요.');
+    return;
+  }
+
+  isAllRooms.value = false; // 참가중인 방 보기 모드로 전환
+  currentPage.value = 0;
+
+  try {
+    // 사용자 ID로 참가 중인 방 목록 가져오기
+    const joinedRoomsResponse = await getJoinedRooms(userId.value);
+    joinedRoomIds.value = joinedRoomsResponse.data.map(room => room.id);
+    console.log('Joined Room IDs:', joinedRoomIds.value);
+    
+    // 방 목록 갱신
+    await fetchRooms();
+  } catch (error) {
+    console.error('Error fetching joined rooms:', error);
+    alert('참가중인 방 목록을 가져오는데 실패했습니다.');
+  }
+};
+
+const fetchUserInfo = async () => {
+  try {
+    const response = await getMemberInfo();
+    if (response.data && response.data.data) {
+      userId.value = response.data.data.id;
+      user.value = response.data.data; // user 객체도 설정
+      console.log('User ID:', userId.value);
+    } else {
+      console.error('User data not found in the response');
+    }
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+  }
+};
 
 const refreshRooms = () => {
   rooms.value = []; // 방 목록을 비우기
@@ -121,14 +174,20 @@ const refreshRooms = () => {
 const nextPage = () => {
   if (currentPage.value < totalPages.value - 1) {
     currentPage.value++;
+    console.log('Next page:', currentPage.value);
     fetchRooms();
+  } else {
+    console.log('Already on the last page');
   }
 };
 
 const prevPage = () => {
   if (currentPage.value > 0) {
     currentPage.value--;
+    console.log('Previous page:', currentPage.value);
     fetchRooms();
+  } else {
+    console.log('Already on the first page');
   }
 };
 
@@ -142,13 +201,9 @@ const closeCreateRoomModal = () => {
 
 const showAllRooms = () => {
   isAllRooms.value = true;
+  console.log('Showing all rooms, isAllRooms:', isAllRooms.value);
   currentPage.value = 0;
   fetchRooms();
-};
-
-const filterJoinedRooms = () => {
-  isAllRooms.value = false;
-  // 참가중인 방 필터링 로직 구현 필요
 };
 
 const getStatusImage = (status) => {
@@ -164,57 +219,147 @@ const getStatusImage = (status) => {
   }
 };
 
-const enterRoom = (room) => {
+
+const handleEnterRoom = async (room) => {
   if (room.status === 'PLAYING' || room.currentCount === room.maxCount) {
-    alert('이미 게임이 시작된 방입니다.');
+    alert('이미 게임이 시작되었거나 방이 가득 찼습니다.');
     return;
   }
+
+  selectedRoomId.value = room.id;
+  
   // 게임방에 들어갈때 웹소켓 연결 -> enter 메세지 보내기
-  WebSocketService.connect();
+  WebSocketService.connect(room.id,userId.value);
+  
+  if (room.isLocked) {
+    showPasswordModal.value = true;
+  } else {
+    try {
+      const result = await enterRoomWithCheck(room.id);
+      if (result) {
 
-  // enter 메세지 보내기
-  const messageData = {
-    type: "ENTER", // 메시지 유형
-    roomID: room.id, // 가져온 방 정보에서 roomID 사용
-    memberID: memberID.value, // 사용자 ID, 실제 값으로 설정
-  };
+        // enter 메세지 보내기
+        const messageData = {
+          type: "ENTER", // 메시지 유형
+          roomID: room.id, // 가져온 방 정보에서 roomID 사용
+          memberID: userId.value, // 사용자 ID, 실제 값으로 설정
+          content: ""
+        };
 
-  WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+        console.log(room.id + " "+userId.value);
 
-  router.push({ name: 'Waiting', params: { roomId: room.id } });
+        WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+
+        router.push({ name: 'Waiting', params: { roomId: room.id.toString() } });
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  }
 };
 
-const fetchRooms = async (filterJoined = false, userId = null) => {
-  isLoading.value = true;
+const handlePasswordSubmit = async ({ roomId, password }) => {
   try {
-    // 서버에서 모든 방을 가져옵니다.
-    const response = await getRoomList('', 0, 1000, ''); // 큰 size 값을 사용하여 모든 방을 가져옵니다.
-    console.log('Full API Response:', response);
+    const result = await enterRoom(roomId, password);
+    if (result.statusCode === 201) {
+      // 성공적으로 입장
+      router.push({ name: 'Waiting', params: { roomId: roomId.toString() } });
+    } else {
+      alert(result.responseMessage || '방 입장에 실패했습니다.');
+    }
+  } catch (error) {
+    console.error('Failed to enter room:', error);
+    let errorMessage = '방 입장에 실패했습니다.';
+    if (error.response && error.response.data && error.response.data.responseMessage) {
+      errorMessage = error.response.data.responseMessage;
+    }
+    alert(errorMessage);
+  }
+};
 
-    if (response.statusCode === 200 && response.data && Array.isArray(response.data.content)) {
-      let allRooms = response.data.content;
-      console.log('Total rooms:', allRooms.length);
+// const handlePasswordSubmit = async ({ roomId, password }) => {
+//   try {
+//     console.log('Submitting password for room:', roomId);
+//     const result = await enterRoomWithCheck(roomId, password);
+//     if (result) {
+//       closePasswordModal();
+//       router.push({ name: 'Waiting', params: { roomId: roomId.toString() } });
+//     }
+//   } catch (error) {
+//     console.error('Failed to enter room:', error);
+//     alert(error.message || '방 입장에 실패했습니다. 비밀번호를 확인해 주세요.');
+//   }
+// };
+
+const enterRoomWithCheck = async (roomId, password = null) => {
+  try {
+    const roomInfo = await getRoomInfo(roomId);
+    console.log('Room info:', roomInfo);
+
+    if (roomInfo.currentCount >= roomInfo.maxCount) {
+      throw new Error('방이 가득 찼습니다.');
+    }
+    
+    if (!user.value.id) {
+      throw new Error('사용자 정보를 가져올 수 없습니다.');
+    }
+    
+    const response = await enterRoom(roomId, user.value.id, password);
+    console.log('Enter room response:', response);
+    
+    if (response.statusCode === 201) {
+      console.log('Successfully entered the room');
+      return true;
+    } else {
+      console.error('Unexpected response:', response);
+      throw new Error(response.responseMessage || '방 입장에 실패했습니다.');
+    }
+  } catch (error) {
+    console.error('Error entering room:', error);
+    if (error.response && error.response.data) {
+      console.error('Server error details:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+const closePasswordModal = () => {
+  showPasswordModal.value = false;
+  selectedRoomId.value = null;
+};
+
+const fetchRooms = async () => {
+  isLoading.value = true;
+  
+  try {
+    let response = await getRoomList('', 0, 1000, ''); // 모든 방을 가져옵니다.
+    
+    if (response && response.data) {
+      let allRooms = Array.isArray(response.data) ? response.data : 
+                     (response.data.content && Array.isArray(response.data.content)) ? response.data.content :
+                     [];
+      
+      console.log('Total rooms fetched:', allRooms.length);
+
+      // 참가중인 방 필터링
+      if (!isAllRooms.value) {
+        allRooms = allRooms.filter(room => joinedRoomIds.value.includes(room.id));
+      }
 
       // 방 정렬: WAITING, PLAYING, UPCOMING 순서로, 각 상태 내에서는 ID 순서로
       const statusOrder = { 'WAITING': 0, 'PLAYING': 1, 'UPCOMING': 2 };
-      allRooms = allRooms.sort((a, b) => {
+      allRooms.sort((a, b) => {
         if (statusOrder[a.status] !== statusOrder[b.status]) {
           return statusOrder[a.status] - statusOrder[b.status];
         }
         return a.id - b.id;
       });
 
-      // 만약 filterJoined가 true이고 userId가 유효하다면, 참가 중인 방만 필터링
-      if (filterJoined && userId) {
-        allRooms = allRooms.filter(room => 
-          room.playMemberList && room.playMemberList.includes(userId)
-        );
-      }
+      // 페이지네이션 계산
+      totalElements.value = allRooms.length;
+      totalPages.value = Math.ceil(totalElements.value / roomsPerPage);
 
-      // 전체 페이지 수 계산
-      totalPages.value = Math.ceil(allRooms.length / roomsPerPage);
-
-      // 현재 페이지에 해당하는 6개의 방만 선택
+      // 현재 페이지에 맞는 방 목록 슬라이스
       const start = currentPage.value * roomsPerPage;
       rooms.value = allRooms.slice(start, start + roomsPerPage).map(room => ({
         ...room,
@@ -222,8 +367,6 @@ const fetchRooms = async (filterJoined = false, userId = null) => {
       }));
 
       console.log('Displayed rooms:', rooms.value);
-      console.log('Current page:', currentPage.value + 1);
-      console.log('Total pages:', totalPages.value);
     } else {
       console.error('Invalid response structure:', response);
       rooms.value = [];
@@ -235,6 +378,7 @@ const fetchRooms = async (filterJoined = false, userId = null) => {
     isLoading.value = false;
   }
 };
+
 
 const fetchRoomDetails = async (roomId) => {
   try {
@@ -296,18 +440,24 @@ const fetchSingleRoomInfo = async (roomId) => {
   }
 };
 
-onMounted(() => {
-  fetchRooms();
-  getMemberInfo()
-        .then((response) => {
-          memberID.value = response.data.data.id;
-          console.log(memberID.value);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch member info:", error);
-        });
-
-  fetchSingleRoomInfo(1);
+// onMounted(async () => {
+//   await fetchUserInfo();
+//   fetchRooms();
+//   fetchSingleRoomInfo(1);
+//   showAllRooms();
+// });
+onMounted(async () => {
+  await fetchUserInfo();
+  await fetchRooms();
+  showAllRooms();
+  // getMemberInfo()
+  //       .then((response) => {
+  //         memberID.value = response.data.data.id;
+  //         console.log(memberID.value);
+  //       })
+  //       .catch((error) => {
+  //         console.error("Failed to fetch member info:", error);
+  //       });
 });
 </script>
 

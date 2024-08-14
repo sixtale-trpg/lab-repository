@@ -77,6 +77,7 @@ const mapData = ref([]);
 const isLoading = ref(true);
 const error = ref(null);
 const mapStore = useMapStore();
+const { selectedMap, setSelectedMap } = mapStore;
 
 const route = useRoute();
 const roomId = ref(route.params.roomId);
@@ -163,10 +164,12 @@ const saveSelection = () => {
   // Log the map change event
   const messageData = {
     gameType: 'MAP_CHANGE',
-    roomID: roomId.value,
+    roomID: parseInt(roomId.value, 10),
     currentMapID:previousMap ? previousMap.id : null,// 현재 선택된 맵 ID
     nextMapID: selectedMap.id, // 실제 다음 맵 ID로 업데이트 필요
   };
+
+  console.log(messageData)
 
   // Send the log message via WebSocket
   GameLogWebSocketService.sendMessage(messageData);

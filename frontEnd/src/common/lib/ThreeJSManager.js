@@ -855,13 +855,6 @@ clearSingleDice(diceMesh, body) {
     // console.log('D20 UVs set');
   }
 
-
-
-
-
-
-
-
   getTopFaceValueByNormals(diceMesh, normals, faceValues) {
     let maxDot = -Infinity;
     let topFaceIndex = -1;

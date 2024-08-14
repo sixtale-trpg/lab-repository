@@ -10,12 +10,10 @@
         @mouseleave="hideTooltip"
       >
         <div v-if="item">
-          <img 
-            :src="item.imageURL" 
-            :alt="item.name" 
-            class="inventory-item"
-          />
-          <span v-if="item.currentCount > 0 && item.currentCount !== -1" class="item-count">{{ item.currentCount }}</span>
+          <img :src="item.imageURL" :alt="item.name" class="inventory-item" />
+          <span v-if="item.currentCount > 0 && item.currentCount !== -1" class="item-count">{{
+            item.currentCount
+          }}</span>
           <button @click.stop="confirmDelete(item, index)" class="remove-item-button">
             <img :src="require('@/assets/images/ingame/Delete.png')" alt="Delete" class="delete" />
           </button>
@@ -30,38 +28,50 @@
     </div>
     <div class="inventory-info">
       <div class="info-box weight-info" :style="infoBoxStyle">
-        <img :src="require('@/assets/images/ingame/weight.png')" alt="weight-icon" class="gold-icon"> WEIGHT: {{ currentWeight }}/{{ limitWeight }}
+        <img
+          :src="require('@/assets/images/ingame/weight.png')"
+          alt="weight-icon"
+          class="gold-icon"
+        />
+        WEIGHT: {{ currentWeight }}/{{ limitWeight }}
       </div>
-      <div class="info-box gold-info" :style="infoBoxStyle" @click="openGoldModal" @mouseover="showGoldTooltip" @mouseleave="hideGoldTooltip">
-        <img :src="require('@/assets/images/ingame/Gold.png')" alt="Gold" class="gold-icon"> GOLD: {{ currentGold }}
+      <div
+        class="info-box gold-info"
+        :style="infoBoxStyle"
+        @click="openGoldModal"
+        @mouseover="showGoldTooltip"
+        @mouseleave="hideGoldTooltip"
+      >
+        <img :src="require('@/assets/images/ingame/Gold.png')" alt="Gold" class="gold-icon" /> GOLD:
+        {{ currentGold }}
         <div v-if="isGM" class="tooltip">클릭시 골드 변경이 가능합니다</div>
       </div>
     </div>
-    <AddItemModal 
-      v-if="isAddItemModalVisible" 
-      @close="closeAddItemModal" 
+    <AddItemModal
+      v-if="isAddItemModalVisible"
+      @close="closeAddItemModal"
       @select-item="handleItemSelected"
-      :current-weight="currentWeight" 
+      :current-weight="currentWeight"
       :total-weight="limitWeight"
       :rule-id="ruleId"
       :job-id="jobId"
     />
-    <ItemInfoModal 
-      v-if="isItemInfoModalVisible" 
-      :item="selectedItem" 
-      :isGM="isGM" 
-      :currentWeight="currentWeight" 
+    <ItemInfoModal
+      v-if="isItemInfoModalVisible"
+      :item="selectedItem"
+      :isGM="isGM"
+      :currentWeight="currentWeight"
       :totalWeight="limitWeight"
-      @close="closeItemInfoModal" 
+      @close="closeItemInfoModal"
       @update-item="updateItem"
     />
-    <GoldModal 
-      v-if="isGoldModalVisible" 
-      :isVisible="isGoldModalVisible" 
-      :isGM="isGM" 
+    <GoldModal
+      v-if="isGoldModalVisible"
+      :isVisible="isGoldModalVisible"
+      :isGM="isGM"
       :roomId="route.params.roomId"
-      @close="closeGoldModal" 
-      @update-gold="updateGold" 
+      @close="closeGoldModal"
+      @update-gold="updateGold"
       :current-gold="currentGold"
     />
     <ConfirmDeleteModal
@@ -75,16 +85,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { selectedPlayMemberID } from '@/store/state.js';
-import { getCharacterSheet } from '@/common/api/CharacterSheetAPI.js';
-import { getRoomInfo } from '@/common/api/RoomsAPI.js';
-import { getEquipmentList } from '@/common/api/InventoryAPI.js';
-import AddItemModal from '@/views/games/components/Modal/AddItemModal.vue';
-import ItemInfoModal from '@/views/games/components/Modal/ItemInfoModal.vue';
-import GoldModal from '@/views/games/components/Modal/GoldModal.vue';
-import ConfirmDeleteModal from '@/views/games/components/Modal/ConfirmDeleteModal.vue';
+import { ref, onMounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import { selectedPlayMemberID } from "@/store/state.js";
+import { getCharacterSheet } from "@/common/api/CharacterSheetAPI.js";
+import { getRoomInfo } from "@/common/api/RoomsAPI.js";
+import { getEquipmentList } from "@/common/api/InventoryAPI.js";
+import AddItemModal from "@/views/games/components/Modal/AddItemModal.vue";
+import ItemInfoModal from "@/views/games/components/Modal/ItemInfoModal.vue";
+import GoldModal from "@/views/games/components/Modal/GoldModal.vue";
+import ConfirmDeleteModal from "@/views/games/components/Modal/ConfirmDeleteModal.vue";
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 const route = useRoute();
 const items = ref([]);
@@ -106,35 +117,35 @@ const jobId = ref(null);
 const equipmentList = ref([]);
 
 const backgroundStyle = {
-  backgroundImage: `url(${require('@/assets/images/ingame/Border4.png')})`,
-  backgroundSize: '100% 100%',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  boxSizing: 'border-box',
-  width: '100%',
-  height: '100%',
+  backgroundImage: `url(${require("@/assets/images/ingame/Border4.png")})`,
+  backgroundSize: "100% 100%",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "center",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  boxSizing: "border-box",
+  width: "100%",
+  height: "100%",
 };
 
 const infoBoxStyle = {
-  backgroundImage: `url(${require('@/assets/images/ingame/Border.png')})`,
-  backgroundSize: '100% 100%',
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'center',
-  padding: '5px',
-  color: 'white',
-  textAlign: 'center',
-  fontSize: '0.7rem',
-  margin: '0 5px',
-  flex: '0 0 40%',
-  boxSizing: 'border-box',
+  backgroundImage: `url(${require("@/assets/images/ingame/Border.png")})`,
+  backgroundSize: "100% 100%",
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "center",
+  padding: "5px",
+  color: "white",
+  textAlign: "center",
+  fontSize: "0.7rem",
+  margin: "0 5px",
+  flex: "0 0 40%",
+  boxSizing: "border-box",
 };
 
 const fetchUserItems = async (playMemberID) => {
   if (!playMemberID) {
-    console.warn('No playMemberID selected');
+    console.warn("No playMemberID selected");
     items.value = [];
     currentWeight.value = 0;
     limitWeight.value = 0;
@@ -154,7 +165,10 @@ const fetchUserItems = async (playMemberID) => {
       currentGold.value = characterSheet.currentMoney;
       jobId.value = characterSheet.jobId;
     } else {
-      console.error('Character equipment is not an array or characterSheet is null:', characterSheet);
+      console.error(
+        "Character equipment is not an array or characterSheet is null:",
+        characterSheet
+      );
       items.value = [];
       currentWeight.value = 0;
       limitWeight.value = 0;
@@ -163,7 +177,7 @@ const fetchUserItems = async (playMemberID) => {
     }
     updateCurrentWeight();
   } catch (error) {
-    console.error('Error fetching user items:', error);
+    console.error("Error fetching user items:", error);
     items.value = [];
     currentWeight.value = 0;
     limitWeight.value = 0;
@@ -179,12 +193,15 @@ const fetchRoomInfo = async () => {
     ruleId.value = roomInfo.ruleID;
     equipmentList.value = await getEquipmentList(ruleId.value);
   } catch (error) {
-    console.error('Error fetching room info or equipment list:', error);
+    console.error("Error fetching room info or equipment list:", error);
   }
 };
 
 const updateCurrentWeight = () => {
-  currentWeight.value = items.value.reduce((acc, item) => acc + (item.weight * (item.currentCount > 0 ? item.currentCount : 1)), 0);
+  currentWeight.value = items.value.reduce(
+    (acc, item) => acc + item.weight * (item.currentCount > 0 ? item.currentCount : 1),
+    0
+  );
 };
 
 watch(selectedPlayMemberID, async (newID) => {
@@ -239,19 +256,17 @@ const closeConfirmDeleteModal = () => {
   selectedIndex.value = null;
 };
 
-const handleDeleteConfirm = () => {
-  if (selectedIndex.value !== null) {
-    items.value.splice(selectedIndex.value, 1);
-    updateCurrentWeight();
-    closeConfirmDeleteModal();
-  }
-};
 
-const updateItem = (updatedItem) => {
+
+// 데이터가 추가, 삭제된 후에 항상 서버에서 최신 데이터를 가져와서 업데이트합니다.
+const updateItem = async (updatedItem) => {
   const itemIndex = items.value.findIndex(item => item.id === updatedItem.id);
   if (itemIndex !== -1) {
     items.value[itemIndex] = updatedItem;
     updateCurrentWeight();
+    
+    // 서버에서 최신 데이터를 다시 가져오기
+    await fetchUserItems(selectedPlayMemberID.value);
   }
 };
 
@@ -260,24 +275,24 @@ const updateGold = (newGoldAmount) => {
 };
 
 const showTooltip = (event) => {
-  const tooltip = event.target.closest('.inventory-slot').querySelector('.tooltip');
+  const tooltip = event.target.closest(".inventory-slot").querySelector(".tooltip");
   if (tooltip) {
-    tooltip.style.visibility = 'visible';
-    tooltip.style.opacity = '1';
-    const slotRect = event.target.closest('.inventory-slot').getBoundingClientRect();
+    tooltip.style.visibility = "visible";
+    tooltip.style.opacity = "1";
+    const slotRect = event.target.closest(".inventory-slot").getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
     const top = slotRect.top + slotRect.height + 5;
-    const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2);
+    const left = slotRect.left + slotRect.width / 2 - tooltipRect.width / 2;
     tooltip.style.top = `${top}px`;
     tooltip.style.left = `${left}px`;
   }
 };
 
 const hideTooltip = (event) => {
-  const tooltip = event.target.closest('.inventory-slot').querySelector('.tooltip');
+  const tooltip = event.target.closest(".inventory-slot").querySelector(".tooltip");
   if (tooltip) {
-    tooltip.style.visibility = 'hidden';
-    tooltip.style.opacity = '0';
+    tooltip.style.visibility = "hidden";
+    tooltip.style.opacity = "0";
   }
 };
 
@@ -306,17 +321,35 @@ const handleItemSelected = (item) => {
   closeAddItemModal();
 };
 
+const handleItemAdded = async (addedItem) => {
+  console.log("Item added:", addedItem);
+
+  // 서버에서 최신 데이터를 다시 가져오기
+  await fetchUserItems(selectedPlayMemberID.value); 
+  updateCurrentWeight();
+};
+
+const handleDeleteConfirm = async () => {
+  if (selectedIndex.value !== null) {
+    items.value.splice(selectedIndex.value, 1);
+    updateCurrentWeight();
+    
+    // 서버에서 최신 데이터를 다시 가져오기
+    await fetchUserItems(selectedPlayMemberID.value); 
+    closeConfirmDeleteModal();
+  }
+};
 
 const showGoldTooltip = (event) => {
   if (isGM.value) {
-    const tooltip = event.target.closest('.info-box').querySelector('.tooltip');
+    const tooltip = event.target.closest(".info-box").querySelector(".tooltip");
     if (tooltip) {
-      tooltip.style.visibility = 'visible';
-      tooltip.style.opacity = '1';
-      const slotRect = event.target.closest('.info-box').getBoundingClientRect();
+      tooltip.style.visibility = "visible";
+      tooltip.style.opacity = "1";
+      const slotRect = event.target.closest(".info-box").getBoundingClientRect();
       const tooltipRect = tooltip.getBoundingClientRect();
       const top = slotRect.top + slotRect.height + 5;
-      const left = slotRect.left + (slotRect.width / 2) - (tooltipRect.width / 2);
+      const left = slotRect.left + slotRect.width / 2 - tooltipRect.width / 2;
       tooltip.style.top = `${top}px`;
       tooltip.style.left = `${left}px`;
     }
@@ -325,10 +358,10 @@ const showGoldTooltip = (event) => {
 
 const hideGoldTooltip = (event) => {
   if (isGM.value) {
-    const tooltip = event.target.closest('.info-box').querySelector('.tooltip');
+    const tooltip = event.target.closest(".info-box").querySelector(".tooltip");
     if (tooltip) {
-      tooltip.style.visibility = 'hidden';
-      tooltip.style.opacity = '0';
+      tooltip.style.visibility = "hidden";
+      tooltip.style.opacity = "0";
     }
   }
 };
@@ -344,12 +377,28 @@ onMounted(async () => {
     currentGold.value = 0;
     jobId.value = null;
   }
+
+  // 메세지 받아오는것
+  GameLogWebSocketService.onMessageReceived(async (message) => {
+      console.log(message)
+      switch(message.gameType){
+        case "GOLD":
+          await fetchUserItems(message.playMemberID)
+          break;
+        case "WEIGHT":
+          await fetchUserItems(message.playMemberID)
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+    })
 });
 </script>
 
-
 <style scoped>
-html, body {
+html,
+body {
   overflow: hidden;
 }
 
@@ -415,7 +464,8 @@ html, body {
   position: relative;
 }
 
-.gold-icon, .weight-icon {
+.gold-icon,
+.weight-icon {
   width: 16px;
   height: 16px;
   margin-left: 5px;
@@ -494,7 +544,7 @@ html, body {
 }
 
 .tooltip::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -5px;
   left: 50%;

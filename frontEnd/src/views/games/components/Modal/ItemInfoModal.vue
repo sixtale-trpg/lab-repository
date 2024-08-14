@@ -19,7 +19,7 @@
             </div>
             <div class="info-text">{{ item.weight }} kg</div>
           </div>
-          <div class="info-item" v-if="item.count !== -1">
+          <div class="info-item" v-if="item.currentCount !== -1">
             <div class="title-container">
               <img src="@/assets/images/character_sheet/nickname_light.png" alt="횟수 배경" class="title-image">
               <span class="title-text">현재 횟수</span>
@@ -44,7 +44,7 @@
         </div>
         <div class="footer-buttons">
           <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
-          <button v-if="isGM && item.count !== -1" class="footer-button save-button" :style="saveButtonStyle" @click="saveChanges">저장</button>
+          <button v-if="isGM && item.currentCount !== -1" class="footer-button save-button" :style="saveButtonStyle" @click="saveChanges">저장</button>
         </div>
       </div>
     </div>
@@ -118,31 +118,22 @@ const saveChanges = async () => {
       const roomId = route.params.roomId;
       const playMemberID = selectedPlayMemberID.value;
 
-      // 현재 수정 중인 아이템 확인
       console.log('Saving changes for item:', localItem.value);
 
       const equipmentData = {
-        equipmentId: localItem.value.equipmentID,  // 올바른 equipmentID를 사용
-        currentCount: localItem.value.currentCount, // 새로운 수량으로 대체
+        equipmentId: localItem.value.equipmentID,
+        currentCount: localItem.value.currentCount,
       };
 
-      // 서버로 전송할 데이터 확인
-      console.log('Sending equipment data:', equipmentData);
-
-      // 수량을 덮어씌우는 작업을 위해 PUT 요청을 보냄
       await updateEquipmentCount(roomId, playMemberID, equipmentData);
 
-      // UI 업데이트
-      emit('update-item', localItem.value); // 업데이트된 값을 바로 사용
+      emit('update-item', localItem.value);
       closeModal();
     } catch (error) {
       console.error('Failed to update item count on the server:', error);
     }
   }
 };
-
-
-
 
 const modalContentStyle = computed(() => ({
   background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
@@ -178,6 +169,7 @@ const saveButtonStyle = computed(() => ({
   backgroundSize: 'cover',
 }));
 </script>
+
 
 <style scoped>
 .modal-overlay {

@@ -118,8 +118,11 @@ const sendButtonStyle = {
   height: '40px',
   backgroundImage: `url(${sendButtonImage})`,
   backgroundSize: 'contain',
+  backgroundPosition: 'center',
+  backgroundColor: 'transparent', // 배경색을 투명하게 설정
   border: 'none',
   cursor: 'pointer',
+  backgroundRepeat: "no-repeat",
 };
 
 // 메시지 전송 함수

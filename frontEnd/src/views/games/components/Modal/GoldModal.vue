@@ -109,8 +109,8 @@ const saveGold = async () => {
     const messageData = {
       gameType: "GOLD",
       roomID: parseInt(response.data.roomID, 10),
-      sheetID: parseInt(response.data.sheetID, 10),
-      // playMemberID: selectedPlayMemberID.value,
+      // sheetID: parseInt(response.data.sheetID, 10),
+      playMemberID: selectedPlayMemberID.value,
       currentGold: response.data.currentGold,
       updateGold: response.data.updateGold,
     };

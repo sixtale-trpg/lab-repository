@@ -63,7 +63,8 @@ public class ScenarioController {
     @GetMapping("/{scenarioID}")
     public ResponseEntity<?> getScenarioInfo(@PathVariable Long scenarioID){
         try {
-            Long memberID = 1L;
+            Long memberID = AuthenticationUtil.getMemberId();
+
             ScenarioResponseDto scenarioResponseDto = scenarioService.getScenarioInfo(scenarioID,null);
             return  new ResponseEntity<>(DefaultResponse.res(StatusCode.OK, ResponseMessage.CREATED_MEMBER_INFO,scenarioResponseDto), HttpStatus.OK);
         }catch(Exception e){

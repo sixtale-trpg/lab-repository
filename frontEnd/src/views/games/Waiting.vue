@@ -20,21 +20,14 @@
           <Map :roomId="roomId" :mapList="mapList" :gmName="gm.name" />
           <div :style="gmCardStyle" class="gm-section">
             <div class="gm-info">
-              <div
-                :style="profileImageContainerStyle"
-                class="profile-image-container"
-              >
+              <div :style="profileImageContainerStyle" class="profile-image-container">
                 <img
                   :src="gm.profileImage || defaultImage"
                   alt="GM 프로필"
                   class="profile-image"
                   @click="showGMModal = true"
                 />
-                <img
-                  :src="avatarFrameImagePath"
-                  alt="테두리"
-                  class="avatar-frame"
-                />
+                <img :src="avatarFrameImagePath" alt="테두리" class="avatar-frame" />
               </div>
               <div :style="gmNameStyle" class="gm-name" :title="gm.name">
                 {{ truncatedGMName }}
@@ -57,10 +50,7 @@
                 <div :style="vectorImage">게임 룰</div>
               </div>
               <div class="content cursor" @click="openRulebookModal">
-                <div
-                  :style="gameRuleContainerStyle"
-                  class="game-rule-container"
-                >
+                <div :style="gameRuleContainerStyle" class="game-rule-container">
                   <div class="game-rule-text">{{ gameRule }}</div>
                 </div>
               </div>
@@ -69,14 +59,8 @@
               <div class="title">
                 <div :style="vectorImage">시나리오</div>
               </div>
-              <div
-                class="content scenario-content cursor"
-                @click="openScenarioModal"
-              >
-                <img
-                  :src="scenarioImagePath"
-                  class="scenario-image"
-                />
+              <div class="content scenario-content cursor" @click="openScenarioModal">
+                <img :src="scenarioImagePath" class="scenario-image" />
                 <div class="scenario-text">{{ scenario }}</div>
               </div>
             </div>
@@ -85,11 +69,7 @@
         </div>
       </div>
     </div>
-    <Userinfo
-      v-if="showUserModal"
-      :user="selectedUser"
-      @close="showUserModal = false"
-    />
+    <Userinfo v-if="showUserModal" :user="selectedUser" @close="showUserModal = false" />
     <Userinfo v-if="showGMModal" :user="gm" @close="showGMModal = false" />
     <ScenarioModal
       v-if="isScenarioModalOpen"
@@ -115,6 +95,7 @@ import Userinfo from "./components/Modal/UserInfo.vue";
 import { getRoomInfo, getMapList } from "@/common/api/RoomsAPI";
 import defaultImage from "@/assets/images/users/default.png";
 import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 가져오기 API
+import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
 
 const store = useStore();
 
@@ -131,7 +112,7 @@ const gm = ref({
   profileImage: "",
 });
 
-const isGM = ref(true); 
+const isGM = ref(true);
 const nextSchedule = ref("");
 const gameRule = ref("");
 const scenario = ref("");
@@ -139,7 +120,7 @@ const scenarioDetails = ref({});
 const showScenarioDetails = ref(false);
 const roomId = ref(null);
 
-const mapList = ref([]); 
+const mapList = ref([]);
 
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
@@ -152,11 +133,13 @@ const route = useRoute();
 
 // 현재 로그인한 사용자의 닉네임을 가져오기 위한 변수.
 const nickName = ref("");
+const userId = ref("");
 
-onMounted(() => {
-  getMemberInfo()
+onMounted(async () => {
+  await getMemberInfo()
     .then((response) => {
       nickName.value = response.data.data.nickName;
+      userId.value = response.data.data.id;
     })
     .catch((error) => {
       console.error("Failed to fetch member info:", error);
@@ -164,8 +147,61 @@ onMounted(() => {
 
   roomId.value = route.params.roomId;
   fetchRoomDetails();
-  fetchMapList(); 
+  fetchMapList();
+
+  // "ENTER" 메시지 타입에 대한 콜백 등록
+  WebSocketService.onMessageReceived("ENTER", (message) => {
+    console.log("Enter message received:", message);
+    fetchRoomDetails();
+  });
+
+  // // 여기서부터
+  // await WebSocketService.connect(route.params.roomId, userId.value);
+  // // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  // await WebSocketService.onMessageReceived((message) => {
+  //   switch (message.type) {
+  //     case "ENTER":
+  //       console.log(111);
+  //       console.log;
+  //       fetchRoomDetails();
+  //       break;
+  //     // case "TALK":
+  //     //   console.log("222111")
+  //   }
+  //   // messages.value.push(message); // 메시지 목록에 추가
+  // });
 });
+
+/*
+onMounted(() => {
+  getMemberInfo()
+    .then((response) => {
+      nickName.value = response.data.data.nickName;
+      userId.value = response.data.data.id;
+    })
+    .catch((error) => {
+      console.error("Failed to fetch member info:", error);
+    });
+
+  roomId.value = route.params.roomId;
+  fetchRoomDetails();
+  fetchMapList();
+
+  console.log("Hihihihihihihi");
+  console.log(userId.value);
+  WebSocketService.connect(route.params.roomId, userId.value);
+  // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  WebSocketService.onMessageReceived((message) => {
+    switch (message.type) {
+      case "ENTER":
+        fetchRoomDetails();
+      // case "TALK":
+      //   console.log("222111")
+    }
+    // messages.value.push(message); // 메시지 목록에 추가
+  });
+});
+*/
 
 const fetchRoomDetails = async () => {
   try {
@@ -181,7 +217,7 @@ const fetchRoomDetails = async () => {
     scenario.value = roomInfo.scenarioTitle;
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
-    scenarioImagePath.value = roomInfo.scenarioImageURL; 
+    scenarioImagePath.value = roomInfo.scenarioImageURL;
 
     users.value = roomInfo.playMemberList.map((member) => ({
       id: member.playMemberID,
@@ -327,7 +363,7 @@ const gmNameStyle = computed(() => ({
 }));
 
 const truncatedGMName = computed(() => {
-  return gm.value.name.length > 10 ? gm.value.name.slice(0, 10) + '...' : gm.value.name;
+  return gm.value.name.length > 10 ? gm.value.name.slice(0, 10) + "..." : gm.value.name;
 });
 
 const profileImageContainerStyle = {

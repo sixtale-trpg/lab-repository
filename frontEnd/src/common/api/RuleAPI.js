@@ -20,7 +20,7 @@ export const getRuleList = async () => {
   } catch (error) {
     console.error("Error fetching rule info:", error);
   }
-  
+
   // 오류 발생 시 또는 데이터가 없을 경우 기본값 반환
   return [{ id: 1, title: "기본 룰" }];
 };

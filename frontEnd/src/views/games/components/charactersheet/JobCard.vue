@@ -1,24 +1,29 @@
 <template>
   <div class="job-card" @mouseover="hover = true" @mouseleave="hover = false">
     <div class="card-border" :style="borderStyle"></div>
-    <div :class="{ 'card-content': true, hidden: hover }">
+    <div :class="{ 'card-content': true, hidden: hover || disabled }">
       <h2 class="job-name">{{ name }}</h2>
       <img :src="image" alt="Job Image" class="job-image" />
     </div>
-    <div v-if="hover" class="hover-name">
+    <div v-if="hover || disabled" class="hover-name">
       <h2>{{ name }}</h2>
-      <p>{{ description }}</p>
-      <div v-if="!selected">
+      <!-- 비활성화 상태라면 "선택 완료"와 삭제 버튼 표시 -->
+      <div v-if="disabled">
+        <p>선택 완료</p>
+        <button @click="showDeleteModal" :style="deleteButtonStyle">삭제하기</button>
+      </div>
+      <!-- 비활성화 상태가 아니면 선택 버튼과 기타 UI 표시 -->
+      <div v-else>
+        <p>{{ description }}</p>
         <button @click="selectCard" :style="buttonStyle">직업 선택</button>
       </div>
-      <div v-else-if="selectedByMe">
-        <button :style="buttonStyle">수정하기</button>
-        <button :style="buttonStyle">삭제하기</button>
-      </div>
-      <div v-else>
-        <p>선택한 유저: {{ selectedBy }}</p>
-      </div>
     </div>
+    <!-- 삭제 확인 모달 -->
+    <CharacterSheetDeleteModal
+      v-if="isDeleteModalVisible"
+      @confirm="deleteCard"
+      @close="hideDeleteModal"
+    />
   </div>
 </template>
 
@@ -26,6 +31,8 @@
 import { ref, computed } from 'vue';
 import borderImage from '@/assets/images/character/character_border.png';
 import saveButtonImage from '@/assets/images/maps/background/save.png'; // "저장" 버튼 이미지
+import startButtonImagePath from '@/assets/images/room/start_button.png'; // Start Button Image Path
+import CharacterSheetDeleteModal from '@/views/games/components/Modal/CharacterSheetDeleteModal.vue';
 
 const props = defineProps({
   name: {
@@ -51,12 +58,17 @@ const props = defineProps({
   selectedImage: {
     type: String,
     default: ''
+  },
+  disabled: {
+    type: Boolean,
+    default: false // 비활성화 상태를 나타내는 속성 추가
   }
 });
 
-const emit = defineEmits(['select-card', 'edit-card', 'delete-card', 'open-character-sheet']);
+const emit = defineEmits(['select-card', 'delete-card', 'open-character-sheet']);
 
 const hover = ref(false);
+const isDeleteModalVisible = ref(false);
 
 const borderStyle = computed(() => ({
   backgroundImage: `url(${borderImage})`,
@@ -70,10 +82,6 @@ const borderStyle = computed(() => ({
   bottom: '0'
 }));
 
-const selected = computed(() => props.selectedBy !== '');
-const selectedByMe = computed(() => props.selectedBy === 'currentUser'); // currentUser를 실제 사용자 ID로 변경
-
-// 버튼 스타일을 정의
 const buttonStyle = computed(() => ({
   background: `url(${saveButtonImage}) no-repeat center center`,
   backgroundSize: 'cover',
@@ -85,25 +93,34 @@ const buttonStyle = computed(() => ({
   textAlign: 'center'
 }));
 
-const openCharacterSheet = () => {
-  emit('open-character-sheet', {
-    jobName: props.name,
-    generatedImages: props.generatedImages,
-    selectedImage: props.selectedImage
-  });
-};
+const deleteButtonStyle = computed(() => ({
+  background: `url(${startButtonImagePath}) no-repeat center center`,
+  backgroundSize: 'cover',
+  color: 'white',
+  padding: '10px 20px',
+  border: 'none',
+  borderRadius: '5px',
+  cursor: 'pointer',
+  textAlign: 'center',
+  transition: 'background-color 0.3s',
+}));
 
 const selectCard = () => {
   emit('select-card', props.name);
 };
 
-// const editCard = () => {
-//   emit('edit-card', props.name);
-// };
+const showDeleteModal = () => {
+  isDeleteModalVisible.value = true;
+};
 
-// const deleteCard = () => {
-//   emit('delete-card', props.name);
-// };
+const hideDeleteModal = () => {
+  isDeleteModalVisible.value = false;
+};
+
+const deleteCard = () => {
+  emit('delete-card', props.name);
+  hideDeleteModal();
+};
 </script>
 
 <style scoped>
@@ -141,7 +158,7 @@ const selectCard = () => {
 }
 
 .card-content.hidden {
-  opacity: 0; /* hover 시 숨김 */
+  opacity: 0; /* hover 시 숨김 또는 비활성화 시 숨김 */
 }
 
 .job-name {

@@ -94,7 +94,6 @@ public class PlayChatController {
      * @return
      */
     @MessageMapping("/game/message")
-    // @SendTo("/sub/game/messages/{roomID}")
     public void handleGameMessage(GameMessageDto gameMessageDto){
 
         // 처리된 메시지를 클라이언트에게 전송x

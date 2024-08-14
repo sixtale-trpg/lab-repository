@@ -54,25 +54,6 @@ class WebSocketService {
   sendMessage(message) {
     if (this.connected) {
       console.log("Sending message:", message);
-      this.stompClient.send(
-        "/pub/waiting/chat/message",
-        {},
-        JSON.stringify(message)
-      ); // 메시지 전송
-    } else {
-      console.error("WebSocket is not connected");
-    }
-  }
-
-  // 메시지 수신 시 호출할 콜백 설정
-  onMessageReceived(callback) {
-    this.messageCallback = callback;
-  }
-
-  // 메시지를 서버로 전송
-  sendMessage(message) {
-    if (this.connected) {
-      console.log("Sending message:", message);
       try {
         this.stompClient.send(
           "/pub/waiting/chat/message",

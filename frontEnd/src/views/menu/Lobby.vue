@@ -106,6 +106,7 @@ import { getMemberInfo } from '@/common/api/mypageAPI';
 import CreateRoomModal from '@/views/menu/components/CreateRoomModal.vue';
 import WebSocketService from '@/store/websocket/waiting'; // WebSocket 서비스 가져오기
 import PasswordModal from '@/views/menu/components/PasswordModal.vue';
+import WebSocketService from '@/store/websocket/waiting';
 
 const router = useRouter();
 
@@ -783,6 +784,11 @@ onMounted(async () => {
   align-items: center;
 }
 
+.pagination-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
+}
 /* .create-room-button {
   width: 200px;
   height: 50px;
@@ -804,6 +810,12 @@ onMounted(async () => {
   font-family: 'Abhaya Libre ExtraBold', sans-serif;
   font-style: normal;
   font-weight: 800;
+}
+
+.create-room-button:active {
+  background: rgba(150, 150, 150, 0.49); /* 눌렸을 때 배경색 변경 */
+  box-shadow: none; /* 눌렸을 때 그림자 제거 */
+  transform: scale(0.95); /* 눌렸을 때 약간 작아지는 효과 */
 }
 
 /* .pagination-button {

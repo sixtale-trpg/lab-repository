@@ -6,7 +6,7 @@
           <img :src="titleImage" alt="Title" class="title-image">
           <span class="title-text">AI 캐릭터 만들기</span>
         </div>
-        <div>
+        <div class="description-warning">
           <p>이미지를 생성하지 않으면 캐릭터 시트에 이미지가 저장되지 않습니다.</p>
           <p>이미지가 생성되는 중 다른 탭으로 이동하지 마세요!</p>
         </div>
@@ -272,6 +272,13 @@ watch(() => props.formData.imageURL, (newVal) => {
   justify-content: center;
   align-items: center;
   padding-bottom: 5%;
+}
+
+.description-warning {
+  text-align: center;
+  color: red;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .title-image {

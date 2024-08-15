@@ -14,7 +14,7 @@ public interface CharacterSheetService {
     void createCharacterSheet(Long roomID, CharacterSheetRequest characterSheetRequest, Long memberID) throws IOException;
     void updateCharacterSheet(Long roomID, Long playMemberID, CharacterSheetUpdateRequest characterSheetUpdateRequest, MultipartFile[] files) throws IOException;
     CharacterSheetResponse getCharacterSheet(Long roomID, Long playMemberID);
-    void deleteCharacterSheet(Long roomID, Long playMemberID);
+    void deleteCharacterSheet(Long roomID, Long memberID);
 
     Map<String, String> updateCharacterGold(Long roomID, Long playMemberID, CharacterGoldUpdateRequest characterGoldUpdateRequest);
 

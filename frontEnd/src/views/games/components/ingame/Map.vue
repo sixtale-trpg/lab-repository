@@ -11,10 +11,7 @@
         <div v-for="npc in npcList" :key="npc.id" class="npc-item">
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
-            <div
-              class="npc-hp-fill"
-              :style="{ width: npc.currentHp * 5 + '%' }"
-            ></div>
+            <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
           </div>
           <p v-if="isGM">
             <input
@@ -77,11 +74,7 @@
       v-if="hoveredLaserDescription"
       :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
     >
-      <img
-        class="info-background"
-        :src="infoBackground"
-        alt="Information Background"
-      />
+      <img class="info-background" :src="infoBackground" alt="Information Background" />
       <div class="info-content">
         <h3>{{ hoveredLaserDescription.details }}</h3>
       </div>
@@ -111,11 +104,7 @@
             <p>현재 맵을 새 맵으로 교체하시겠습니까?</p>
           </div>
           <div class="modal-footer custom-modal-footer">
-            <button
-              type="button"
-              class="btn footer-button"
-              data-bs-dismiss="modal"
-            >
+            <button type="button" class="btn footer-button" data-bs-dismiss="modal">
               <img :src="cancelImage" alt="닫기" />
               <span class="button-text">아니요</span>
             </button>
@@ -136,14 +125,7 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  computed,
-  onMounted,
-  onUnmounted,
-  watch,
-  onBeforeUnmount,
-} from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, onBeforeUnmount } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
@@ -190,13 +172,7 @@ const cellDescriptions = ref({});
 
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const newMessage = ref("");
-const {
-  selectedMap,
-  selectedToken,
-  setSelectedMap,
-  currentTokenX,
-  currentTokenY,
-} = mapStore;
+const { selectedMap, selectedToken, setSelectedMap, currentTokenX, currentTokenY } = mapStore;
 
 // selectedMap prop의 변경 사항 감시
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -297,9 +273,7 @@ const onLaserMouseEnter = (row, col, event) => {
   const description = getDescription(row, col);
   hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-  const mapRect = document
-    .querySelector(".map-section-container")
-    .getBoundingClientRect();
+  const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
   const tooltipWidth = 300; // 툴팁의 예상 너비
   const tooltipHeight = 340; // 툴팁의 예상 높이
 
@@ -383,11 +357,7 @@ const onDrop = (event) => {
         y: tokenY,
       });
 
-      pToken.value = parsedToken;
-
-      console.log(
-        `Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`
-      );
+      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
 
       // 토큰 좌표 이동 로그 전송
       sendMessage(tokenX.toFixed(1), tokenY.toFixed(1));
@@ -406,6 +376,8 @@ const onDrop = (event) => {
 const sendMessage = (x, y) => {
   const currentX = parseInt(currentTokenX, 10);
   const currentY = parseInt(currentTokenY, 10);
+
+  console.log("selectedToken.value", selectedToken.value);
 
   const nextX = parseInt(x, 10);
   const nextY = parseInt(y, 10);
@@ -453,9 +425,7 @@ const startDrag = (token, event) => {
 
 const onDrag = (event) => {
   if (draggingToken) {
-    const mapRect = document
-      .querySelector(".map-section-container")
-      .getBoundingClientRect();
+    const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
 
@@ -466,11 +436,7 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   if (draggingToken) {
-    console.log(
-      `Token dropped at: (${draggingToken.x.toFixed(
-        1
-      )}, ${draggingToken.y.toFixed(1)})`
-    );
+    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
   }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
@@ -478,9 +444,7 @@ const stopDrag = () => {
 };
 
 const handleDiceRolled = (results) => {
-  results.forEach((result) =>
-    console.log(`${result.type}면체 주사위 결과: ${result.value}`)
-  );
+  results.forEach((result) => console.log(`${result.type}면체 주사위 결과: ${result.value}`));
 };
 
 const isLaserActive = (row, col) => {
@@ -644,11 +608,12 @@ onMounted(async () => {
           `Token with ID ${playMemberID} moved to (${updatePosition.x}, ${updatePosition.y})`
         );
       } else {
-        // 토큰이 없으면 새로 추가 (필요 시)
+        // 토큰 없으면 새로 추가
         placedTokens.value.push({
-          ...pToken,
+          id: playMemberID,
           x: updatePosition.x,
           y: updatePosition.y,
+          zIndex: 2,
         });
         console.log(
           `Token with ID ${playMemberID} added at (${updatePosition.x}, ${updatePosition.y})`

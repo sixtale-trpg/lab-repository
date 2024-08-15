@@ -3,6 +3,8 @@ package org.infinity.sixtalebackend.infra.s3;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -15,13 +17,14 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * S3 파일 업로드 로직
@@ -73,6 +76,43 @@ public class S3Service {
 
         }
         return listUrl;
+    }
+
+    /**
+     * url 이미지 업로드
+      */
+    public String uploadImageFromUrl(String imageUrl) throws Exception {
+        try {
+            // 1. URL에서 이미지 다운로드
+            Resource resource = new UrlResource(imageUrl);
+            if (!resource.exists()) {
+                throw new MalformedURLException("URL이 유효하지 않습니다: " + imageUrl);
+            }
+
+            // 2. 파일 이름 생성
+            String fileName = UUID.randomUUID().toString() + ".jpg";
+            Path tempFile = Files.createTempFile(fileName, ".jpg");
+
+            // 3. 임시 파일에 이미지 저장
+            try (InputStream inputStream = resource.getInputStream()) {
+                Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // 4. S3에 파일 업로드
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(fileName)
+                    .build();
+
+            try (InputStream inputStream = Files.newInputStream(tempFile)) {
+                PutObjectResponse response = s3Client.putObject(putObjectRequest, tempFile);
+                return s3Client.utilities().getUrl(builder -> builder.bucket(bucket).key(fileName)).toString();
+            } finally {
+                Files.deleteIfExists(tempFile); // 업로드 후 임시 파일 삭제
+            }
+        } catch (Exception e) {
+            throw new Exception("S3 업로드 실패: " + e.getMessage());
+        }
     }
 
     /**

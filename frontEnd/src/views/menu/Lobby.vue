@@ -244,7 +244,6 @@ const handleEnterRoom = async (room) => {
     // 방 정보 가져오기
     const roomInfo = await getRoomInfo(room.id);
     console.log("Room info:", roomInfo);
-    await WebSocketService.connect(room.id, userId.value);
 
     // 현재 사용자가 해당 방의 GM인지 확인
     if (roomInfo.gmNickname === user.value.nickName) {
@@ -283,7 +282,8 @@ const handleEnterRoom = async (room) => {
     } else {
       const result = await enterRoomWithCheck(room.id);
       if (result) {
-        // enter 메세지 보내기
+         WebSocketService.connect(room.id, userId.value);
+
         const messageData = {
           type: "ENTER", // 메시지 유형
           roomID: room.id, // 가져온 방 정보에서 roomID 사용

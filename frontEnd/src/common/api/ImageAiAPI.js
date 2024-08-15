@@ -1,9 +1,11 @@
 import axios from "axios";
 
+// 환경 변수에서 API 키를 가져옵니다.
 const OPENAI_API_KEY = process.env.VUE_APP_OPENAI_API_KEY;
 const OPENAI_BASE_URL = "https://api.openai.com/v1/images/generations";
 const CHAT_API_URL = "https://api.openai.com/v1/chat/completions";
 
+// 텍스트를 번역하는 함수
 const translateText = async (text) => {
   const messages = [
     {
@@ -44,31 +46,36 @@ const translateText = async (text) => {
   }
 };
 
+// 이미지를 생성하는 함수
 const generateImage = async (description) => {
-  // 불필요한 공백 및 특수 문자를 제거하여 정리된 프롬프트 생성
+  // 불필요한 공백 및 특수 문자를 제거하여 프롬프트를 정리합니다.
   const cleanedDescription = description.replace(/[^\w\s,]/g, "").trim();
   const fullPrompt = `Portrait of a fantasy game animation character: ${cleanedDescription}. The character is emphasized with a plain background similar to a passport photo.`;
   console.log("Full Prompt:", fullPrompt);
 
+  const data = JSON.stringify({
+    "prompt": fullPrompt,
+    "n": 1,
+    "size": "1024x1024"
+  });
+
+  const config = {
+    method: 'post',
+    url: OPENAI_BASE_URL,
+    headers: { 
+      'Authorization': `Bearer ${OPENAI_API_KEY}`, 
+      'Content-Type': 'application/json',
+    },
+    data: data
+  };
+
   try {
-    const response = await axios.post(
-      OPENAI_BASE_URL,
-      {
-        prompt: fullPrompt,
-        n: 1,
-        size: "1024x1024",
-        response_format: "b64_json",
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios(config);
 
     if (response.data && response.data.data && response.data.data.length > 0) {
-      return response.data.data[0].url;
+      const imageUrl = response.data.data[0].url;
+      console.log("Generated Image URL:", imageUrl);
+      return imageUrl;
     } else {
       throw new Error("Image generation failed: Invalid response structure");
     }
@@ -78,6 +85,7 @@ const generateImage = async (description) => {
   }
 };
 
+// 번역과 이미지 생성 통합 함수
 export const handleGenerateImage = async (description) => {
   try {
     const translatedDescription = await translateText(description);

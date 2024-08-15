@@ -38,7 +38,7 @@ module.exports = {
       },
       "/ws": {
         target: "http://localhost:8888/api/v1", // WebSocket 서버 주소
-        ws: true, // WebSocket 프록시 활성화
+        // ws: true, // WebSocket 프록시 활성화
         changeOrigin: true,
       },
     },

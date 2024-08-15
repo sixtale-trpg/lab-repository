@@ -440,8 +440,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      */
     @Override
     @Transactional
-    public void deleteCharacterSheet(Long roomID, Long playMemberID) {
-        PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
+    public void deleteCharacterSheet(Long roomID, Long memberID) {
+        PlayMember playMember = playMemberRepository.findByMemberIdAndRoomId(memberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
 
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMember(playMember)

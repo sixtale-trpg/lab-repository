@@ -7,7 +7,12 @@
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
-        <GMSection class="gm-section" :gm="gm" :isGM="isGM" @start-game="startGame" />
+        <GMSection
+          class="gm-section"
+          :gm="gm"
+          :isGM="isGM"
+          @start-game="startGame"
+        />
         <Chatting class="chatting" />
       </div>
     </div>
@@ -15,21 +20,22 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import Header from '@/views/games/components/charactersheet/Header.vue';
-import JobCard from '@/views/games/components/charactersheet/JobCard.vue';
-import VideoProfile from '@/views/games/components/charactersheet/VideoProfile.vue';
-import GMSection from '@/views/games/components/charactersheet/GMSection.vue';
-import Chatting from '@/views/games/components/charactersheet/Chatting.vue';
-import JobBoard from './components/charactersheet/JobBoard.vue';
+import { onMounted, ref, watch, onBeforeUnmount } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Header from "@/views/games/components/charactersheet/Header.vue";
+import JobCard from "@/views/games/components/charactersheet/JobCard.vue";
+import VideoProfile from "@/views/games/components/charactersheet/VideoProfile.vue";
+import GMSection from "@/views/games/components/charactersheet/GMSection.vue";
+import Chatting from "@/views/games/components/charactersheet/Chatting.vue";
+import JobBoard from "./components/charactersheet/JobBoard.vue";
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // GameLogWebSocket 서비스 가져오기
 
 const router = useRouter();
 const route = useRoute();
 
 const gm = ref({
-  name: 'GM닉네임입니다',
-  profileImage: require('@/assets/images/users/gm.png'),
+  name: "GM닉네임입니다",
+  profileImage: require("@/assets/images/users/gm.png"),
 });
 
 const isGM = ref(true);
@@ -42,21 +48,40 @@ const players = ref([
   { id: 4, jobSelected: true },
 ]);
 
+onMounted(() => {
+  GameLogWebSocketService.connect(route.params.roomId);
+
+  GameLogWebSocketService.onMessageReceived("GAME_START", (message) => {
+    console.log("Start Game message received:", message);
+
+    router.push(`/game/${route.params.roomId}/in-game`);
+  });
+});
+
 watch(players, (newPlayers) => {
-  canStartGame.value = newPlayers.every(player => player.jobSelected);
+  canStartGame.value = newPlayers.every((player) => player.jobSelected);
+});
+
+onBeforeUnmount(() => {
+  // WebSocket 연결 해제
+  GameLogWebSocketService.disconnect();
 });
 
 const startGame = () => {
-  if (isGM.value) {
-    router.push(`/game/${route.params.roomId}/in-game`);
-  }
+  // GameLogWebSocketService.sendMessage({
+  //   roomID: route.params.roomId,
+  //   gameType: "GAME_START",
+  // });
+  // if (isGM.value) {
+  //   router.push(`/game/${route.params.roomId}/in-game`);
+  // }
 };
 
-const backgroundImage = require('@/assets/images/character_sheet/MainBackground.png');
+const backgroundImage = require("@/assets/images/character_sheet/MainBackground.png");
 const backgroundStyle = ref({
   backgroundImage: `url(${backgroundImage})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center'
+  backgroundSize: "cover",
+  backgroundPosition: "center",
 });
 </script>
 

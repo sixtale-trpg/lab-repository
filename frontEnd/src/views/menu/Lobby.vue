@@ -4,12 +4,22 @@
       <div class="button-container">
         <div class="action-buttons">
           <button class="refresh-button" @click="refreshRooms">
-            <img src="@/assets/images/lobby/refresh.png" alt="Refresh" class="refresh-icon" />
+            <img
+              src="@/assets/images/lobby/refresh.png"
+              alt="Refresh"
+              class="refresh-icon"
+            />
           </button>
-          <button class="create-room-button" @click="openCreateRoomModal">방 만들기</button>
+          <button class="create-room-button" @click="openCreateRoomModal">
+            방 만들기
+          </button>
         </div>
         <div class="pagination">
-          <button class="pagination-button" @click="prevPage" :disabled="currentPage === 0">
+          <button
+            class="pagination-button"
+            @click="prevPage"
+            :disabled="currentPage === 0"
+          >
             <img
               src="@/assets/images/lobby/Arrow_Left.png"
               alt="Previous"
@@ -22,7 +32,11 @@
             @click="nextPage"
             :disabled="currentPage === totalPages - 1"
           >
-            <img src="@/assets/images/lobby/Arrow_Right.png" alt="Next" class="pagination-arrow" />
+            <img
+              src="@/assets/images/lobby/Arrow_Right.png"
+              alt="Next"
+              class="pagination-arrow"
+            />
           </button>
         </div>
       </div>
@@ -48,7 +62,11 @@
             v-for="room in rooms"
             :key="room.id"
             class="room-card"
-            :class="{ disabled: room.status === 'PLAYING' || room.currentCount === room.maxCount }"
+            :class="{
+              disabled:
+                room.status === 'PLAYING' ||
+                room.currentCount === room.maxCount,
+            }"
             @click="handleEnterRoom(room)"
           >
             <div class="room-image">
@@ -89,7 +107,12 @@
                     class="room-icon"
                   />
                 </div>
-                <div :class="['players-box', { 'full-room': room.currentCount === room.maxCount }]">
+                <div
+                  :class="[
+                    'players-box',
+                    { 'full-room': room.currentCount === room.maxCount },
+                  ]"
+                >
                   <span>{{ room.currentCount }} / {{ room.maxCount }}</span>
                 </div>
                 <div class="room-type">
@@ -100,12 +123,20 @@
           </div>
         </div>
       </div>
-      <div v-if="isLoading" class="loading-message">방 목록을 불러오는 중...</div>
-      <div v-else-if="rooms.length === 0 && !isLoading" class="empty-rooms-message">
+      <div v-if="isLoading" class="loading-message">
+        방 목록을 불러오는 중...
+      </div>
+      <div
+        v-else-if="rooms.length === 0 && !isLoading"
+        class="empty-rooms-message"
+      >
         현재 이용 가능한 방이 없습니다.
       </div>
     </div>
-    <CreateRoomModal v-if="isCreateRoomModalOpen" @close="closeCreateRoomModal" />
+    <CreateRoomModal
+      v-if="isCreateRoomModalOpen"
+      @close="closeCreateRoomModal"
+    />
   </div>
   <PasswordModal
     v-if="showPasswordModal"
@@ -117,9 +148,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
-import { getRoomList, getRoomInfo, enterRoom, getJoinedRooms } from "@/common/api/RoomsAPI";
+import {
+  getRoomList,
+  getRoomInfo,
+  enterRoom,
+  getJoinedRooms,
+} from "@/common/api/RoomsAPI";
 import { getMemberInfo } from "@/common/api/mypageAPI";
 import CreateRoomModal from "@/views/menu/components/CreateRoomModal.vue";
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
@@ -248,7 +284,8 @@ const handleEnterRoom = async (room) => {
 
     // 현재 사용자가 해당 방의 GM인지 확인
     if (roomInfo.gmNickname === user.value.nickName) {
-      const confirmMessage = "현재 방의 GM으로 참여 중입니다. GM으로 다시 입장하시겠습니까?";
+      const confirmMessage =
+        "현재 방의 GM으로 참여 중입니다. GM으로 다시 입장하시겠습니까?";
       console.log(room.id + "%%%%%%%%%%" + userId.value);
 
       if (confirm(confirmMessage)) {
@@ -266,7 +303,10 @@ const handleEnterRoom = async (room) => {
 
         WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
 
-        router.push({ name: "Waiting", params: { roomId: room.id.toString() } });
+        router.push({
+          name: "Waiting",
+          params: { roomId: room.id.toString() },
+        });
       }
       return;
     }
@@ -295,7 +335,10 @@ const handleEnterRoom = async (room) => {
 
         WebSocketService.sendMessage(messageData); // 서버로 메시지 전송
 
-        router.push({ name: "Waiting", params: { roomId: room.id.toString() } });
+        router.push({
+          name: "Waiting",
+          params: { roomId: room.id.toString() },
+        });
       }
     }
   } catch (error) {
@@ -316,7 +359,11 @@ const handlePasswordSubmit = async ({ roomId, password }) => {
   } catch (error) {
     console.error("Failed to enter room:", error);
     let errorMessage = "방 입장에 실패했습니다.";
-    if (error.response && error.response.data && error.response.data.responseMessage) {
+    if (
+      error.response &&
+      error.response.data &&
+      error.response.data.responseMessage
+    ) {
       errorMessage = error.response.data.responseMessage;
     }
     alert(errorMessage);
@@ -391,7 +438,9 @@ const fetchRooms = async () => {
 
       // 참가중인 방 필터링
       if (!isAllRooms.value) {
-        allRooms = allRooms.filter((room) => joinedRoomIds.value.includes(room.id));
+        allRooms = allRooms.filter((room) =>
+          joinedRoomIds.value.includes(room.id)
+        );
       }
 
       // 방 정렬: 생성 날짜 최신순으로 정렬
@@ -500,6 +549,11 @@ onMounted(async () => {
   //         console.error("Failed to fetch member info:", error);
   //       });
 });
+
+onBeforeUnmount(() => {
+  // WebSocket 연결 해제
+  WebSocketService.disconnect();
+});
 </script>
 
 <style scoped>
@@ -522,7 +576,8 @@ onMounted(async () => {
   max-width: 1471px;
   min-height: 900px;
   background: rgba(91, 78, 71, 0.15);
-  box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: inset -4px -4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 39px;
   display: flex;
   flex-direction: column;
@@ -566,7 +621,8 @@ onMounted(async () => {
   margin-bottom: 20px;
   position: relative;
   transition: transform 0.3s;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15); /* 드롭 섀도우 및 내부 그림자 설정 */
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15); /* 드롭 섀도우 및 내부 그림자 설정 */
   cursor: pointer; /* 커서가 포인터로 변경 */
 
   z-index: 10;
@@ -671,7 +727,8 @@ onMounted(async () => {
 
 .scenario-id-box {
   background: #554b45;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   height: 35px;
   display: flex;
@@ -752,7 +809,8 @@ onMounted(async () => {
 
 .room-type {
   background: #554b45;
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   padding: 5px 10px;
   color: white;
@@ -806,7 +864,8 @@ onMounted(async () => {
 .create-room-button {
   height: 50px;
   background: rgba(101, 78, 53, 0.49);
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   color: rgb(214, 205, 170);
   border: none;
@@ -891,7 +950,8 @@ onMounted(async () => {
 .view-all-rooms-button,
 .view-joined-rooms-button {
   background: rgba(101, 78, 53, 0.49);
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   color: rgb(214, 205, 170);
   padding: 10px 20px;

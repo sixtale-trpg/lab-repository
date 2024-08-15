@@ -125,6 +125,7 @@ const candidateImages = ref([null, null, null]); // 후보 이미지 목록
 const remainingClicks = ref(3);  // 남은 클릭 수
 const isButtonActive = ref(false);  // 버튼 활성화 상태
 const isLoading = ref(false); // 로딩 상태
+const errorMessage = ref(''); // 에러 메시지
 
 const showTooltip = ref(false);
 const tooltipStyle = ref({
@@ -151,7 +152,6 @@ const updateTooltipPosition = (event) => {
 
 // Local Storage에 저장된 클릭 횟수와 후보 이미지를 불러오기
 const loadJobSpecificData = () => {
-  // 부모 컴포넌트에서 데이터 로드
   if (props.formData.candidateImages) {
     candidateImages.value = props.formData.candidateImages;
   }
@@ -165,12 +165,13 @@ const loadJobSpecificData = () => {
 const generateImage = async () => {
   if (remainingClicks.value > 0 && !isLoading.value) {
     isLoading.value = true; // 로딩 상태 시작
+    errorMessage.value = ''; // 기존 에러 메시지 초기화
+
     try {
       const imageUrl = await handleGenerateImage(props.formData.appearance);
-      console.log('API 응답:', imageUrl); // 콘솔에 데이터 구조 표시
+      console.log('API 응답:', imageUrl);
       generatedImageUrl.value = imageUrl;
 
-      // 후보 이미지 목록에 추가
       const emptySlotIndex = candidateImages.value.findIndex(image => image === null);
       if (emptySlotIndex !== -1) {
         candidateImages.value[emptySlotIndex] = imageUrl;
@@ -182,6 +183,7 @@ const generateImage = async () => {
       remainingClicks.value -= 1;  // 클릭 횟수 감소
     } catch (error) {
       console.error('이미지 생성 중 오류 발생:', error);
+      errorMessage.value = '이미지 생성 중 오류가 발생했습니다. 다시 시도해 주세요.';
     } finally {
       isLoading.value = false; // 로딩 상태 종료
     }

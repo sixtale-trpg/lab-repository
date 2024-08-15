@@ -1,6 +1,7 @@
 <template>
   <div class="character-sheet" :style="backgroundStyle">
-    <Header class="header" />
+    <!-- Header 컴포넌트에 isGM을 props로 전달 -->
+    <Header class="header" :isGM="isGM" />
     <div class="main-content">
       <div class="left-section">
         <JobBoard 
@@ -59,23 +60,17 @@ const handleJobSelection = (jobId) => {
 const fetchRoomDetails = async () => {
   try {
     roomId.value = route.params.roomId;
-    console.log(roomId.value);
     const roomInfo = await getRoomInfo(roomId.value);
-    console.log('Room Info:', roomInfo);
 
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || require('@/assets/images/users/default.png');
 
     const memberInfo = await getMemberInfo();
-    console.log('Member Info:', memberInfo);
 
     const currentUserId = memberInfo.data.data.id;
-    console.log('GM ID:', roomInfo.gmID);
-    console.log('Current User ID:', currentUserId);
 
     if (roomInfo.gmID === currentUserId) {
       isGM.value = true;
-      console.log('isGM:', isGM.value);
     }
   } catch (error) {
     console.error('Error fetching room info or member info:', error);
@@ -87,7 +82,6 @@ onMounted(() => {
   GameLogWebSocketService.connect(route.params.roomId);
 
   GameLogWebSocketService.onMessageReceived("GAME_START", (message) => {
-    console.log("Start Game message received:", message);
     router.push(`/game/${route.params.roomId}/in-game`);
   });
 });
@@ -116,7 +110,10 @@ const backgroundStyle = ref({
   backgroundSize: "cover",
   backgroundPosition: "center",
 });
+
+console.log(isGM);
 </script>
+
 
 
 

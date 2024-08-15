@@ -41,7 +41,7 @@ class WebSocketService {
     this.isConnecting = true;
     console.log(roomID, "bbbbb", memberID);
     // const socket = new SockJS("http://localhost:8888/api/v1/ws"); // SockJS로 WebSocket 연결 생성
-    const socketFactory = new SockJS("http://localhost:8888/api/v1/ws"); // SockJS로 WebSocket 연결 생성
+    const socketFactory = new SockJS("https://i11d108.p.ssafy.io/api/v1/ws"); // SockJS로 WebSocket 연결 생성
     this.stompClient = Stomp.over(socketFactory);
     // this.stompClient = Stomp.over(socket); // STOMP 클라이언트 생성
 

@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.domain.member.config;
 
 import lombok.AllArgsConstructor;
 import org.infinity.sixtalebackend.domain.member.filter.JWTTokenFilter;
+import org.infinity.sixtalebackend.global.filter.XFrameOptionsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +25,7 @@ public class SecurityConfig {
          http
 //                 .csrf().disable()  // 필요에 따라 CSRF 비활성화
                  .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class) // CORS 필터 추가
+                 .addFilterBefore(new XFrameOptionsFilter(), CorsFilter.class)  // XFrameOptionsFilter 추가
                  .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers("/", "/members/auth/login").permitAll()

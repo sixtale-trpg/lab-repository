@@ -36,13 +36,11 @@ module.exports = {
         target: "https://i11d108.p.ssafy.io", // 백엔드 서버 주소로 변경
         changeOrigin: true,
       },
-      /*
-      "/ws": {
-        target: "https://i11d108.p.ssafy.io/api/v1", // WebSocket 서버 주소
-        ws: true, // WebSocket 프록시 활성화
-        changeOrigin: true,
-      },
-      */
+      // "/ws": {
+      //   target: "http://localhost:8888/api/v1", // WebSocket 서버 주소
+      //   ws: true, // WebSocket 프록시 활성화
+      //   changeOrigin: true,
+      // },
     },
     historyApiFallback: true,
     hot: true,

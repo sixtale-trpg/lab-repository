@@ -1,6 +1,8 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import org.infinity.sixtalebackend.domain.character_sheet.domain.CharacterSheet;
+import org.infinity.sixtalebackend.domain.character_sheet.repository.CharacterSheetRepository;
 import org.infinity.sixtalebackend.domain.chat.domain.PlayChatLog;
 import org.infinity.sixtalebackend.domain.chat.domain.PlayWhisperLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
@@ -12,6 +14,8 @@ import org.infinity.sixtalebackend.domain.chat.repository.WaitingChatLogReposito
 import org.infinity.sixtalebackend.domain.chat.repository.WaitingWhisperLogRepository;
 import org.infinity.sixtalebackend.domain.member.domain.Member;
 import org.infinity.sixtalebackend.domain.member.repository.MemberRepository;
+import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
+import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.room.repository.RoomRepository;
 import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
 import org.springframework.data.domain.Page;
@@ -35,6 +39,8 @@ public class PlayLogServiceImpl implements PlayLogService{
     private final PlayWhisperLogRepository playWhisperLogRepository;
     private final ChatRoomService chatRoomService;
     private final RedisPublisher redisPublisher;
+    private final PlayMemberRepository playMemberRepository;
+    private final CharacterSheetRepository characterSheetRepository;
 
     /**
      * 대기방 채팅, 귓속말 채팅 기능
@@ -45,10 +51,15 @@ public class PlayLogServiceImpl implements PlayLogService{
     public void sendPlayChatMessage(ChatMessageRequest chatMessageRequest) {
 
         Member member = findMember(chatMessageRequest.getMemberID());
-        // 닉네임 저장
-        chatMessageRequest.setNickName(member.getNickname());
-        chatMessageRequest.setRoomType(RoomType.PLAY);
         findRoom(chatMessageRequest.getRoomID());
+
+        // 회원 닉네임 -> 플레이 멤버 이름으로 변경
+        PlayMember playMember = findPlayMember(chatMessageRequest.getMemberID(),chatMessageRequest.getRoomID());
+        CharacterSheet characterSheet = findCharacterSheet(playMember.getId());
+
+        // 닉네임 저장
+        chatMessageRequest.setNickName(characterSheet.getName());
+        chatMessageRequest.setRoomType(RoomType.PLAY);
 
         if (MessageType.ENTER.equals(chatMessageRequest.getType())) {
             // 채팅 입장 시, 룸 아이디 토픽없으면 토픽 생성 -> pub/sub기능 할 수 있도록 리스너 설정
@@ -219,7 +230,11 @@ public class PlayLogServiceImpl implements PlayLogService{
      */
     private void handleWhisperMessage(Long roomID, Member member, ChatMessageRequest chatMessageRequest) {
         Member recipient = findMember(chatMessageRequest.getRecipientID());
-        chatMessageRequest.setRecipientNickName(recipient.getNickname());
+        // 닉네임 -> 플레이 멤버 이름으로 변경
+        PlayMember playMember = findPlayMember(chatMessageRequest.getRecipientID(),chatMessageRequest.getRoomID());
+        CharacterSheet characterSheet = findCharacterSheet(playMember.getId());
+
+        chatMessageRequest.setRecipientNickName(characterSheet.getName());
 
         PlayWhisperLog playWhisperLog = PlayWhisperLog.builder()
                 .roomID(roomID)
@@ -241,6 +256,16 @@ public class PlayLogServiceImpl implements PlayLogService{
         boolean existRoom = roomRepository.existsById(roomID);
         if(!existRoom) throw new IllegalArgumentException("해당 방이 존재하지 않습니다. id=" + roomID);
         return true;
+    }
+
+    private PlayMember findPlayMember(Long memberID, Long roomID){
+        return  playMemberRepository.findByMemberIdAndRoomId(memberID,roomID)
+                .orElseThrow(()-> new IllegalArgumentException("해당 플레이 멤버가 존재하지 않습니다 id="+memberID+", "+roomID));
+    }
+
+    private CharacterSheet findCharacterSheet(Long playMemberID){
+        return  characterSheetRepository.findByPlayMemberId(playMemberID)
+                .orElseThrow(()-> new IllegalArgumentException("해당 캐릭터 시트가 존재하지 않습니다 id="+playMemberID));
     }
 
 }

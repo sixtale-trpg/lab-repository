@@ -56,7 +56,9 @@ class WebSocketService {
         for (const messageType in this.callbacks) {
           if (this.callbacks.hasOwnProperty(messageType)) {
             this.subscribeToUrl(`/sub/waiting/chat/room/${this.roomID}`);
-            this.subscribeToUrl(`/sub/waiting/chat/whisper/${this.roomID}/${this.memberID}`);
+            this.subscribeToUrl(
+              `/sub/waiting/chat/whisper/${this.roomID}/${this.memberID}`
+            );
           }
         }
       },
@@ -88,7 +90,9 @@ class WebSocketService {
 
     if (this.connected) {
       this.subscribeToUrl(`/sub/waiting/chat/room/${this.roomID}`);
-      this.subscribeToUrl(`/sub/waiting/chat/whisper/${this.roomID}/${this.memberID}`);
+      this.subscribeToUrl(
+        `/sub/waiting/chat/whisper/${this.roomID}/${this.memberID}`
+      );
     } else if (!this.isConnecting) {
       this.connect(this.roomID, this.memberID);
     }
@@ -115,7 +119,11 @@ class WebSocketService {
     }
 
     console.log("Sending message:", message);
-    this.stompClient.send("/pub/waiting/chat/message", {}, JSON.stringify(message)); // 메시지 전송
+    this.stompClient.send(
+      "/pub/waiting/chat/message",
+      {},
+      JSON.stringify(message)
+    ); // 메시지 전송
   }
 
   // 특정 URL 구독
@@ -128,6 +136,8 @@ class WebSocketService {
     this.stompClient.subscribe(url, (message) => {
       console.log(`Message received from ${url}:`, message.body);
       const parsedMessage = JSON.parse(message.body);
+
+      console.log("this.callback", this.callbacks[parsedMessage.type]);
 
       // 메시지 타입별로 콜백 호출
       if (parsedMessage.type && this.callbacks[parsedMessage.type]) {

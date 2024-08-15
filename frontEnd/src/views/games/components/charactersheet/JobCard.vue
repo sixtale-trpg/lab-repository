@@ -21,6 +21,7 @@
     <!-- 삭제 확인 모달 -->
     <CharacterSheetDeleteModal
       v-if="isDeleteModalVisible"
+      :roomId="Number(roomId)" 
       @confirm="deleteCard"
       @close="hideDeleteModal"
     />
@@ -62,6 +63,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false // 비활성화 상태를 나타내는 속성 추가
+  },
+  roomId: {
+    type: Number,
+    required: true,  // roomId를 필수로 설정
   }
 });
 

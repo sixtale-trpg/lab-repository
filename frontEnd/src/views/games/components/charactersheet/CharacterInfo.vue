@@ -41,7 +41,7 @@
   </div>
   <!-- 경고 메시지 -->
   <div>
-    <p class="sheet-info-description">캐릭터 시트는 1사람당 1개만 작성할 수 있습니다.</p>
+    <p class="sheet-info-description">캐릭터 시트는 1사람당 1개만 작성할 수 있습니다. <br> 이미 시트를 작성한 상태라면 시트를 추가로 작성할 수 없습니다. </p>
   </div>
   <div v-if="showWarning" class="warning-text">입력하지 않은 값이 있습니다!</div>
   <div class="history-section">
@@ -212,6 +212,7 @@ function checkForEmptyFields() {
 
 .sheet-info-description {
   font-size: 2rem;
+  color: red;
   font-weight: bold;
   margin-bottom: 0;
   text-align: center;

@@ -11,7 +11,10 @@
         <div v-for="npc in npcList" :key="npc.id" class="npc-item">
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
-            <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
+            <div
+              class="npc-hp-fill"
+              :style="{ width: npc.currentHp * 5 + '%' }"
+            ></div>
           </div>
           <p v-if="isGM">
             <input
@@ -36,7 +39,11 @@
       class="token"
       v-for="token in placedTokens"
       :key="token.id"
-      :style="{ left: token.x + 'px', top: token.y + 'px', zIndex: token.zIndex || 2 }"
+      :style="{
+        left: token.x + 'px',
+        top: token.y + 'px',
+        zIndex: token.zIndex || 2,
+      }"
       @mousedown="startDrag(token, $event)"
       @dblclick="returnToken(token)"
     >
@@ -70,7 +77,11 @@
       v-if="hoveredLaserDescription"
       :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
     >
-      <img class="info-background" :src="infoBackground" alt="Information Background" />
+      <img
+        class="info-background"
+        :src="infoBackground"
+        alt="Information Background"
+      />
       <div class="info-content">
         <h3>{{ hoveredLaserDescription.details }}</h3>
       </div>
@@ -100,7 +111,11 @@
             <p>현재 맵을 새 맵으로 교체하시겠습니까?</p>
           </div>
           <div class="modal-footer custom-modal-footer">
-            <button type="button" class="btn footer-button" data-bs-dismiss="modal">
+            <button
+              type="button"
+              class="btn footer-button"
+              data-bs-dismiss="modal"
+            >
               <img :src="cancelImage" alt="닫기" />
               <span class="button-text">아니요</span>
             </button>
@@ -121,7 +136,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+  onBeforeUnmount,
+} from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
@@ -168,7 +190,13 @@ const cellDescriptions = ref({});
 
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const newMessage = ref("");
-const { selectedMap, selectedToken, setSelectedMap, currentTokenX, currentTokenY } = mapStore;
+const {
+  selectedMap,
+  selectedToken,
+  setSelectedMap,
+  currentTokenX,
+  currentTokenY,
+} = mapStore;
 
 // selectedMap prop의 변경 사항 감시
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -177,6 +205,9 @@ let tooltipTimeout = null;
 const activeLasers = ref(new Set());
 const hoveredDescription = ref({ title: "", details: "" });
 const hoveredLaserDescription = ref(null);
+
+const pToken = ref({});
+const mapData = ref([]);
 
 watch(
   () => props.selectedMap,
@@ -254,19 +285,9 @@ const loadMapData = async (mapId) => {
   }
 };
 
-onMounted(() => {
-  loadDefaultMapImage(); // 컴포넌트가 마운트될 때 기본 맵 이미지를 로드
-
-  threeJSManager = new ThreeJSManager(rendererContainer.value);
-  eventBus.on("dice-rolled", handleDiceRolled);
-  window.addEventListener("toggle-grid", (event) => {
-    showGrid.value = event.detail;
-  });
-
-  window.addEventListener("delete-token", (event) => {
-    deleteTokenFromMap(event.detail);
-  });
-});
+// onBeforeUnmount(() => {
+//   GameLogWebSocketService.disconnect();
+// });
 
 const gridRows = computed(() => Array.from({ length: 10 }, (_, i) => i));
 const gridCols = computed(() => Array.from({ length: 15 }, (_, i) => i));
@@ -276,7 +297,9 @@ const onLaserMouseEnter = (row, col, event) => {
   const description = getDescription(row, col);
   hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-  const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
+  const mapRect = document
+    .querySelector(".map-section-container")
+    .getBoundingClientRect();
   const tooltipWidth = 300; // 툴팁의 예상 너비
   const tooltipHeight = 340; // 툴팁의 예상 높이
 
@@ -353,13 +376,18 @@ const onDrop = (event) => {
       const mapRect = event.currentTarget.getBoundingClientRect();
       const tokenX = event.clientX - mapRect.left;
       const tokenY = event.clientY - mapRect.top;
+
       placedTokens.value.push({
         ...parsedToken,
         x: tokenX,
         y: tokenY,
       });
 
-      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
+      pToken.value = parsedToken;
+
+      console.log(
+        `Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`
+      );
 
       // 토큰 좌표 이동 로그 전송
       sendMessage(tokenX.toFixed(1), tokenY.toFixed(1));
@@ -384,10 +412,10 @@ const sendMessage = (x, y) => {
 
   const messageData = {
     gameType: "TOKEN_MOVE",
-    roomID: roomId.value,
+    roomID: parseInt(roomId.value, 10),
     tokens: [
       {
-        sheetID: selectedToken.value.id,
+        playMemberID: selectedToken.value.id,
         currentPosition: { x: currentX, y: currentY },
         updatePosition: { x: nextX, y: nextY },
       },
@@ -425,7 +453,9 @@ const startDrag = (token, event) => {
 
 const onDrag = (event) => {
   if (draggingToken) {
-    const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
+    const mapRect = document
+      .querySelector(".map-section-container")
+      .getBoundingClientRect();
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
 
@@ -436,7 +466,11 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   if (draggingToken) {
-    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
+    console.log(
+      `Token dropped at: (${draggingToken.x.toFixed(
+        1
+      )}, ${draggingToken.y.toFixed(1)})`
+    );
   }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
@@ -444,7 +478,9 @@ const stopDrag = () => {
 };
 
 const handleDiceRolled = (results) => {
-  results.forEach((result) => console.log(`${result.type}면체 주사위 결과: ${result.value}`));
+  results.forEach((result) =>
+    console.log(`${result.type}면체 주사위 결과: ${result.value}`)
+  );
 };
 
 const isLaserActive = (row, col) => {
@@ -463,6 +499,10 @@ const openModal = (row, col) => {
 };
 
 const changeMap = async (description) => {
+  if (!GameLogWebSocketService.connected) {
+    GameLogWebSocketService.connect(roomId.value);
+  }
+
   console.log(description);
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
@@ -471,6 +511,17 @@ const changeMap = async (description) => {
       const newMapId = description.nextMapId;
       const mapInfo = await getMapPlace(roomId.value, newMapId);
       const npcData = await getMapNpcs(roomId.value, newMapId); // 새로운 맵의 NPC 데이터 로드
+
+      // 웹소켓 메시지 전송
+      // Log the map change event
+      const messageData = {
+        gameType: "MAP_CHANGE",
+        roomID: parseInt(roomId.value, 10),
+        currentMapID: 0, // 현재 선택된 맵 ID
+        nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
+      };
+
+      GameLogWebSocketService.sendMessage(messageData);
 
       npcList.value = npcData.npcEvents || []; // NPC 리스트 업데이트
 
@@ -492,16 +543,6 @@ const changeMap = async (description) => {
           };
         });
 
-        // 웹소켓 메시지 전송
-        // Log the map change event
-        // const messageData = {
-        //   gameType: 'MAP_CHANGE',
-        //   roomID: parseInt(roomId.value, 10),
-        //   currentMapID: 0,// 현재 선택된 맵 ID
-        //   nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
-        // };
-
-        // GameLogWebSocketService.sendMessage(messageData);
         console.log("Updated Map Info:", mapInfo);
         console.log("Map Events on this map:", mapInfo.placeEvents); // 여기서 맵 이벤트 콘솔 출력
       } else {
@@ -550,13 +591,71 @@ const toggleNpcList = () => {
   isNpcListOpen.value = !isNpcListOpen.value;
 };
 
-// onMounted(async () => {
-//   InGameWebSocketService.connect(roomId.value);
-//   // 서버로부터 메시지를 수신할 때마다 콜백 실행
-//   InGameWebSocketService.onMessageReceived((message) => {
-//     messages.value.push(message); // 메시지 목록에 추가
-//   });
-// });
+onMounted(async () => {
+  console.log("ONMOUNT 입니다");
+
+  // GameLogWebSocketService.connect(roomId.value);
+
+  const response = await getMapList(roomId.value);
+  mapData.value = response.mapList || [];
+
+  GameLogWebSocketService.onMessageReceived("MAP_CHANGE", (message) => {
+    console.log("Map Change received:", message);
+    let selectedMap = mapData.value[message.nextMapID - 1];
+    mapStore.setSelectedMap(selectedMap);
+  });
+
+  // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  GameLogWebSocketService.onMessageReceived("TOKEN_MOVE", (message) => {
+    console.log("Token Move received:", message);
+    messages.value.push(message); // 메시지 목록에 추가
+    console.log("메시지 목록에 추가");
+
+    // 수신한 메시지에서 토큰 정보 추출
+    const { tokens } = message;
+
+    // 각각의 토큰에 대해 처리
+    tokens.forEach((token) => {
+      const { playMemberID, updatePosition } = token;
+
+      // 현재 맵에 있는 토큰 중에서 해당 ID를 가진 토큰을 찾기
+      const movedToken = placedTokens.value.find((t) => t.id === playMemberID);
+
+      if (movedToken) {
+        // 토큰 위치 업데이트
+        movedToken.x = updatePosition.x;
+        movedToken.y = updatePosition.y;
+        console.log(
+          `Token with ID ${playMemberID} moved to (${updatePosition.x}, ${updatePosition.y})`
+        );
+      } else {
+        // 토큰이 없으면 새로 추가 (필요 시)
+        placedTokens.value.push({
+          ...pToken,
+          x: updatePosition.x,
+          y: updatePosition.y,
+        });
+        console.log(
+          `Token with ID ${playMemberID} added at (${updatePosition.x}, ${updatePosition.y})`
+        );
+      }
+    });
+  });
+});
+
+onMounted(() => {
+  loadDefaultMapImage(); // 컴포넌트가 마운트될 때 기본 맵 이미지를 로드
+
+  threeJSManager = new ThreeJSManager(rendererContainer.value);
+  eventBus.on("dice-rolled", handleDiceRolled);
+  window.addEventListener("toggle-grid", (event) => {
+    showGrid.value = event.detail;
+  });
+
+  window.addEventListener("delete-token", (event) => {
+    deleteTokenFromMap(event.detail);
+  });
+});
 
 onUnmounted(() => {
   eventBus.off("dice-rolled", handleDiceRolled);

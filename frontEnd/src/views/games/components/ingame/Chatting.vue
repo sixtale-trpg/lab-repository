@@ -38,24 +38,50 @@
       </div>
 
       <!-- 챗봇 AI -->
-      <div v-else-if="activeTab === 'bot'">챗봇 AI</div>
+      <div v-else-if="activeTab === 'bot'">
+        <div class="container">
+          <div v-if="data.error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ data.error }}
+          </div>
+
+          <div class="card-body overflow-auto">
+            <RuleChatResult :messages="generatedRuleMessages" />
+          </div>
+          <div class="card-footer p-3">
+            <div class="loading" v-if="data.loads">
+                <div class="loader2"></div>
+            </div>
+          </div>
+        </div>
+          
+      </div>
     </div>
     <div class="chat-input">
       <input
+        class="form-control rounded-start"
         type="text"
-        v-model="message"
-        @keydown.enter="sendMessage"
-        placeholder="메시지를 입력하세요"
+        v-model="data.userMessage"
+        @keydown.enter="run"
+        placeholder="무엇이 궁금하신가요?"
+        @input="remember('userMessage', data.userMessage)"
       />
-      <button @click="sendMessage" :style="sendButtonStyle"></button>
+      <button @click="run" :style="sendButtonStyle"></button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, reactive,watch } from 'vue';
 import { getRoomInfo } from '@/common/api/RoomsAPI';
 import { useRoute } from 'vue-router';
+import RuleChatResult from '@/views/games/components/ingame/RuleChatResult.vue';
+import {
+  createCompletion,
+  createClient,
+  ROLE_ASSISTANT,
+  ROLE_SYSTEM,
+  ROLE_USER,
+} from '@/common/api/openaiApi';
 
 // 탭 설정
 const tabs = [
@@ -166,13 +192,84 @@ const selectTab = (key) => {
     selectedUser.value = null;
   }
 };
+
+/* 룰AI 코드 */
+
+const DEFAULT_SYSTEM_MESSAGE = '안녕하세요! 던전월드 룰에 대해 궁금한 것이 있으면 뭐든지 물어보세요!'
+const DEFAULT_USER_MESSAGE = '';
+
+// 로컬 스토리지에서 `generatedRuleMessages`만 불러오는 함수
+const loadgeneratedRuleMessagesFromLocalStorage = () => {
+  const storedgeneratedRuleMessages = JSON.parse(localStorage.getItem('generatedRuleMessages')) || [];
+  return storedgeneratedRuleMessages.map(msg => new Message(msg.role, msg.content));
+};
+
+// 데이터 저장 함수 (`generatedRuleMessages`만 저장)
+const savegeneratedRuleMessagesToLocalStorage = () => {
+  localStorage.setItem('generatedRuleMessages', JSON.stringify(data.generatedRuleMessages));
+};
+
+const data = reactive({
+  error: '',
+  key: 'sec_ksARBi5NqYI2LMk1PXzFF2uupbMFZfmc',
+  systemRuleMessage: localStorage.getItem('systemRuleMessage') || DEFAULT_SYSTEM_MESSAGE,
+  userMessage: DEFAULT_USER_MESSAGE,
+  generatedRuleMessages: loadgeneratedRuleMessagesFromLocalStorage(),
+  loads: false,
+});
+
+function Message(role, content) {
+  this.role = role;
+  this.content = content.trim();
+}
+
+const initMessages = computed(() => [
+  new Message(ROLE_SYSTEM, data.systemRuleMessage),
+]);
+
+const generatedRuleMessages = computed(() => initMessages.value.concat(data.generatedRuleMessages));
+
+const remember = (key, value) => localStorage.setItem(key, value);
+
+const rememberKey = () => localStorage.setItem('key', window.btoa(data.key));
+
+// `generatedRuleMessages` 변경 시 로컬 스토리지에 저장
+watch(() => data.generatedRuleMessages, savegeneratedRuleMessagesToLocalStorage, { deep: true });
+
+
+const run = async () => {
+  data.loads = true;
+  const client = createClient(data.key);
+  try {
+
+    const userMessage = data.userMessage.trim();
+    
+     if (userMessage) {
+      // 사용자 메시지 배열에 새 메시지 추가
+      data.generatedRuleMessages.push(new Message(ROLE_USER, userMessage));
+      data.userMessage = ''; // 입력 필드 비우기
+       
+        const result = await createCompletion(client)({
+          messages: [{ role: ROLE_USER, content: userMessage }],
+      });
+
+      const content = result.content; // Adjust based on actual response structure
+      console.log(content);
+      data.generatedRuleMessages.push(new Message(ROLE_ASSISTANT, content));
+    }
+
+  } catch (err) {
+    data.error = err.message;
+    data.loads = false;
+  }
+};
 </script>
 
 <style scoped>
 .chatting-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100%; 
   border: 2px solid #000;
   background-size: 100% 100% !important; /* 배경 이미지가 컨테이너에 맞게 늘어나도록 설정 */
   background-repeat: no-repeat !important;
@@ -206,7 +303,7 @@ const selectTab = (key) => {
 }
 
 .tabs button.chat {
-  background: linear-gradient(to bottom, #0B3A73, #062048);
+  background: linear-gradient(to bottom, #805500, #5A3B00);
 }
 
 .tabs button.whisper {
@@ -214,7 +311,7 @@ const selectTab = (key) => {
 }
 
 .tabs button.bot {
-  background: linear-gradient(to bottom, #805500, #5A3B00);
+  background: linear-gradient(to bottom, #0B3A73, #062048);
 }
 
 .chat-content {
@@ -261,4 +358,26 @@ const selectTab = (key) => {
 .chat-content > div {
   color: rgba(255, 255, 255, 0.7);
 }
+
+.container{
+  max-height: 100px;
+}
+
+.custom-input:focus {
+  border-color: #eceff1 !important;
+  box-shadow: none !important;
+  background-color: #eceff1;
+}
+
+.custom-input:hover {
+  border-color: #eceff1 !important;
+  background-color: #eceff1;
+}
+
+.custom-input {
+  border: #eceff1;
+  border-radius: 15px 0px 0px 15px;
+  background-color: #eceff1;
+}
+
 </style>

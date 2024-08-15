@@ -42,7 +42,10 @@
             </div>
             <button
               :disabled="nickName !== gm.name"
-              :style="[startGameButtonStyle, nickName !== gm.name ? disabledButtonStyle : {}]"
+              :style="[
+                startGameButtonStyle,
+                nickName !== gm.name ? disabledButtonStyle : {},
+              ]"
               class="start-game-button"
               @click="startGame"
             >
@@ -57,7 +60,11 @@
                 <div :style="vectorImage">게임 룰</div>
               </div>
               <div class="content">
-                <div :style="gameRuleContainerStyle" class="game-rule-container" @click="openRulebookModal">
+                <div
+                  :style="gameRuleContainerStyle"
+                  class="game-rule-container"
+                  @click="openRulebookModal"
+                >
                   <div class="game-rule-text">{{ gameRule }}</div>
                 </div>
               </div>
@@ -69,7 +76,9 @@
               </div>
               <div class="content scenario-content">
                 <img :src="scenarioImagePath" class="scenario-image" />
-                <div class="scenario-text" @click="openScenarioModal">{{ scenario }}</div>
+                <div class="scenario-text" @click="openScenarioModal">
+                  {{ scenario }}
+                </div>
               </div>
             </div>
           </div>
@@ -93,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "vuex";
 import RoomHeader from "./components/waiting/RoomHeader.vue";
@@ -107,6 +116,8 @@ import Userinfo from "./components/Modal/UserInfo.vue";
 import { getRoomInfo, getMapList } from "@/common/api/RoomsAPI";
 import defaultImage from "@/assets/images/users/default.png";
 import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 가져오기 API
+import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // GameLogWebSocket 서비스 가져오기
 
 const store = useStore();
 
@@ -123,7 +134,7 @@ const gm = ref({
   profileImage: "",
 });
 
-const isGM = ref(true); 
+const isGM = ref(true);
 const nextSchedule = ref("");
 const gameRule = ref("");
 const scenario = ref("");
@@ -131,7 +142,7 @@ const scenarioDetails = ref({});
 const showScenarioDetails = ref(false);
 const roomId = ref(null);
 
-const mapList = ref([]); 
+const mapList = ref([]);
 
 const isRulebookModalOpen = ref(false);
 const isScenarioModalOpen = ref(false);
@@ -143,11 +154,13 @@ const router = useRouter();
 const route = useRoute();
 
 const nickName = ref("");
+const userId = ref("");
 
-onMounted(() => {
-  getMemberInfo()
+onMounted(async () => {
+  await getMemberInfo()
     .then((response) => {
       nickName.value = response.data.data.nickName;
+      userId.value = response.data.data.id;
     })
     .catch((error) => {
       console.error("Failed to fetch member info:", error);
@@ -155,8 +168,79 @@ onMounted(() => {
 
   roomId.value = route.params.roomId;
   fetchRoomDetails();
-  fetchMapList(); 
+  fetchMapList();
+
+  WebSocketService.disconnect();
+  WebSocketService.connect(route.params.roomId, userId.value);
+
+  // "ENTER" 메시지 타입에 대한 콜백 등록
+  WebSocketService.onMessageReceived("ENTER", (message) => {
+    console.log("Enter message received:", message);
+    fetchRoomDetails();
+  });
+
+  // 게임 시작
+  WebSocketService.onMessageReceived("NEXT", (message) => {
+    console.log("Start Sheet message received:", message);
+
+    router.push({
+      name: "CharacterSheet",
+      params: { roomId: route.params.roomId },
+    });
+  });
+
+  // // 여기서부터
+  // await WebSocketService.connect(route.params.roomId, userId.value);
+  // // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  // await WebSocketService.onMessageReceived((message) => {
+  //   switch (message.type) {
+  //     case "ENTER":
+  //       console.log(111);
+  //       console.log;
+  //       fetchRoomDetails();
+  //       break;
+  //     // case "TALK":
+  //     //   console.log("222111")
+  //   }
+  //   // messages.value.push(message); // 메시지 목록에 추가
+  // });
 });
+
+onBeforeUnmount(() => {
+  // WebSocket 연결 해제
+  WebSocketService.disconnect();
+});
+
+/*
+onMounted(() => {
+  getMemberInfo()
+    .then((response) => {
+      nickName.value = response.data.data.nickName;
+      userId.value = response.data.data.id;
+    })
+    .catch((error) => {
+      console.error("Failed to fetch member info:", error);
+    });
+
+  roomId.value = route.params.roomId;
+  fetchRoomDetails();
+  fetchMapList();
+
+  console.log("Hihihihihihihi");
+  console.log(userId.value);
+  WebSocketService.connect(route.params.roomId, userId.value);
+  // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  WebSocketService.onMessageReceived((message) => {
+    switch (message.type) {
+      case "ENTER":
+        fetchRoomDetails();
+      // case "TALK":
+      //   console.log("222111")
+    }
+    // messages.value.push(message); // 메시지 목록에 추가
+  });
+});
+*/
 
 const fetchRoomDetails = async () => {
   try {
@@ -172,7 +256,7 @@ const fetchRoomDetails = async () => {
     scenario.value = roomInfo.scenarioTitle;
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || defaultImage;
-    scenarioImagePath.value = roomInfo.scenarioImageURL; 
+    scenarioImagePath.value = roomInfo.scenarioImageURL;
 
     users.value = roomInfo.playMemberList.map((member) => ({
       id: member.playMemberID,
@@ -221,9 +305,10 @@ const closeScenarioModal = () => {
 };
 
 const startGame = () => {
-  router.push({
-    name: "CharacterSheet",
-    params: { roomId: route.params.roomId },
+  WebSocketService.sendMessage({
+    roomID: route.params.roomId,
+    memberID: userId.value,
+    type: "NEXT",
   });
 };
 
@@ -301,7 +386,7 @@ const gmCardStyle = computed(() => ({
 const gmNameStyle = computed(() => ({
   // backgroundImage: `url(${nameBoxImagePath})`,
   backgroundSize: "cover",
-  backgroundColor: '#251C15',
+  backgroundColor: "#251C15",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
   alignItems: "center",
@@ -321,7 +406,9 @@ const gmNameStyle = computed(() => ({
 }));
 
 const truncatedGMName = computed(() => {
-  return gm.value.name.length > 10 ? gm.value.name.slice(0, 10) + '...' : gm.value.name;
+  return gm.value.name.length > 10
+    ? gm.value.name.slice(0, 10) + "..."
+    : gm.value.name;
 });
 
 const profileImageContainerStyle = {
@@ -407,7 +494,8 @@ const gameRuleContainerStyle = {
   lineHeight: "100%",
   color: "rgb(214, 205, 170)",
   background: "rgba(101, 78, 53, 0.49)",
-  boxShadow: "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
+  boxShadow:
+    "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
   cursor: "pointer",
 };
 
@@ -599,7 +687,8 @@ const calendarContainerStyle = {
 .scenario-text {
   color: rgb(214, 205, 170);
   background: rgba(101, 78, 53, 0.49);
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   font-size: 13px;
   padding: 10px;
@@ -648,14 +737,15 @@ const calendarContainerStyle = {
   width: 80%;
   height: 80%;
   background: rgba(101, 78, 53, 0.49);
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   padding: 10px;
 }
 
 .game-rule-text {
   color: rgb(214, 205, 170);
-  font-family: 'Abhaya Libre ExtraBold', sans-serif;
+  font-family: "Abhaya Libre ExtraBold", sans-serif;
   font-style: normal;
   font-weight: 800;
   font-size: 20px;
@@ -673,7 +763,7 @@ const calendarContainerStyle = {
   justify-content: center;
   align-items: center;
   padding: 23px;
-  background-color: #251C15;
+  background-color: #251c15;
   border-radius: 10px;
   width: 48%;
   height: 78%;
@@ -717,7 +807,7 @@ const calendarContainerStyle = {
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(4, 1fr);
     height: auto;
-    border: 1px solid #4A3A2E;
+    border: 1px solid #4a3a2e;
   }
 
   .chat-section {
@@ -751,7 +841,7 @@ const calendarContainerStyle = {
 }
 
 .scenario-content {
-  cursor: default;  /* 기본 커서로 변경 */
+  cursor: default; /* 기본 커서로 변경 */
 }
 
 /* .game-rule-text, .scenario-text {
@@ -770,7 +860,7 @@ const calendarContainerStyle = {
 }
 
 .scenario-text {
-  transform: scale(1);  /* 초기 스케일 설정 */
+  transform: scale(1); /* 초기 스케일 설정 */
   transition: transform 0.3s, box-shadow 0.3s;
 }
 

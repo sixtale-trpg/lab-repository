@@ -135,8 +135,6 @@ import cancelImage from "@/assets/images/ingame/map/cancel.png";
 import okImage from "@/assets/images/ingame/map/ok.png";
 import backButtonImage from "@/assets/images/ingame/map/back_button.png";
 
-import InGameWebSocketService from "@/store/websocket/ingame"; // WebSocket 서비스 가져오기
-
 const props = defineProps({
   selectedMap: {
     type: Object,
@@ -157,7 +155,7 @@ const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
- 
+
 const npcData = ref({}); // NPC 정보를 저장할 객체
 const selectedMapIndex = ref(0);
 
@@ -285,22 +283,22 @@ const onLaserMouseEnter = (row, col, event) => {
   let tooltipX = event.clientX + 10;
   let tooltipY = event.clientY + 10;
 
-    // 툴팁 위치 조정 로직
-    if (tooltipX + tooltipWidth > window.innerWidth) {
-        tooltipX = window.innerWidth - tooltipWidth - 10;
-    }
+  // 툴팁 위치 조정 로직
+  if (tooltipX + tooltipWidth > window.innerWidth) {
+    tooltipX = window.innerWidth - tooltipWidth - 10;
+  }
 
-    if (tooltipY + tooltipHeight > window.innerHeight) {
-        tooltipY = window.innerHeight - tooltipHeight - 10;
-    }
+  if (tooltipY + tooltipHeight > window.innerHeight) {
+    tooltipY = window.innerHeight - tooltipHeight - 10;
+  }
 
-    if (tooltipX < 0) {
-        tooltipX = 10;
-    }
+  if (tooltipX < 0) {
+    tooltipX = 10;
+  }
 
-    if (tooltipY < 0) {
-        tooltipY = 10;
-    }
+  if (tooltipY < 0) {
+    tooltipY = 10;
+  }
 
   tooltipPosition.value = { x: tooltipX, y: tooltipY };
 
@@ -396,7 +394,7 @@ const sendMessage = (x, y) => {
     ],
   };
 
-  InGameWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+  GameLogWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
 };
 
 const deleteTokenFromMap = (token) => {
@@ -709,7 +707,7 @@ onUnmounted(() => {
 .info-panel {
   position: absolute;
   width: 30%;
-  height: 'auto';
+  height: "auto";
   background-color: rgba(0, 0, 0, 0.9);
   color: white;
   border-radius: 8px;
@@ -802,7 +800,6 @@ onUnmounted(() => {
   font-size: 10px; /* 본문 글씨 크기 줄이기 */
   line-height: 1.1; /* 줄 간격 줄이기 */
 }
-
 
 .modal-content {
   border-radius: 10px;

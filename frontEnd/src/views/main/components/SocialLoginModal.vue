@@ -141,7 +141,7 @@ const closeModal = () => {
 // Google OAuth 로그인 처리
 const googleLogin = () => {
   const clientId = "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
-  const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/google";
+  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
   const responseType = "code";
   const scope = "email profile";
 

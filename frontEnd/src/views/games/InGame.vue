@@ -1,6 +1,7 @@
 <template>
   <div class="character-sheet" :style="backgroundStyle">
-    <Header class="header" />
+    <!-- Header 컴포넌트에 isGM을 전달 -->
+    <Header class="header" :isGM="isGM" />
     <div class="main-content">
       <div class="left-section">
         <!-- MainContent에 selectedMap을 prop으로 전달 -->
@@ -19,7 +20,11 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { getRoomInfo } from "@/common/api/RoomsAPI"; // 방 정보 API
+import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 API
+
 import { useMapStore } from "@/store/map/mapStore"; // 맵 상태 관리
 import Header from "@/views/games/components/ingame/Header.vue";
 import MainContent from "@/views/games/components/ingame/MainContent.vue";
@@ -28,7 +33,7 @@ import GMSection from "@/views/games/components/ingame/GMSection.vue";
 import Chatting from "@/views/games/components/ingame/Chatting.vue";
 import Log from "@/views/games/components/ingame/Log.vue";
 
-// Import the background image
+// 배경 이미지 임포트
 import MainBackground from "@/assets/images/maps/background/MainBackground.png";
 
 // Pinia 스토어 인스턴스
@@ -45,11 +50,34 @@ watch(
   }
 );
 
+// GM 여부를 저장하는 상태
+const isGM = ref(true);
+const roomId = ref(null);
+
+// 현재 사용자가 GM인지 확인하는 함수
+const fetchRoomDetails = async () => {
+  try {
+    roomId.value = route.params.roomId;
+    const roomInfo = await getRoomInfo(roomId.value);
+
+    const memberInfo = await getMemberInfo();
+    const currentUserId = memberInfo.data.data.id;
+
+    if (roomInfo.gmID === currentUserId) {
+      isGM.value = true;
+    }
+  } catch (error) {
+    console.error("Error fetching room info or member info:", error);
+  }
+};
+
+onMounted(() => {
+  fetchRoomDetails(); // 컴포넌트가 마운트되면 GM 여부를 확인
+});
+
 const gm = ref({
   name: "미카엘",
 });
-
-const isGM = ref(true);
 
 // Computed property for the background style
 const backgroundStyle = computed(() => ({

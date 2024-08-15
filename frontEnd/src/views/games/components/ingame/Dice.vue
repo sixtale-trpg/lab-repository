@@ -3,49 +3,135 @@
     <div class="dice-grid">
       <div class="dice-container-wrapper">
         <div v-for="dice in diceList" :key="dice.diceId" class="dice-container">
-          <button @click="increaseCount(dice.diceId)" :style="increaseButtonStyle" class="control-button increase-button"></button>
-          <div class="dice-image-container"
-               @mouseenter="showHoverText(dice.name)"
-               @mouseleave="hideHoverText">
+          <button
+            @click="increaseCount(dice.diceId)"
+            :style="increaseButtonStyle"
+            class="control-button increase-button"
+          ></button>
+          <div
+            class="dice-image-container"
+            @mouseenter="showHoverText(dice.name)"
+            @mouseleave="hideHoverText"
+          >
             <img :src="dice.image" :alt="dice.name" class="dice" />
-            <span class="dice-count" :class="{ 'animate': dice.animate, 'animate-on-action': dice.animateOnAction }">{{ dice.count }}</span>
+            <span
+              class="dice-count"
+              :class="{
+                animate: dice.animate,
+                'animate-on-action': dice.animateOnAction,
+              }"
+              >{{ dice.count }}</span
+            >
           </div>
-          <button @click="decreaseCount(dice.diceId)" :style="decreaseButtonStyle" class="control-button decrease-button"></button>
+          <button
+            @click="decreaseCount(dice.diceId)"
+            :style="decreaseButtonStyle"
+            class="control-button decrease-button"
+          ></button>
         </div>
       </div>
       <div class="roll-container">
-        <button @click="handleRoll" :style="RollbackgroundStyle" class="roll-button" :class="{ animateButton: rollAnimate }">Roll</button>
-        <button @click="handleReset" :style="ResetbackgroundStyle" class="reset-button" :class="{ animateButton: resetAnimate }">Reset</button>
+        <button
+          @click="handleRoll"
+          :style="RollbackgroundStyle"
+          class="roll-button"
+          :class="{ animateButton: rollAnimate }"
+        >
+          Roll
+        </button>
+        <button
+          @click="handleReset"
+          :style="ResetbackgroundStyle"
+          class="reset-button"
+          :class="{ animateButton: resetAnimate }"
+        >
+          Reset
+        </button>
       </div>
     </div>
     <teleport to="body">
-      <div class="hover-overlay" v-if="hoverText" :style="{ top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px` }">{{ hoverText }}</div>
+      <div
+        class="hover-overlay"
+        v-if="hoverText"
+        :style="{ top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px` }"
+      >
+        {{ hoverText }}
+      </div>
     </teleport>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
-import eventBus from '@/common/lib/eventBus.js';
+import { reactive, ref, onMounted, onBeforeUnmount } from "vue";
+import eventBus from "@/common/lib/eventBus.js";
 // 액션 인포모달에서 액션 선택 시, 주사위가 자동으로 세팅되게끔
-import { selectedDice } from '@/store/state.js';
-import { watch } from 'vue';
+import { setSelectedDice, selectedDice } from "@/store/state.js";
+import { watch } from "vue";
+import { useRoute } from "vue-router";
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
+
+const route = useRoute();
 
 const diceList = reactive([
-  { diceId: 4, name: 'D4', image: require('@/assets/images/ingame/Dice4_2.png'), count: 0, animate: false },
-  { diceId: 6, name: 'D6', image: require('@/assets/images/ingame/Dice6_2.png'), count: 0, animate: false },
-  { diceId: 8, name: 'D8', image: require('@/assets/images/ingame/Dice8_2.png'), count: 0, animate: false },
-  { diceId: 10, name: 'D10', image: require('@/assets/images/ingame/Dice10_2.png'), count: 0, animate: false },
-  { diceId: 12, name: 'D12', image: require('@/assets/images/ingame/Dice12_2.png'), count: 0, animate: false },
-  { diceId: 20, name: 'D20', image: require('@/assets/images/ingame/Dice20_2.png'), count: 0, animate: false },
-  { diceId: 100, name: 'D100', image: require('@/assets/images/ingame/Dice100_2.png'), count: 0, animate: false },
+  {
+    diceId: 4,
+    name: "D4",
+    image: require("@/assets/images/ingame/Dice4_2.png"),
+    count: 0,
+    animate: false,
+  },
+  {
+    diceId: 6,
+    name: "D6",
+    image: require("@/assets/images/ingame/Dice6_2.png"),
+    count: 0,
+    animate: false,
+  },
+  {
+    diceId: 8,
+    name: "D8",
+    image: require("@/assets/images/ingame/Dice8_2.png"),
+    count: 0,
+    animate: false,
+  },
+  {
+    diceId: 10,
+    name: "D10",
+    image: require("@/assets/images/ingame/Dice10_2.png"),
+    count: 0,
+    animate: false,
+  },
+  {
+    diceId: 12,
+    name: "D12",
+    image: require("@/assets/images/ingame/Dice12_2.png"),
+    count: 0,
+    animate: false,
+  },
+  {
+    diceId: 20,
+    name: "D20",
+    image: require("@/assets/images/ingame/Dice20_2.png"),
+    count: 0,
+    animate: false,
+  },
+  {
+    diceId: 100,
+    name: "D100",
+    image: require("@/assets/images/ingame/Dice100_2.png"),
+    count: 0,
+    animate: false,
+  },
 ]);
 
 watch(
   selectedDice,
   (newDice) => {
     if (newDice.type && newDice.count) {
-      const selectedDiceItem = diceList.find(dice => dice.diceId === parseInt(newDice.type.replace('D', '')));
+      const selectedDiceItem = diceList.find(
+        (dice) =>
+          dice.diceId === parseInt(newDice.type.toString().replace("D", ""))
+      );
       if (selectedDiceItem) {
         selectedDiceItem.count = newDice.count;
       }
@@ -54,10 +140,25 @@ watch(
   { immediate: true, deep: true }
 );
 
+onMounted(() => {
+  GameLogWebSocketService.connect(route.params.roomId);
 
+  GameLogWebSocketService.onMessageReceived("DICE_SETTING", async (message) => {
+    console.log("Dice Setting message received", message);
+
+    message.diceRolls.forEach((m) => {
+      const newType = m.type.replace("D", "");
+      setSelectedDice(parseInt(newType, 10), m.count);
+    });
+  });
+});
+
+onBeforeUnmount(() => {
+  GameLogWebSocketService.disconnect();
+});
 
 const hoverPosition = ref({ x: 0, y: 0 });
-const hoverText = ref('');
+const hoverText = ref("");
 const rollAnimate = ref(false);
 const resetAnimate = ref(false);
 
@@ -85,35 +186,35 @@ const showHoverText = (text) => {
 };
 
 const hideHoverText = () => {
-  hoverText.value = '';
+  hoverText.value = "";
 };
 
 const emitRollDice = () => {
   const diceTypesToRoll = [];
-  diceList.forEach(dice => {
+  diceList.forEach((dice) => {
     for (let i = 0; i < dice.count; i++) {
       diceTypesToRoll.push({ type: dice.diceId, id: dice.diceId });
     }
   });
-  eventBus.emit('roll-dice', diceTypesToRoll);
+  eventBus.emit("roll-dice", diceTypesToRoll);
 };
 
 const resetDiceCounts = () => {
-  diceList.forEach(dice => {
+  diceList.forEach((dice) => {
     dice.count = 0;
   });
 
   // 주사위를 초기화할 때, selectedDice를 초기화
   selectedDice.value = {
     type: null,
-    count: 0
+    count: 0,
   };
 
-  eventBus.emit('reset-dice');
+  eventBus.emit("reset-dice");
 };
 
 const increaseCount = (diceId) => {
-  const dice = diceList.find(dice => dice.diceId === diceId);
+  const dice = diceList.find((dice) => dice.diceId === diceId);
   if (dice) {
     dice.count++;
     dice.animate = true;
@@ -124,7 +225,7 @@ const increaseCount = (diceId) => {
 };
 
 const decreaseCount = (diceId) => {
-  const dice = diceList.find(dice => dice.diceId === diceId);
+  const dice = diceList.find((dice) => dice.diceId === diceId);
   if (dice && dice.count > 0) {
     dice.count--;
     dice.animate = true;
@@ -154,7 +255,7 @@ const handleReset = () => {
 };
 
 const animateDiceCounts = () => {
-  diceList.forEach(dice => {
+  diceList.forEach((dice) => {
     if (dice.count > 0) {
       dice.animateOnAction = true;
       setTimeout(() => {
@@ -165,61 +266,61 @@ const animateDiceCounts = () => {
 };
 
 const backgroundStyle = {
-  backgroundSize: 'cover',
-  borderRadius: '5px',
-  width: '100%',
-  height: '100%',
-  padding: '1vh',
-  boxSizing: 'border-box',
-  background: 'rgba(37, 28, 21, 0.5)',
-  border: '2px solid #89724D',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
+  backgroundSize: "cover",
+  borderRadius: "5px",
+  width: "100%",
+  height: "100%",
+  padding: "1vh",
+  boxSizing: "border-box",
+  background: "rgba(37, 28, 21, 0.5)",
+  border: "2px solid #89724D",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
 };
 
 const buttonStyle = {
-  backgroundSize: 'contain',
-  backgroundPosition: 'center',
-  backgroundRepeat: 'no-repeat',
-  width: '100%',
-  fontSize: '1.5vh',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  color: 'rgb(214, 205, 170)',
-  backgroundColor: 'transparent',
-  border: 'none',
+  backgroundSize: "contain",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  width: "100%",
+  fontSize: "1.5vh",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "rgb(214, 205, 170)",
+  backgroundColor: "transparent",
+  border: "none",
 };
 
 const RollbackgroundStyle = {
   ...buttonStyle,
-  backgroundImage: `url(${require('@/assets/images/ingame/Roll_Button.png')})`,
+  backgroundImage: `url(${require("@/assets/images/ingame/Roll_Button.png")})`,
 };
 
 const ResetbackgroundStyle = {
   ...buttonStyle,
-  backgroundImage: `url(${require('@/assets/images/ingame/Reset_Button.png')})`,
+  backgroundImage: `url(${require("@/assets/images/ingame/Reset_Button.png")})`,
 };
 
 const arrowButtonStyle = {
-  backgroundSize: 'contain',
-  backgroundRepeat: 'no-repeat',
-  width: '2vh',
-  height: '2vh',
-  border: 'none',
-  cursor: 'pointer',
+  backgroundSize: "contain",
+  backgroundRepeat: "no-repeat",
+  width: "2vh",
+  height: "2vh",
+  border: "none",
+  cursor: "pointer",
 };
 
 const increaseButtonStyle = {
   ...arrowButtonStyle,
-  backgroundImage: `url(${require('@/assets/images/ingame/Arrow_Up.png')})`,
+  backgroundImage: `url(${require("@/assets/images/ingame/Arrow_Up.png")})`,
 };
 
 const decreaseButtonStyle = {
   ...arrowButtonStyle,
-  backgroundImage: `url(${require('@/assets/images/ingame/Arrow_Down.png')})`,
+  backgroundImage: `url(${require("@/assets/images/ingame/Arrow_Down.png")})`,
 };
 </script>
 
@@ -334,11 +435,8 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   color: rgb(214, 205, 170);
-  text-shadow: 
-    -0.07vh -0.07vh 0 #8b602b,  
-     0.07vh -0.07vh 0 #8b602b,
-    -0.07vh  0.07vh 0 #8b602b,
-     0.07vh  0.07vh 0 #8b602b;
+  text-shadow: -0.07vh -0.07vh 0 #8b602b, 0.07vh -0.07vh 0 #8b602b,
+    -0.07vh 0.07vh 0 #8b602b, 0.07vh 0.07vh 0 #8b602b;
   font-weight: bold;
   font-size: 2vh;
   z-index: 1;
@@ -384,15 +482,27 @@ body {
 }
 
 @keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.5); }
-  100% { transform: translate(-50%, -50%) scale(1); }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 @keyframes shrinkAndGrow {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(0.2); }
-  100% { transform: translate(-50%, -50%) scale(1); }
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .animateButton {
@@ -400,9 +510,15 @@ body {
 }
 
 @keyframes buttonPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.8); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .roll-button:hover,

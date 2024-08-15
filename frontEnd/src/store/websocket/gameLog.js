@@ -62,15 +62,22 @@ class GameLogWebSocketService {
 
   // 메시지 수신 시 호출할 콜백 등록
   onMessageReceived(messageType, callback) {
+    console.log("messageType", messageType);
+    console.log("test11111111111");
     if (!this.callbacks[messageType]) {
+      console.log("test12222222222222");
       this.callbacks[messageType] = [];
     }
+    console.log("test3333333333333");
+
     this.callbacks[messageType].push(callback);
-    console.log("TEST44444");
+    console.log("tes444444444444444");
 
     if (this.connected) {
+      console.log("test55555555555555555");
       this.subscribeToUrl(`/sub/game/messages/${this.roomID}`);
     } else if (!this.isConnecting) {
+      console.log("test666666666666666");
       this.connect(this.roomID);
     }
   }
@@ -96,11 +103,21 @@ class GameLogWebSocketService {
       console.log(`Message received from ${url}:`, message.body);
       const parsedMessage = JSON.parse(message.body);
 
+      console.log("parsedMessage", parsedMessage);
+
+      console.log("parsedMessage.gameType", parsedMessage.gameType);
+      console.log(
+        "this.callbacks[parsedMessage.gameType]",
+        this.callbacks[parsedMessage.gameType]
+      );
+
       // 메시지 타입별로 콜백 호출
       if (parsedMessage.gameType && this.callbacks[parsedMessage.gameType]) {
+        console.log("호출");
         this.callbacks[parsedMessage.gameType].forEach((callback) => {
           callback(parsedMessage);
         });
+        console.log("완료");
       }
     });
   }

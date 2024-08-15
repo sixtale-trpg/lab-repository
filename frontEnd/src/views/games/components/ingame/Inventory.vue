@@ -11,18 +11,31 @@
       >
         <div v-if="item">
           <img :src="item.imageURL" :alt="item.name" class="inventory-item" />
-          <span v-if="item.currentCount > 0 && item.currentCount !== -1" class="item-count">{{
-            item.currentCount
-          }}</span>
-          <button @click.stop="confirmDelete(item, index)" class="remove-item-button">
-            <img :src="require('@/assets/images/ingame/Delete.png')" alt="Delete" class="delete" />
+          <span
+            v-if="item.currentCount > 0 && item.currentCount !== -1"
+            class="item-count"
+            >{{ item.currentCount }}</span
+          >
+          <button
+            @click.stop="confirmDelete(item, index)"
+            class="remove-item-button"
+          >
+            <img
+              :src="require('@/assets/images/ingame/Delete.png')"
+              alt="Delete"
+              class="delete"
+            />
           </button>
           <div class="tooltip">클릭시 아이템 상세 정보를 볼 수 있습니다</div>
         </div>
       </div>
       <div v-if="items.length < maxSlots">
         <button @click="openAddItemModal" class="add-item-button">
-          <img :src="require('@/assets/images/ingame/Plus2.png')" alt="Add" class="add" />
+          <img
+            :src="require('@/assets/images/ingame/Plus2.png')"
+            alt="Add"
+            class="add"
+          />
         </button>
       </div>
     </div>
@@ -42,7 +55,12 @@
         @mouseover="showGoldTooltip"
         @mouseleave="hideGoldTooltip"
       >
-        <img :src="require('@/assets/images/ingame/Gold.png')" alt="Gold" class="gold-icon" /> GOLD:
+        <img
+          :src="require('@/assets/images/ingame/Gold.png')"
+          alt="Gold"
+          class="gold-icon"
+        />
+        GOLD:
         {{ currentGold }}
         <div v-if="isGM" class="tooltip">클릭시 골드 변경이 가능합니다</div>
       </div>
@@ -85,7 +103,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import { selectedPlayMemberID } from "@/store/state.js";
 import { getCharacterSheet } from "@/common/api/CharacterSheetAPI.js";
@@ -156,7 +174,9 @@ const fetchUserItems = async (playMemberID) => {
 
   try {
     const roomId = route.params.roomId;
-    console.log(`Fetching inventory for roomID: ${roomId} and playMemberID: ${playMemberID}`);
+    console.log(
+      `Fetching inventory for roomID: ${roomId} and playMemberID: ${playMemberID}`
+    );
     const characterSheet = await getCharacterSheet(roomId, playMemberID);
     if (characterSheet && Array.isArray(characterSheet.characterEquipment)) {
       items.value = characterSheet.characterEquipment;
@@ -199,7 +219,8 @@ const fetchRoomInfo = async () => {
 
 const updateCurrentWeight = () => {
   currentWeight.value = items.value.reduce(
-    (acc, item) => acc + item.weight * (item.currentCount > 0 ? item.currentCount : 1),
+    (acc, item) =>
+      acc + item.weight * (item.currentCount > 0 ? item.currentCount : 1),
     0
   );
 };
@@ -256,15 +277,13 @@ const closeConfirmDeleteModal = () => {
   selectedIndex.value = null;
 };
 
-
-
 // 데이터가 추가, 삭제된 후에 항상 서버에서 최신 데이터를 가져와서 업데이트합니다.
 const updateItem = async (updatedItem) => {
-  const itemIndex = items.value.findIndex(item => item.id === updatedItem.id);
+  const itemIndex = items.value.findIndex((item) => item.id === updatedItem.id);
   if (itemIndex !== -1) {
     items.value[itemIndex] = updatedItem;
     updateCurrentWeight();
-    
+
     // 서버에서 최신 데이터를 다시 가져오기
     await fetchUserItems(selectedPlayMemberID.value);
   }
@@ -275,11 +294,15 @@ const updateGold = (newGoldAmount) => {
 };
 
 const showTooltip = (event) => {
-  const tooltip = event.target.closest(".inventory-slot").querySelector(".tooltip");
+  const tooltip = event.target
+    .closest(".inventory-slot")
+    .querySelector(".tooltip");
   if (tooltip) {
     tooltip.style.visibility = "visible";
     tooltip.style.opacity = "1";
-    const slotRect = event.target.closest(".inventory-slot").getBoundingClientRect();
+    const slotRect = event.target
+      .closest(".inventory-slot")
+      .getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
     const top = slotRect.top + slotRect.height + 5;
     const left = slotRect.left + slotRect.width / 2 - tooltipRect.width / 2;
@@ -289,7 +312,9 @@ const showTooltip = (event) => {
 };
 
 const hideTooltip = (event) => {
-  const tooltip = event.target.closest(".inventory-slot").querySelector(".tooltip");
+  const tooltip = event.target
+    .closest(".inventory-slot")
+    .querySelector(".tooltip");
   if (tooltip) {
     tooltip.style.visibility = "hidden";
     tooltip.style.opacity = "0";
@@ -305,7 +330,8 @@ const handleItemSelected = async (item) => {
     // 기존 아이템이 있는 경우 수량을 업데이트
     const updatedItem = {
       ...items.value[existingItemIndex],
-      currentCount: items.value[existingItemIndex].currentCount + item.currentCount,
+      currentCount:
+        items.value[existingItemIndex].currentCount + item.currentCount,
     };
     items.value.splice(existingItemIndex, 1, updatedItem);
   } else {
@@ -315,7 +341,6 @@ const handleItemSelected = async (item) => {
   }
   updateCurrentWeight();
 
-
   items.value = [...items.value];
 
   // 여기서 추가된 아이템을 바로 반영하기 위해 서버에서 다시 데이터 불러오기
@@ -324,12 +349,11 @@ const handleItemSelected = async (item) => {
   closeAddItemModal();
 };
 
-
 const handleItemAdded = async (addedItem) => {
   console.log("Item added:", addedItem);
 
   // 서버에서 최신 데이터를 다시 가져오기
-  await fetchUserItems(selectedPlayMemberID.value); 
+  await fetchUserItems(selectedPlayMemberID.value);
   updateCurrentWeight();
 };
 
@@ -337,9 +361,9 @@ const handleDeleteConfirm = async () => {
   if (selectedIndex.value !== null) {
     items.value.splice(selectedIndex.value, 1);
     updateCurrentWeight();
-    
+
     // 서버에서 최신 데이터를 다시 가져오기
-    await fetchUserItems(selectedPlayMemberID.value); 
+    await fetchUserItems(selectedPlayMemberID.value);
     closeConfirmDeleteModal();
   }
 };
@@ -350,7 +374,9 @@ const showGoldTooltip = (event) => {
     if (tooltip) {
       tooltip.style.visibility = "visible";
       tooltip.style.opacity = "1";
-      const slotRect = event.target.closest(".info-box").getBoundingClientRect();
+      const slotRect = event.target
+        .closest(".info-box")
+        .getBoundingClientRect();
       const tooltipRect = tooltip.getBoundingClientRect();
       const top = slotRect.top + slotRect.height + 5;
       const left = slotRect.left + slotRect.width / 2 - tooltipRect.width / 2;
@@ -371,6 +397,8 @@ const hideGoldTooltip = (event) => {
 };
 
 onMounted(async () => {
+  console.log("인벤토리의 언마운트");
+
   await fetchRoomInfo();
   if (selectedPlayMemberID.value) {
     await fetchUserItems(selectedPlayMemberID.value);
@@ -382,21 +410,21 @@ onMounted(async () => {
     jobId.value = null;
   }
 
-  // 메세지 받아오는것
-  GameLogWebSocketService.onMessageReceived(async (message) => {
-      console.log(message)
-      switch(message.gameType){
-        case "GOLD":
-          await fetchUserItems(message.playMemberID)
-          break;
-        case "WEIGHT":
-          await fetchUserItems(message.playMemberID)
-          break;
-        default:
-          // 다른 메시지 타입의 처리 로직
-          break;
-      }
-    })
+  GameLogWebSocketService.connect(route.params.roomId);
+
+  GameLogWebSocketService.onMessageReceived("GOLD", (message) => {
+    console.log("Gold message received", message);
+    fetchUserItems(message.playMemberID);
+  });
+
+  GameLogWebSocketService.onMessageReceived("WEIGHT", (message) => {
+    console.log("Weight message received", message);
+    fetchUserItems(message.playMemberID);
+  });
+});
+
+onBeforeUnmount(() => {
+  GameLogWebSocketService.disconnect();
 });
 </script>
 

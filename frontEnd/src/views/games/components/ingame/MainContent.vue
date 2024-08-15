@@ -9,9 +9,9 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-import Map from '@/views/games/components/ingame/Map.vue';
-import RightGrid from '@/views/games/components/ingame/RightGrid.vue';
+import { defineProps } from "vue";
+import Map from "@/views/games/components/ingame/Map.vue";
+import RightGrid from "@/views/games/components/ingame/RightGrid.vue";
 
 // Props 정의
 const props = defineProps({

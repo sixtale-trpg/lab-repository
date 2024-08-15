@@ -1,7 +1,9 @@
 <template>
   <div class="modal-overlay" v-if="isVisible">
     <div class="modal-content" :style="modalContentStyle">
-      <button class="close-button" @click="closeModal" aria-label="닫기">&times;</button>
+      <button class="close-button" @click="closeModal" aria-label="닫기">
+        &times;
+      </button>
       <div class="modal-header">
         <div class="modal-title-container">
           <img
@@ -13,10 +15,16 @@
         </div>
       </div>
       <div class="modal-tabs">
-        <button :class="{ active: activeTab === 'job' }" @click="activeTab = 'job'">
+        <button
+          :class="{ active: activeTab === 'job' }"
+          @click="activeTab = 'job'"
+        >
           직업 아이템
         </button>
-        <button :class="{ active: activeTab === 'common' }" @click="activeTab = 'common'">
+        <button
+          :class="{ active: activeTab === 'common' }"
+          @click="activeTab = 'common'"
+        >
           공통 아이템
         </button>
       </div>
@@ -27,13 +35,21 @@
             :key="availableItem.id"
             class="available-item"
             @click="selectItem(availableItem)"
-            :class="{ selected: selectedItem && selectedItem.id === availableItem.id }"
+            :class="{
+              selected: selectedItem && selectedItem.id === availableItem.id,
+            }"
           >
-            <img :src="availableItem.imageUrl" :alt="availableItem.name" class="item-image" />
+            <img
+              :src="availableItem.imageUrl"
+              :alt="availableItem.name"
+              class="item-image"
+            />
             <div class="item-details">
               <span class="item-name">{{ availableItem.name }}</span>
               <span class="item-weight">무게: {{ availableItem.weight }}</span>
-              <span class="item-description">{{ availableItem.description }}</span>
+              <span class="item-description">{{
+                availableItem.description
+              }}</span>
               <span
                 v-if="availableItem.count > 0 && availableItem.count !== -1"
                 class="item-count"
@@ -42,7 +58,9 @@
             </div>
           </div>
         </div>
-        <div v-if="showWarning" class="warning-message">하중을 넘어섬으로 추가할 수 없습니다.</div>
+        <div v-if="showWarning" class="warning-message">
+          하중을 넘어섬으로 추가할 수 없습니다.
+        </div>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
         <div class="footer-left">
@@ -51,7 +69,13 @@
           </div>
         </div>
         <div class="footer-right">
-          <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
+          <button
+            class="footer-button"
+            :style="closeButtonStyle"
+            @click="closeModal"
+          >
+            닫기
+          </button>
           <button
             class="footer-button"
             :style="saveButtonStyle"
@@ -127,7 +151,8 @@ const addItem = async () => {
       try {
         const equipmentData = {
           equipmentId: selectedItem.value.id,
-          currentCount: selectedItem.value.count > 0 ? selectedItem.value.count : -1,
+          currentCount:
+            selectedItem.value.count > 0 ? selectedItem.value.count : -1,
           weight: selectedItem.value.weight,
         };
 
@@ -140,16 +165,18 @@ const addItem = async () => {
         // console.log("addItem response", response.data);
 
         // select-item 이벤트 발생
-        emit("select-item", { ...selectedItem.value, currentCount: selectedItem.value.count });
+        emit("select-item", {
+          ...selectedItem.value,
+          currentCount: selectedItem.value.count,
+        });
 
         //웹소켓 메시지 데이터
         const messageData = {
           gameType: "WEIGHT",
           roomID: parseInt(response.data.roomID, 10),
-          sheetID: parseInt(response.data.sheetID, 10),
-          // playMemberID: selectedPlayMemberID.value,
-          currentWeight: oldWeight,
-          updateWeight: newWeight,
+          playMemberID: selectedPlayMemberID.value,
+          currentWeight: parseInt(oldWeight, 10),
+          updateWeight: parseInt(newWeight, 10),
         };
         console.log("messageData", messageData);
 

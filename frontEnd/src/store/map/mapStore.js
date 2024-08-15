@@ -10,7 +10,7 @@ export const useMapStore = defineStore("map", {
     selectedMapId: null, // 선택한 맵의 ID를 저장할 상태
     selectedToken: {},
     currentTokenX: -1,
-    currentTokenY: -1
+    currentTokenY: -1,
   }),
 
   actions: {
@@ -33,7 +33,7 @@ export const useMapStore = defineStore("map", {
       this.isLoading = true;
       try {
         const response = await axios.get(
-          `http://i11d108.p.ssafy.io:8888/api/v1/rooms/${roomID}/maps/${mapID}`
+          `http://localhost:8888/api/v1/rooms/${roomID}/maps/${mapID}`
         );
       } catch (error) {
         this.error = error;
@@ -46,7 +46,7 @@ export const useMapStore = defineStore("map", {
     setCurrentTokenX(tokenX) {
       this.currentTokenX = tokenX;
     },
-    
+
     setCurrentTokenY(tokenY) {
       this.currentTokenY = tokenY;
     },

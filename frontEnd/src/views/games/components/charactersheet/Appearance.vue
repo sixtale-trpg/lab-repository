@@ -7,13 +7,13 @@
           <span class="title-text">AI 캐릭터 만들기</span>
         </div>
         <div class="description-warning">
-          <p>이미지를 생성하지 않으면 캐릭터 시트에 이미지가 저장되지 않습니다.</p>
-          <p>이미지가 생성되는 중 다른 탭으로 이동하지 마세요!</p>
+          <p>모든 정보를 입력하고 저장 버튼을 누르면 시트가 생성됩니다(4~5초)</p>
+          <p>음란 및 선정적인 문구나 잔인한 범죄행위 묘사요청은 불가능합니다.</p>
         </div>
         <div class="input-box">
           <textarea
             v-model="formData.appearance"
-            placeholder="예시: 착한 눈, 붉은 머리, 강인한 입술, 금발 곱슬머리"
+            placeholder="예시: 착한 눈, 붉은 머리, 강인한 입술, 금발 곱슬머리" 
             class="appearance-input"
           ></textarea>
         </div>
@@ -206,7 +206,6 @@ onMounted(() => {
   loadJobSpecificData();
 
   document.addEventListener('mousemove', updateTooltipPosition);
-  document.removeEventListener('mousemove', updateTooltipPosition);
 });
 
 // 부모 데이터가 변경되었을 때 자동으로 업데이트

@@ -20,6 +20,7 @@
     </div>
     <CharacterSheetDeleteModal
       v-if="isDeleteModalVisible"
+      :roomId="Number(roomId)" 
       @confirm="deleteCard"
       @close="hideDeleteModal"
     />
@@ -34,11 +35,38 @@ import startButtonImagePath from '@/assets/images/room/start_button.png';
 import CharacterSheetDeleteModal from '@/views/games/components/Modal/CharacterSheetDeleteModal.vue';
 
 const props = defineProps({
-  name: { type: String, required: true },
-  image: { type: String, required: true },
-  description: { type: String, required: true },
-  selectedBy: { type: String, default: '' },
-  disabled: { type: Boolean, default: false }
+  name: {
+    type: String,
+    required: true
+  },
+  image: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  selectedBy: {
+    type: String,
+    default: ''
+  },
+  generatedImages: {
+    type: Array,
+    default: () => []
+  },
+  selectedImage: {
+    type: String,
+    default: ''
+  },
+  disabled: {
+    type: Boolean,
+    default: false // 비활성화 상태를 나타내는 속성 추가
+  },
+  roomId: {
+    type: Number,
+    required: true,  // roomId를 필수로 설정
+  }
 });
 
 const emit = defineEmits(['select-card', 'delete-card']);

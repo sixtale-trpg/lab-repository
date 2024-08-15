@@ -3,15 +3,19 @@
     <Header class="header" />
     <div class="main-content">
       <div class="left-section">
-        <JobBoard class="job-board" />
+        <JobBoard 
+          class="job-board" 
+          :created-jobs="createdCharacterSheetJobs"
+          @job-selected="handleJobSelection"
+        />
         <VideoProfile class="video-profile" />
       </div>
       <div class="right-section">
-        <GMSection
-          class="gm-section"
-          :gm="gm"
-          :isGM="isGM"
-          @start-game="startGame"
+        <GMSection 
+          class="gm-section" 
+          :gm="gm" 
+          :isGM="isGM" 
+          @start-game="startGame" 
         />
         <Chatting class="chatting" />
       </div>
@@ -28,32 +32,62 @@ import VideoProfile from "@/views/games/components/charactersheet/VideoProfile.v
 import GMSection from "@/views/games/components/charactersheet/GMSection.vue";
 import Chatting from "@/views/games/components/charactersheet/Chatting.vue";
 import JobBoard from "./components/charactersheet/JobBoard.vue";
-import GameLogWebSocketService from "@/store/websocket/gameLog"; // GameLogWebSocket 서비스 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog";
+import { getRoomInfo } from '@/common/api/RoomsAPI';
+import { getMemberInfo } from '@/common/api/mypageAPI';
 
 const router = useRouter();
 const route = useRoute();
+const roomId = ref(null);
 
 const gm = ref({
   name: "GM닉네임입니다",
   profileImage: require("@/assets/images/users/gm.png"),
 });
 
-const isGM = ref(true);
+const createdCharacterSheetJobs = ref([]);
+const isGM = ref(false);
+const players = ref([]);
 const canStartGame = ref(false);
 
-const players = ref([
-  { id: 1, jobSelected: true },
-  { id: 2, jobSelected: true },
-  { id: 3, jobSelected: true },
-  { id: 4, jobSelected: true },
-]);
+const handleJobSelection = (jobId) => {
+  if (!createdCharacterSheetJobs.value.includes(jobId)) {
+    createdCharacterSheetJobs.value.push(jobId);
+  }
+};
+
+const fetchRoomDetails = async () => {
+  try {
+    roomId.value = route.params.roomId;
+    console.log(roomId.value);
+    const roomInfo = await getRoomInfo(roomId.value);
+    console.log('Room Info:', roomInfo);
+
+    gm.value.name = roomInfo.gmNickname;
+    gm.value.profileImage = roomInfo.gmImageURL || require('@/assets/images/users/default.png');
+
+    const memberInfo = await getMemberInfo();
+    console.log('Member Info:', memberInfo);
+
+    const currentUserId = memberInfo.data.data.id;
+    console.log('GM ID:', roomInfo.gmID);
+    console.log('Current User ID:', currentUserId);
+
+    if (roomInfo.gmID === currentUserId) {
+      isGM.value = true;
+      console.log('isGM:', isGM.value);
+    }
+  } catch (error) {
+    console.error('Error fetching room info or member info:', error);
+  }
+};
 
 onMounted(() => {
+  fetchRoomDetails();
   GameLogWebSocketService.connect(route.params.roomId);
 
   GameLogWebSocketService.onMessageReceived("GAME_START", (message) => {
     console.log("Start Game message received:", message);
-
     router.push(`/game/${route.params.roomId}/in-game`);
   });
 });
@@ -63,18 +97,17 @@ watch(players, (newPlayers) => {
 });
 
 onBeforeUnmount(() => {
-  // WebSocket 연결 해제
   GameLogWebSocketService.disconnect();
 });
 
 const startGame = () => {
-  // GameLogWebSocketService.sendMessage({
-  //   roomID: route.params.roomId,
-  //   gameType: "GAME_START",
-  // });
-  // if (isGM.value) {
-  //   router.push(`/game/${route.params.roomId}/in-game`);
-  // }
+  GameLogWebSocketService.sendMessage({
+    roomID: route.params.roomId,
+    gameType: "GAME_START",
+  });
+  if (isGM.value) {
+    router.push(`/game/${route.params.roomId}/in-game`);
+  }
 };
 
 const backgroundImage = require("@/assets/images/character_sheet/MainBackground.png");
@@ -84,6 +117,9 @@ const backgroundStyle = ref({
   backgroundPosition: "center",
 });
 </script>
+
+
+
 
 <style scoped>
 .character-sheet {

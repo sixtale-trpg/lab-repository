@@ -52,20 +52,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { getMapList } from '@/common/api/RoomsAPI';
-import { useMapStore } from '@/store/map/mapStore';
-import titleImage from '@/assets/images/maps/background/title.png';
-import mainBackground from '@/assets/images/maps/background/main_background.png';
-import tabBackground from '@/assets/images/maps/background/tab_background.png';
-import titleBackground from '@/assets/images/maps/background/nickname_light.png'; // 맵 제목 배경 이미지
-import closeButtonImage from '@/assets/images/maps/background/close.png'; // "닫기" 버튼 이미지
-import saveButtonImage from '@/assets/images/maps/background/save.png'; // "저장" 버튼 이미지
-import GameLogWebSocketService from '@/store/websocket/gameLog'; // WebSocket 서비스 가져오기
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRoute } from "vue-router";
+import { getMapList } from "@/common/api/RoomsAPI";
+import { useMapStore } from "@/store/map/mapStore";
+import titleImage from "@/assets/images/maps/background/title.png";
+import mainBackground from "@/assets/images/maps/background/main_background.png";
+import tabBackground from "@/assets/images/maps/background/tab_background.png";
+import titleBackground from "@/assets/images/maps/background/nickname_light.png"; // 맵 제목 배경 이미지
+import closeButtonImage from "@/assets/images/maps/background/close.png"; // "닫기" 버튼 이미지
+import saveButtonImage from "@/assets/images/maps/background/save.png"; // "저장" 버튼 이미지
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 // 이벤트 발신 설정
-const emit = defineEmits(['close', 'save']);
+const emit = defineEmits(["close", "save"]);
 
 // 모달 가시성 및 현재 맵 인덱스
 const isVisible = ref(true);
@@ -93,58 +93,64 @@ onMounted(async () => {
     error.value = err;
     isLoading.value = false;
   }
+
+  // GameLogWebSocketService.connect(roomId.value);
 });
+
+// onBeforeUnmount(() => {
+//   GameLogWebSocketService.disconnect();
+// });
 
 // 모달 콘텐츠 스타일
 const modalContentStyle = computed(() => ({
   background: `url(${mainBackground}) no-repeat center center`,
-  backgroundSize: 'cover',
+  backgroundSize: "cover",
 }));
 
 // 모달 바디 스타일
 const modalBodyStyle = computed(() => ({
   background: `url(${tabBackground}) no-repeat center center`,
-  backgroundSize: 'cover',
-  marginTop: '10px',
+  backgroundSize: "cover",
+  marginTop: "10px",
 }));
 
 // 모달 푸터 스타일
 const modalFooterStyle = computed(() => ({
   background: `url(${mainBackground}) no-repeat center center`,
-  backgroundSize: 'cover',
+  backgroundSize: "cover",
 }));
 
 // 맵 제목 스타일에 대한 계산 속성
 const getMapTitleStyle = computed(() => ({
   backgroundImage: `url(${titleBackground})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  width: '100%', // 이미지의 너비에 맞춤
-  height: '35px', // 이미지의 높이에 맞춤
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  color: '#fff',
-  fontSize: '1rem',
-  textAlign: 'center',
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  width: "100%", // 이미지의 너비에 맞춤
+  height: "35px", // 이미지의 높이에 맞춤
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  color: "#fff",
+  fontSize: "1rem",
+  textAlign: "center",
 }));
 
 // 닫기 버튼 스타일
 const closeButtonStyle = computed(() => ({
   background: `url(${closeButtonImage}) no-repeat center center`,
-  backgroundSize: 'cover',
+  backgroundSize: "cover",
 }));
 
 // 저장 버튼 스타일
 const saveButtonStyle = computed(() => ({
   background: `url(${saveButtonImage}) no-repeat center center`,
-  backgroundSize: 'cover',
+  backgroundSize: "cover",
 }));
 
 // 모달 닫기
 const closeModal = () => {
   isVisible.value = false;
-  emit('close');
+  emit("close");
 };
 
 // 맵 선택
@@ -157,24 +163,27 @@ const selectMap = (index) => {
 // 맵 선택 저장
 const saveSelection = () => {
   const selectedMap = mapData.value[currentMapIndex.value];
-  const previousMap = previousMapIndex.value !== null ? mapData.value[previousMapIndex.value] : null;
-  console.log('선택된 맵:', selectedMap);
+  const previousMap =
+    previousMapIndex.value !== null
+      ? mapData.value[previousMapIndex.value]
+      : null;
+  console.log("선택된 맵:", selectedMap);
   mapStore.setSelectedMap(selectedMap); // 저장 버튼을 눌렀을 때 선택한 맵과 이미지를 저장
 
   // Log the map change event
   const messageData = {
-    gameType: 'MAP_CHANGE',
+    gameType: "MAP_CHANGE",
     roomID: parseInt(roomId.value, 10),
-    currentMapID:previousMap ? previousMap.id : null,// 현재 선택된 맵 ID
+    currentMapID: previousMap ? previousMap.id : null, // 현재 선택된 맵 ID
     nextMapID: selectedMap.id, // 실제 다음 맵 ID로 업데이트 필요
   };
 
-  console.log(messageData)
+  console.log(messageData);
 
   // Send the log message via WebSocket
   GameLogWebSocketService.sendMessage(messageData);
 
-  emit('save', selectedMap);
+  emit("save", selectedMap);
 };
 </script>
 

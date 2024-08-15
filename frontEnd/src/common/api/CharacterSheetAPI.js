@@ -100,3 +100,16 @@ export const updateCharacterSheet2 = async (roomID, playMemberID, updatedData) =
     throw error;
   }
 };
+
+// 캐릭터 시트 삭제 요청 추가
+export const deleteCharacterSheet = async (roomId) => {
+  try {
+    const response = await axios.delete(`${BASE_SHEETS_URL}/${roomId}/sheets`, {
+      headers: getHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting character sheet:', error);
+    throw error;
+  }
+};

@@ -127,27 +127,30 @@ const openUserProfile = () => {
   align-items: center;
   justify-content: center;
   position: relative;
-  flex: 1;
+  width: 100%;
+  aspect-ratio: 1 / 11;
+  margin-bottom: 10px;
 }
 
 .profile-image-container {
   position: relative;
-  width: 90%;
-  height: 85%;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border-radius: 50%;
   background-color: #291707;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .profile-image {
-  width: 100%; /* 이미지를 컨테이너에 맞게 조절 */
-  height: 100%; /* 이미지를 컨테이너에 맞게 조절 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   border-radius: 50%;
   cursor: pointer;
+  z-index: 1;
 }
 
 .avatar-frame {
@@ -157,12 +160,16 @@ const openUserProfile = () => {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  border-radius: 50%;
+  z-index: 2;
 }
 
 .user-name {
   text-align: center;
   font-size: 90%;
+  width: 100%;
+  padding: 5px 0;
+  position: relative;
+  z-index: 3;
 }
 
 .user-name:hover::after {
@@ -174,7 +181,7 @@ const openUserProfile = () => {
   border-radius: 5px;
   white-space: nowrap;
   z-index: 10;
-  top: -25%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
 }

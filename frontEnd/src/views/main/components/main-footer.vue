@@ -6,7 +6,7 @@
       </div>
       <div class="footer-description">
         <p class="description">{{ description }}</p>
-        <p class="ceo-info">{{ ceoInfo }}</p>
+        <!-- <p class="ceo-info">{{ ceoInfo }}</p> -->
       </div>
       <div class="footer-company-info">
         <p v-for="(info, index) in companyInfo" :key="index">{{ info }}</p>
@@ -18,14 +18,13 @@
 <script setup>
 import { ref } from 'vue';
 
-const description = ref('Sixtale은 당신이 상상하던 이야기의 주인공이 되어 꿈을 이루게 합니다.');
-const ceoInfo = ref('대표이사: 미카엘');
+const description = ref('Sixtale에서 당신이 상상하던 이야기의 주인공이 되어 꿈을 이루어보세요.');
 const companyInfo = ref([
   'Sixtale 엔터테인먼트 유한 회사',
   '주소: 06164 서울시 강남구 테헤란로 521 파르나스타워 150층',
   '대표 번호: 1234-0000 | 팩스 번호: (02)123-4567 | 이메일: support@sixtale.com',
   '사업자 등록 번호: 211-87-49910 | 통신 판매업 신고 번호: 강남-6017호 | 사업자정보확인',
-  '대표이사: 미카엘 | 개인정보 보호책임자: 잭 스패로우'
+  '대표: 신건우 | 개인정보 보호책임자: 강동완'
 ]);
 </script>
 
@@ -80,7 +79,7 @@ const companyInfo = ref([
 
 .footer-company-info {
   margin-bottom: 20px;
-  text-align: left; 
+  text-align: center; 
   width: 100%; 
 }
 

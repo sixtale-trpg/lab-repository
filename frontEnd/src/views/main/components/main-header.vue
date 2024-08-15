@@ -8,7 +8,7 @@
       <ul>
         <li><router-link to="/rulebook">룰북</router-link></li>
         <li><router-link to="/scenarios">시나리오</router-link></li>
-        <li><router-link to="/find-players">구인광장</router-link></li>
+        <!-- <li><router-link to="/find-players">구인광장</router-link></li> -->
         <li><router-link to="/lobby">로비</router-link></li>
       </ul>
     </nav>
@@ -105,11 +105,15 @@ const { logout, deleteAccount } = useAccountApi(router);
   align-items: center;
   padding: 0 20px;
   width: 97% !important;
-  background: rgba(30, 30, 30, 0.88);
+  background: rgba(30, 30, 30, 0.6); /* 배경색 투명도 조정 */
+  backdrop-filter: blur(10px); /* 블러 효과 추가 */
+  -webkit-backdrop-filter: blur(10px); /* Safari를 위한 접두사 */
   border-radius: 15px;
   margin-left: 1.5%;
   color: white;
   top: 3% !important;
+  position: relative; /* position 추가 */
+  z-index: 1000; /* z-index 추가 */
 }
 
 .logo {

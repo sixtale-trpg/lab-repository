@@ -102,7 +102,7 @@ const sendButtonImage = require('@/assets/images/ingame/Send_Button.png');
 
 // 배경 스타일 설정
 const backgroundStyle = {
-  backgroundImage: `url(${backgroundImage})`,
+  // backgroundImage: `url(${backgroundImage})`,
   backgroundSize: '100%',
   backgroundPosition: 'center',
   padding: '10px',
@@ -110,6 +110,8 @@ const backgroundStyle = {
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
+  border: "1px solid #4A3A2E",
+  backgroundColor: '#251C15',
 };
 
 // 전송 버튼 스타일 설정
@@ -123,6 +125,7 @@ const sendButtonStyle = {
   border: 'none',
   cursor: 'pointer',
   backgroundRepeat: "no-repeat",
+   border: "1px solid #4A3A2E"
 };
 
 // 메시지 전송 함수
@@ -216,7 +219,7 @@ const selectTab = (key) => {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
-  border: 1px solid #444;
+  border: 1px solid #4A3A2E;
   color: white;
 }
 
@@ -231,12 +234,12 @@ const selectTab = (key) => {
   flex: 1;
   padding: 8px;
   border: 1px solid #444;
-  background-color: #222;
-  color: white;
+  background-color: #251C15;
+  color: rgb(191, 176, 142);
 }
 
 .chat-input input::placeholder {
-  color: white;
+  color: rgb(191, 176, 142);
 }
 
 .whisper-dropdown {

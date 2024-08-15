@@ -78,12 +78,13 @@
 
     <!-- 모달 -->
     <div
-      class="modal fade"
-      id="eventModal"
-      tabindex="-1"
-      aria-labelledby="eventModalLabel"
-      aria-hidden="true"
-    >
+    class="modal fade"
+    id="eventModal"
+    tabindex="-1"
+    aria-labelledby="eventModalLabel"
+    aria-hidden="true"
+    @keydown.enter="handleEnterKey"
+  >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content custom-modal" :style="modalStyle">
           <div class="modal-header custom-modal-header">
@@ -97,21 +98,22 @@
             ></button>
           </div>
           <div class="modal-body">
-            <p>현재 맵을 새 맵으로 교체하시겠습니까?</p>
+            <p>해당 맵으로 이동하시겠습니까?</p>
           </div>
           <div class="modal-footer custom-modal-footer">
             <button type="button" class="btn footer-button" data-bs-dismiss="modal">
               <img :src="cancelImage" alt="닫기" />
-              <span class="button-text">아니요</span>
+              <span class="button-text">취소</span>
             </button>
             <button
               type="button"
               class="btn footer-button"
               @click="changeMap(hoveredLaserDescription)"
               data-bs-dismiss="modal"
+              ref="confirmButton"
             >
               <img :src="okImage" alt="저장" />
-              <span class="button-text">예</span>
+              <span class="button-text">이동</span>
             </button>
           </div>
         </div>
@@ -121,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import ThreeJSManager from "@/common/lib/ThreeJSManager";
 import eventBus from "@/common/lib/eventBus.js";
 import { useMapStore } from "@/store/map/mapStore";
@@ -134,6 +136,7 @@ import titleImage from "@/assets/images/ingame/map/title.png";
 import cancelImage from "@/assets/images/ingame/map/cancel.png";
 import okImage from "@/assets/images/ingame/map/ok.png";
 import backButtonImage from "@/assets/images/ingame/map/back_button.png";
+const confirmButton = ref(null);
 
 const props = defineProps({
   selectedMap: {
@@ -459,6 +462,11 @@ const openModal = (row, col) => {
       backdrop: false,
     });
     modal.show();
+    nextTick(() => {
+      if (confirmButton.value) {
+        confirmButton.value.focus();
+      }
+    });
   }
 };
 
@@ -558,6 +566,23 @@ const toggleNpcList = () => {
 //   });
 // });
 
+const handleEnterKey = (event) => {
+  if (event.key === 'Enter') {
+    changeMap(hoveredLaserDescription.value);
+    closeModal();
+  }
+};
+
+const closeModal = () => {
+  const modal = bootstrap.Modal.getInstance(document.getElementById("eventModal"));
+  if (modal) {
+    modal.hide();
+  }
+};
+
+
+
+
 onUnmounted(() => {
   eventBus.off("dice-rolled", handleDiceRolled);
   window.removeEventListener("toggle-grid", () => {});
@@ -581,10 +606,9 @@ onUnmounted(() => {
   left: 0;
   width: 200px;
   background-color: rgba(0, 0, 0, 0.7);
-  color: #fff;
+  color: rgb(191, 176, 142);
   padding: 10px;
   z-index: 100;
-  overflow-y: auto;
   height: 100%;
   transition: transform 0.3s ease;
 }
@@ -732,7 +756,7 @@ onUnmounted(() => {
 
 .info-content h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
   text-align: center;
   overflow: hidden;

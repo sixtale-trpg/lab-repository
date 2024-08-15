@@ -29,9 +29,9 @@
               :style="{ marginTop: feature.marginTop }"
             />
           </div>
-          <h4 >{{ feature.title }}</h4>
-          <p v-html="feature.description"></p> 
-        </div>
+          <h4>{{ feature.title }}</h4>
+          <p v-html="feature.description"></p>
+         </div>
       </div>
     </div>
   </section>
@@ -93,10 +93,43 @@ const features = ref([
 </script>
 
 <style scoped>
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 700;
+  src: url('~@/assets/fonts/SpoqaHanSansNeo-Bold.woff2') format('woff2'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Bold.woff') format('woff'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 500;
+  src: url('~@/assets/fonts/SpoqaHanSansNeo-Medium.woff2') format('woff2'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Medium.woff') format('woff'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 400;
+  src: url('~@/assets/fonts/SpoqaHanSansNeo-Regular.woff2') format('woff2'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Regular.woff') format('woff'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 300;
+  src: url('~@/assets/fonts/SpoqaHanSansNeo-Light.woff2') format('woff2'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Light.woff') format('woff'),
+       url('~@/assets/fonts/SpoqaHanSansNeo-Light.ttf') format('truetype');
+}
+
 .information {
   background: linear-gradient(270deg, rgba(26, 26, 26, 0.45) 65%, #0a0a10 100%), linear-gradient(89.84deg, rgba(60, 60, 60, 0.9) 65.72%, #0a0a10 100%);
   color: white;
   padding: 0;
+  font-family: 'Spoqa Han Sans Neo', sans-serif;
 }
 
 .container {
@@ -130,12 +163,14 @@ const features = ref([
   font-size: 2.5rem; 
   margin: 0;
   color: #6981c0;
+  font-weight: 700;
 }
 
 .sub-description {
   font-size: 1.5rem; 
   margin-bottom: 70px;
   color: #c3c5ce;
+  font-weight: 400;
 }
 
 .features-grid {
@@ -152,6 +187,7 @@ const features = ref([
 
 .feature-item p {
   color: #9D9EAD;
+  font-weight: 300;
 }
 
 .feature-icon-wrapper {
@@ -171,10 +207,8 @@ const features = ref([
 
 h4 {
   margin-top: 10px;
-  font-weight: 400;
+  font-weight: 500;
   margin-bottom: 15px;
   color: #9D9EAD;
 }
-
-
 </style>

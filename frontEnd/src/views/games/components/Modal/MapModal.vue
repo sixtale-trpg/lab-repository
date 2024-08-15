@@ -44,7 +44,7 @@
           @click="saveSelection"
           :style="saveButtonStyle"
         >
-          저장
+          이동
         </button>
       </div>
     </div>
@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { getMapList } from '@/common/api/RoomsAPI';
 import { useMapStore } from '@/store/map/mapStore';
@@ -85,6 +85,7 @@ const roomId = ref(route.params.roomId);
 // 컴포넌트가 마운트되면 API를 통해 맵 데이터를 로드
 onMounted(async () => {
   try {
+    document.addEventListener('keydown', handleKeydown);
     // roomId는 prop이나 외부에서 제공받는다고 가정
     const response = await getMapList(roomId.value);
     mapData.value = response.mapList || [];
@@ -175,7 +176,18 @@ const saveSelection = () => {
   GameLogWebSocketService.sendMessage(messageData);
 
   emit('save', selectedMap);
+  closeModal();
 };
+
+const handleKeydown = (event) => {
+  if (event.key === 'Enter') {
+    saveSelection();
+  }
+};
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <style scoped>

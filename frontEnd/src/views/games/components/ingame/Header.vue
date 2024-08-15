@@ -5,15 +5,15 @@
       <img v-if="isGM" src="@/assets/images/ingame/Scenario.png" @click="openScenarioModal" class="icon" alt="Scenario" />
       <img v-if="isGM" src="@/assets/images/ingame/Map.png" @click="openMapModal" class="icon" alt="Map" />
       <img v-if="isGM" src="@/assets/images/ingame/Grid.png" @click="toggleGrid" class="icon" alt="Grid" />
-      <img v-if="isGM" src="@/assets/images/ingame/MuteAll.png" class="icon" alt="Mute" />
-      <img v-if="isGM" src="@/assets/images/ingame/Drawing.png" class="icon" alt="Paint" />
+      <!-- <img v-if="isGM" src="@/assets/images/ingame/MuteAll.png" class="icon" alt="Mute" />
+      <img v-if="isGM" src="@/assets/images/ingame/Drawing.png" class="icon" alt="Paint" /> -->
     </div>
     <div class="title-container">
-      <h1>{{ scenarioTitle }}</h1>
+      <h1 class="header-title">{{ scenarioTitle }}</h1>
     </div>
     <div class="header-right">
       <div class="timer-container">
-        <p>{{ formattedTimer }}</p>
+        <p >{{ formattedTimer }}</p>
       </div>
       <template v-if="isGM">
         <div class="close-icon-container">
@@ -40,7 +40,7 @@ import MapModal from '@/views/games/components/Modal/MapModal.vue';
 import GameEndModal from '@/views/games/components/Modal/GameEndModal.vue';
 
 const isGM = ref(true);
-const scenarioTitle = ref('로딩 중...');
+const scenarioTitle = ref('Loading...');
 const timer = ref(0); // 타이머를 초 단위로 저장
 const showRulebookModal = ref(false);
 const showScenarioModal = ref(false);
@@ -128,10 +128,12 @@ const toggleGrid = () => {
   padding: 0 20px;
   height: 100%;
 }
+
 .header-title, .header-center h1 {
   font-family: 'Abhaya Libre', sans-serif;
   font-weight: 800;
   font-style: normal;
+  font-size: 2rem;
 }
 
 .icon-container {
@@ -156,11 +158,12 @@ const toggleGrid = () => {
 }
 
 .timer-container {
-  background-color: #4A3B31; /* 타이머 배경색 */
-  padding: 5px 10px;
-  border-radius: 5px;
+  background-color: #281d0e; /* 타이머 배경색 */
+  padding: 8px 8px 10px 10px;
+  border-radius: 10px;
   font-size: 24px;
   margin-right: 20px;
+  font-weight: bold;
 }
 
 .timer-container p {

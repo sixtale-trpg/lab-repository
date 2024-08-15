@@ -145,7 +145,7 @@ const backgroundImage = require("@/assets/images/ingame/Border7.png");
 
 // 배경 스타일 설정
 const backgroundStyle = {
-  backgroundImage: `url(${backgroundImage})`,
+  // backgroundImage: `url(${backgroundImage})`,
   backgroundSize: "cover",
   backgroundPosition: "center",
   padding: "10px",
@@ -153,6 +153,8 @@ const backgroundStyle = {
   display: "flex",
   flexDirection: "column",
   height: "100%",
+  border: "1px solid #4A3A2E",
+  backgroundColor: '#251C15',
 };
 
 const selectTab = (key) => {
@@ -178,7 +180,7 @@ const selectTab = (key) => {
   flex: 1;
   padding: 5px; /* 높이를 줄임 */
   cursor: pointer;
-  border: 1px solid #333;
+  border: 1px solid #4A3A2E;
   color: white;
   background: linear-gradient(to bottom, #1a4e23, #102f12);
   text-align: center; /* 텍스트 중앙 배치 */
@@ -193,7 +195,7 @@ const selectTab = (key) => {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
-  border: 1px solid #444;
+  border: 1px solid #4A3A2E;
   color: white;
 }
 

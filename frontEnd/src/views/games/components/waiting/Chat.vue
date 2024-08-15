@@ -14,7 +14,7 @@
     <div :style="chatWindowStyle" class="chat-window log-content">
       <!-- 필터링된 메시지 출력 -->
       <div v-for="message in filteredMessages" :key="message.id" class="chat-message">
-        <span class="sender">{{ message.nickName }}:</span>
+        <span class="sender">{{ message.nickName }}: </span>
         <span class="text">{{ message.content }}</span>
       </div>
     </div>
@@ -257,10 +257,10 @@ const tabWhisperStyle = {
   backgroundImage: `url(${tabWhisperImage})`,
 };
 
-const activeTabStyle = {
-  backgroundColor: "rgba(255, 255, 255, 0.3)",
-  border: "2px solid #fff",
-};
+// const activeTabStyle = {
+//   backgroundColor: "rgba(255, 255, 255, 0.3)",
+//   border: "2px solid #fff",
+// };
 
 const inputContainerStyle = {
   display: "flex",
@@ -329,6 +329,7 @@ const sendButtonStyle = {
 .chat-message {
   /* margin-bottom: 5px; */
   color: white;
+  margin-left: 2.5%;
 }
 
 .sender {

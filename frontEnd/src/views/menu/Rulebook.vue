@@ -15,7 +15,7 @@
       </div>
       <div class="card-footer p-3">
         <div class="loading" v-if="data.loads">
-            <div class="loader2"></div>
+          <div class="loader2"></div>
         </div>
         <div class="input-group">
           <input
@@ -24,11 +24,11 @@
             v-model="data.userMessage"
             placeholder="무엇이 궁금하신가요?"
             @input="remember('userMessage', data.userMessage)"
+            @keyup.enter="run"
           />
           <button class="btn btn-outline-secondary rounded-end" type="button" @click="run"
           style="background-color: #4E5E8A;">
             <img src="@/assets/images/chat/send.png" width="30" height="30" />
-            <!-- <IconSearch :width="23" :height="23" :color="'#666666'" />  -->
           </button> 
         </div>
       </div>
@@ -92,31 +92,25 @@ watch(() => data.generatedMessages, saveGeneratedMessagesToLocalStorage, { deep:
 
 
 const run = async () => {
+  if (!data.userMessage.trim()) return; // 빈 메시지 전송 방지
+
   data.loads = true;
   const client = createClient(data.key);
   try {
-
     const userMessage = data.userMessage.trim();
-     if (userMessage) {
-    // 사용자 메시지 배열에 새 메시지 추가
     data.generatedMessages.push(new Message(ROLE_USER, userMessage));
     data.userMessage = ''; // 입력 필드 비우기
-       
-        const result = await createCompletion(client)({
-        messages: [{ role: ROLE_USER, content: userMessage }],
-      });
 
-      const content = result.content; // Adjust based on actual response structure
-      console.log(content);
-      data.generatedMessages.push(new Message(ROLE_ASSISTANT, content));
-      // await new Promise((resolve) => setTimeout(resolve, data.value.delaySeconds * 1000));
-      // data.value.loads = false;
-    }
-      // }
-    // }
-    
+    const result = await createCompletion(client)({
+      messages: [{ role: ROLE_USER, content: userMessage }],
+    });
+
+    const content = result.content;
+    console.log(content);
+    data.generatedMessages.push(new Message(ROLE_ASSISTANT, content));
   } catch (err) {
     data.error = err.message;
+  } finally {
     data.loads = false;
   }
 };
@@ -124,7 +118,9 @@ const run = async () => {
 
 <style scoped>
 
-
+.rule-book {
+  overflow-y: hidden;
+}
 
 /* 룰북 페이지 스타일 */
 .container {
@@ -137,7 +133,6 @@ const run = async () => {
   border-radius: 15px;
   min-height: 850px;
   max-height: 1000px;
-
 }
 
 

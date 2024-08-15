@@ -48,11 +48,17 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useMapStore } from "@/store/map/mapStore";
-import { getRoomInfo } from '@/common/api/RoomsAPI';  // API 함수들
-
+import { getRoomInfo } from "@/common/api/RoomsAPI"; // API 함수들
 
 const mapStore = useMapStore();
-const { selectedToken, selectToken, setCurrentTokenX, setCurrentTokenY, currentTokenX, currentTokenY } = mapStore;
+const {
+  selectedToken,
+  selectToken,
+  setCurrentTokenX,
+  setCurrentTokenY,
+  currentTokenX,
+  currentTokenY,
+} = mapStore;
 
 const tokens = ref([]);
 const tokenImage = require("@/assets/images/ingame/Token.png");

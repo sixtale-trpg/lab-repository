@@ -18,6 +18,13 @@
           <span class="button-text">게임 종료</span>
         </button>
       </div>
+      <div class="modal-body" :style="modalBodyStyle">
+        <p>정말 방을 폭파하시겠습니까?</p>
+      </div>
+      <div class="modal-footer" :style="modalFooterStyle">
+        <button class="footer-button delete-button" @click="confirmClose">게임 종료</button>
+        <button class="footer-button" @click="closeModal">취소</button>
+      </div>
     </div>
   </div>
 </template>

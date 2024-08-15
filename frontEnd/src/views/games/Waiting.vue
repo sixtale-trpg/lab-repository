@@ -68,7 +68,9 @@
               </div>
               <div class="content scenario-content">
                 <img :src="scenarioImagePath" class="scenario-image" />
-                <div class="scenario-text" @click="openScenarioModal">{{ scenario }}</div>
+                <div class="scenario-text" @click="openScenarioModal">
+                  {{ scenario }}
+                </div>
               </div>
             </div>
           </div>
@@ -76,7 +78,11 @@
         </div>
       </div>
     </div>
-    <Userinfo v-if="showUserModal" :user="selectedUser" @close="showUserModal = false" />
+    <Userinfo
+      v-if="showUserModal"
+      :user="selectedUser"
+      @close="showUserModal = false"
+    />
     <Userinfo v-if="showGMModal" :user="gm" @close="showGMModal = false" />
     <ScenarioModal
       v-if="isScenarioModalOpen"
@@ -88,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "vuex";
 import RoomHeader from "./components/waiting/RoomHeader.vue";
@@ -103,6 +109,7 @@ import { getRoomInfo, getMapList } from "@/common/api/RoomsAPI";
 import defaultImage from "@/assets/images/users/default.png";
 import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 가져오기 API
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // GameLogWebSocket 서비스 가져오기
 
 const store = useStore();
 
@@ -155,10 +162,23 @@ onMounted(async () => {
   fetchRoomDetails();
   fetchMapList();
 
+  WebSocketService.disconnect();
+  WebSocketService.connect(route.params.roomId, userId.value);
+
   // "ENTER" 메시지 타입에 대한 콜백 등록
   WebSocketService.onMessageReceived("ENTER", (message) => {
     console.log("Enter message received:", message);
     fetchRoomDetails();
+  });
+
+  // 게임 시작
+  WebSocketService.onMessageReceived("NEXT", (message) => {
+    console.log("Start Sheet message received:", message);
+
+    router.push({
+      name: "CharacterSheet",
+      params: { roomId: route.params.roomId },
+    });
   });
 
   // // 여기서부터
@@ -176,6 +196,11 @@ onMounted(async () => {
   //   }
   //   // messages.value.push(message); // 메시지 목록에 추가
   // });
+});
+
+onBeforeUnmount(() => {
+  // WebSocket 연결 해제
+  WebSocketService.disconnect();
 });
 
 /*
@@ -272,9 +297,10 @@ const closeScenarioModal = () => {
 };
 
 const startGame = () => {
-  router.push({
-    name: "CharacterSheet",
-    params: { roomId: route.params.roomId },
+  WebSocketService.sendMessage({
+    roomID: route.params.roomId,
+    memberID: userId.value,
+    type: "NEXT",
   });
 };
 
@@ -374,7 +400,9 @@ const gmNameStyle = computed(() => ({
 }));
 
 const truncatedGMName = computed(() => {
-  return gm.value.name.length > 10 ? gm.value.name.slice(0, 10) + "..." : gm.value.name;
+  return gm.value.name.length > 10
+    ? gm.value.name.slice(0, 10) + "..."
+    : gm.value.name;
 });
 
 const profileImageContainerStyle = {
@@ -459,7 +487,8 @@ const gameRuleContainerStyle = {
   lineHeight: "100%",
   color: "rgb(214, 205, 170)",
   background: "rgba(101, 78, 53, 0.49)",
-  boxShadow: "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
+  boxShadow:
+    "4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15)",
   cursor: "pointer",
 };
 
@@ -694,7 +723,8 @@ const calendarContainerStyle = {
 .scenario-text {
   color: rgb(214, 205, 170);
   background: rgba(101, 78, 53, 0.49);
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   font-size: 13px;
   padding: 10px;
@@ -743,7 +773,8 @@ const calendarContainerStyle = {
   width: 80%;
   height: 80%;
   background: rgba(101, 78, 53, 0.49);
-  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25), inset 4px 4px 4px rgba(255, 255, 255, 0.15);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.25),
+    inset 4px 4px 4px rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   padding: 10px;
 }

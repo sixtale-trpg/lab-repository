@@ -55,6 +55,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { getRoomInfo } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
 
 const tabs = [
   { key: 'all', label: '전체' },
@@ -63,6 +64,8 @@ const tabs = [
   { key: 'bot', label: '챗봇AI' },
 ];
 
+const route = useRoute();
+const roomID = ref(Number(route.params.roomId));
 const activeTab = ref('all');
 const message = ref('');
 const allMessages = ref([]); // 모든 메시지를 저장하는 배열
@@ -82,14 +85,12 @@ const users = ref([
 const selectedUser = ref(null);
 const roomInfo = ref(null); // 방 정보를 저장할 변수
 
-// 초기 방 ID 설정
-const initialRoomId = 1; // 실제로 사용하고자 하는 방 ID
 
 // 컴포넌트가 마운트되면 방 정보 가져오기
 onMounted(async () => {
   try {
     // 방 정보 가져오기
-    roomInfo.value = await getRoomInfo(initialRoomId);
+    roomInfo.value = await getRoomInfo(roomID);
     console.log('Room Info:', roomInfo.value);
   } catch (error) {
     console.error('Error fetching room info:', error);
@@ -133,7 +134,7 @@ const sendMessage = () => {
   if (message.value.trim() !== '') {
     const messageData = {
       id: Date.now(), // 메시지 ID 생성
-      roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
+      roomID: roomInfo.value ? roomInfo.value.id : roomID, // 가져온 방 정보에서 roomID 사용
       memberID: 1, // 사용자 ID, 임시 값으로 설정
       sender: 'Me', // 사용자 이름, 임시 값으로 설정
       content: message.value, // 메시지 내용

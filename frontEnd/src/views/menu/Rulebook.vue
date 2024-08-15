@@ -1,5 +1,5 @@
 <template>
-  <section class="rule-book">
+  <section>
     <div v-if="data.error" class="alert alert-danger alert-dismissible fade show" role="alert">
       {{ data.error }}
     </div>
@@ -38,7 +38,7 @@
 
 <script setup>
 import { computed, reactive,watch } from 'vue';
-import RuleResult from './components/RuleResult.vue';
+import RuleResult from './components/RuleResult.vue'; // 수정
 import {
   createCompletion,
   createClient,

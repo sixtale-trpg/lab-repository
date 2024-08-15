@@ -152,7 +152,7 @@ const googleLogin = () => {
 
 const naverLogin = () => {
   const clientId = "jCJ25DM0P7fbySK5L9Fd";
-  const redirectUri = "http://localhost:8888/api/v1/members/auth/login/naver";
+  const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/naver";
   const responseType = "code";
 
   const url = `https://nid.naver.com/oauth2.0/authorize?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}`;

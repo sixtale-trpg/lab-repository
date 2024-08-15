@@ -15,7 +15,9 @@
         <p>정말로 이 아이템을 삭제하시겠습니까?</p>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
-        <button class="footer-button delete-button" @click="handleDelete">삭제</button>
+        <button class="footer-button delete-button" @click="handleDelete">
+          삭제
+        </button>
         <button class="footer-button" @click="close">닫기</button>
       </div>
     </div>
@@ -47,10 +49,17 @@ const handleDelete = async () => {
       const roomId = route.params.roomId;
       const playMemberID = selectedPlayMemberID.value;
 
-      console.log("Deleting equipment with equipmentID:", props.item.equipmentID); // 로그 추가
+      console.log(
+        "Deleting equipment with equipmentID:",
+        props.item.equipmentID
+      ); // 로그 추가
 
       // 서버에 삭제 요청 (equipmentID를 사용)
-      const response = await deleteEquipment(roomId, playMemberID, props.item.equipmentID);
+      const response = await deleteEquipment(
+        roomId,
+        playMemberID,
+        props.item.equipmentID
+      );
       console.log("delete response", response.data);
       // 성공 시 confirm 이벤트 emit
       emit("confirm");
@@ -59,10 +68,9 @@ const handleDelete = async () => {
       const messageData = {
         gameType: "WEIGHT",
         roomID: parseInt(response.data.roomID, 10),
-        sheetID: parseInt(response.data.sheetID, 10),
-        // playMemberID: selectedPlayMemberID.value,
-        currentWeight: response.data.currentWeight,
-        updateWeight: response.data.updateWeight,
+        playMemberID: selectedPlayMemberID.value,
+        currentWeight: parseInt(response.data.currentWeight, 10),
+        updateWeight: parseInt(response.data.updateWeight, 10),
       };
 
       // 웹소켓 전달

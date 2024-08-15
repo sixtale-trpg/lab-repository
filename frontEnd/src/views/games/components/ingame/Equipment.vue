@@ -1,14 +1,18 @@
 <template>
   <div class="equipment-display-container">
     <div class="equipment-grid">
-      <div 
-        class="equipment-item-card" 
-        v-for="(item, index) in equipment" 
+      <div
+        class="equipment-item-card"
+        v-for="(item, index) in equipment"
         :key="index"
         @click="selectItem(item)"
         :class="{ active: selectedItem === item }"
       >
-        <img :src="item.imageURL || require('@/assets/images/ingame/Gold.png')" alt="아이템 이미지" class="item-image">
+        <img
+          :src="item.imageURL || require('@/assets/images/ingame/Gold.png')"
+          alt="아이템 이미지"
+          class="item-image"
+        />
         <div class="item-details">
           <div class="item-name">{{ item.name }}</div>
         </div>
@@ -18,25 +22,29 @@
       <div class="equipment-details">
         <div class="details-header">장비 설명</div>
         <div class="details-content">
-          <div class="details-text">{{ selectedItem ? selectedItem.description : '장비를 선택하세요.' }}</div>
+          <div class="details-text">
+            {{ selectedItem ? selectedItem.description : "장비를 선택하세요." }}
+          </div>
         </div>
       </div>
     </div>
     <div class="gold-display">
       <div class="gold-amount">소지 골드: {{ gold }}G</div>
     </div>
-    <div class="weight-info">현재 장비 하중: {{ currentWeight }} / 한계 장비 하중: {{ maxWeight }}</div>
+    <div class="weight-info">
+      현재 장비 하중: {{ currentWeight }} / 한계 장비 하중: {{ maxWeight }}
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, defineProps } from 'vue';
+import { ref, computed, defineProps } from "vue";
 
 const props = defineProps({
   equipmentData: Array,
   gold: Number,
   currentWeight: Number,
-  maxWeight: Number
+  maxWeight: Number,
 });
 
 const equipment = computed(() => props.equipmentData || []);
@@ -96,7 +104,8 @@ const selectItem = (item) => {
   color: #fff;
 }
 
-.equipment-item-card.active, .equipment-item-card:hover {
+.equipment-item-card.active,
+.equipment-item-card:hover {
   transform: scale(1.05);
 }
 

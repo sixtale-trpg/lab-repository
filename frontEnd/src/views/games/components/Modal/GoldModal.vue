@@ -13,7 +13,11 @@
       </div>
       <div class="modal-body" :style="modalBodyStyle">
         <div class="gold-container">
-          <img src="@/assets/images/ingame/Gold.png" alt="골드 이미지" class="gold-image" />
+          <img
+            src="@/assets/images/ingame/Gold.png"
+            alt="골드 이미지"
+            class="gold-image"
+          />
           <div class="gold-info">
             <div class="title-container">
               <img
@@ -42,15 +46,35 @@
         </div>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
-        <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
-        <button class="footer-button" :style="saveButtonStyle" @click="saveGold">저장</button>
+        <button
+          class="footer-button"
+          :style="closeButtonStyle"
+          @click="closeModal"
+        >
+          닫기
+        </button>
+        <button
+          class="footer-button"
+          :style="saveButtonStyle"
+          @click="saveGold"
+        >
+          저장
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, watch, onMounted } from "vue";
+import {
+  ref,
+  computed,
+  defineProps,
+  defineEmits,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+} from "vue";
 import { useRoute } from "vue-router";
 import { updateGold } from "@/common/api/InventoryAPI"; // 골드 수정 API 함수 임포트
 import { selectedPlayMemberID } from "@/store/state.js"; // 상태에서 직접 가져오기
@@ -94,16 +118,15 @@ watch(
 const closeModal = () => {
   emit("close");
 };
-// 웹소켓 마운트
-onMounted(() => {
-  GameLogWebSocketService.connect(route.params.roomId);
-});
+
 const saveGold = async () => {
   try {
     //골드 수정
-    const response = await updateGold(props.roomId, playMemberID, goldAmount.value); // API 호출
-
-    emit("update-gold", goldAmount.value);
+    const response = await updateGold(
+      props.roomId,
+      playMemberID,
+      goldAmount.value
+    ); // API 호출
 
     //웹소켓 메시지 데이터
     const messageData = {
@@ -111,12 +134,14 @@ const saveGold = async () => {
       roomID: parseInt(response.data.roomID, 10),
       // sheetID: parseInt(response.data.sheetID, 10),
       playMemberID: selectedPlayMemberID.value,
-      currentGold: response.data.currentGold,
-      updateGold: response.data.updateGold,
+      currentGold: parseInt(response.data.currentGold, 10),
+      updateGold: parseInt(response.data.updateGold, 10),
     };
 
     // 웹소켓 전달
     GameLogWebSocketService.sendMessage(messageData);
+
+    emit("update-gold", goldAmount.value);
     closeModal();
   } catch (error) {
     console.error("Failed to update gold:", error);

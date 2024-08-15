@@ -49,12 +49,24 @@ class GameLogWebSocketService {
     );
   }
 
+  // 기존 GameLogWebSocket 연결 해제
+  disconnect() {
+    if (this.connected && this.stompClient) {
+      this.stompClient.disconnect(() => {
+        console.log("Disconnected from WebSocket");
+        this.connected = false;
+        this.subscriptionUrls = [];
+      });
+    }
+  }
+
   // 메시지 수신 시 호출할 콜백 등록
   onMessageReceived(messageType, callback) {
     if (!this.callbacks[messageType]) {
       this.callbacks[messageType] = [];
     }
     this.callbacks[messageType].push(callback);
+    console.log("TEST44444");
 
     if (this.connected) {
       this.subscribeToUrl(`/sub/game/messages/${this.roomID}`);
@@ -85,8 +97,8 @@ class GameLogWebSocketService {
       const parsedMessage = JSON.parse(message.body);
 
       // 메시지 타입별로 콜백 호출
-      if (parsedMessage.type && this.callbacks[parsedMessage.type]) {
-        this.callbacks[parsedMessage.type].forEach((callback) => {
+      if (parsedMessage.gameType && this.callbacks[parsedMessage.gameType]) {
+        this.callbacks[parsedMessage.gameType].forEach((callback) => {
           callback(parsedMessage);
         });
       }

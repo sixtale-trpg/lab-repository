@@ -38,8 +38,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-               .setAllowedOrigins("*");
-//            .setAllowedOriginPatterns("http://localhost:8083", "https://i11d108.p.ssafy.io")
-//                .withSockJS();
+              //  .setAllowedOrigins("*");
+            .setAllowedOriginPatterns("http://localhost:8083", "https://i11d108.p.ssafy.io")
+                .withSockJS();
     }
 }

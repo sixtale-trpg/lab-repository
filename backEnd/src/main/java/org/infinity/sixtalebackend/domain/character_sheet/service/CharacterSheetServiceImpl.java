@@ -73,23 +73,33 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
         Race race = raceRepository.findById(characterSheetRequest.getRaceId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Race ID"));
 
-        byte[] byteArray = null;
-        URL url = new URL(characterSheetRequest.getImageURL());
-        // image url의 input stream, byte 배열로 저장할 output stream 열기
-        try(InputStream inputStream = url.openStream();
-            ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            // ImageIO.read()로 image url의 이미지 데이터 읽어오기
-            BufferedImage urlImage = ImageIO.read(inputStream);
-            // 메모리에 로드 된 이미지 데이터를 output stream에 jpg 확장자로 저장
-            ImageIO.write(urlImage, "jpg", bos);
-            // byte 배열로 변환
-            byteArray = bos.toByteArray();
+//        URL url = new URL(characterSheetRequest.getImageURL());
+//        List<String> listUrl = null;
+//        // image url의 input stream, byte 배열로 저장할 output stream 열기
+//        try(InputStream inputStream = url.openStream();
+//            ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+//            // ImageIO.read()로 image url의 이미지 데이터 읽어오기
+//            BufferedImage urlImage = ImageIO.read(inputStream);
+//            // 메모리에 로드 된 이미지 데이터를 output stream에 jpg 확장자로 저장
+//            ImageIO.write(urlImage, "jpg", bos);
+//            // byte 배열로 변환
+//            byte[]  byteArray = bos.toByteArray();
+//            MultipartFile multipartFile = new CustomMultipartFile(byteArray, characterSheetRequest.getImageURL());
+//            MultipartFile[] files = new MultipartFile[1];
+//        files[0] = multipartFile;
+//        log.info("helllo2");
+//        System.out.println(files[0]);
+//        System.out.println(files.toString());
+//        listUrl = s3Service.upload(files, "room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId());
+//        }
+        String s3Url = null;
+        try {
+            s3Url = s3Service.uploadImageFromUrl(characterSheetRequest.getImageURL());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
         }
 
-        MultipartFile multipartFile = new CustomMultipartFile(byteArray, characterSheetRequest.getImageURL());
-        MultipartFile[] files = new MultipartFile[1];
-        files[0] = multipartFile;
-        List<String> listUrl = s3Service.upload(files, "room" + "/" + roomID + "/" + "character_img" + "/" + playMember.getId());
 
         // 캐릭터 시트 저장
         CharacterSheet characterSheet = CharacterSheet.builder()
@@ -109,7 +119,7 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
                 .inspirationScore(characterSheetRequest.getInspirationScore())
                 .level(characterSheetRequest.getLevel())
                 .exp(characterSheetRequest.getExp())
-                .imageURL(listUrl.get(0))
+                .imageURL(s3Url)
                 .build();
         characterSheetRepository.save(characterSheet);
 
@@ -430,8 +440,8 @@ public class CharacterSheetServiceImpl implements CharacterSheetService{
      */
     @Override
     @Transactional
-    public void deleteCharacterSheet(Long roomID, Long playMemberID) {
-        PlayMember playMember = playMemberRepository.findByIdAndRoomId(playMemberID, roomID)
+    public void deleteCharacterSheet(Long roomID, Long memberID) {
+        PlayMember playMember = playMemberRepository.findByMemberIdAndRoomId(memberID, roomID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid PlayMember or Room ID"));
 
         CharacterSheet characterSheet = characterSheetRepository.findByPlayMember(playMember)

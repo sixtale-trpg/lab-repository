@@ -24,13 +24,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import Header from '@/views/games/components/charactersheet/Header.vue';
-import VideoProfile from '@/views/games/components/charactersheet/VideoProfile.vue';
-import GMSection from '@/views/games/components/charactersheet/GMSection.vue';
-import Chatting from '@/views/games/components/charactersheet/Chatting.vue';
-import JobBoard from './components/charactersheet/JobBoard.vue';
+import { onMounted, ref, watch, onBeforeUnmount } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import Header from "@/views/games/components/charactersheet/Header.vue";
+import JobCard from "@/views/games/components/charactersheet/JobCard.vue";
+import VideoProfile from "@/views/games/components/charactersheet/VideoProfile.vue";
+import GMSection from "@/views/games/components/charactersheet/GMSection.vue";
+import Chatting from "@/views/games/components/charactersheet/Chatting.vue";
+import JobBoard from "./components/charactersheet/JobBoard.vue";
+import GameLogWebSocketService from "@/store/websocket/gameLog";
 import { getRoomInfo } from '@/common/api/RoomsAPI';
 import { getMemberInfo } from '@/common/api/mypageAPI';
 
@@ -39,12 +41,14 @@ const route = useRoute();
 const roomId = ref(null);
 
 const gm = ref({
-  name: 'GM닉네임입니다',
-  profileImage: require('@/assets/images/users/gm.png'),
+  name: "GM닉네임입니다",
+  profileImage: require("@/assets/images/users/gm.png"),
 });
 
 const createdCharacterSheetJobs = ref([]);
 const isGM = ref(false);
+const players = ref([]);
+const canStartGame = ref(false);
 
 const handleJobSelection = (jobId) => {
   if (!createdCharacterSheetJobs.value.includes(jobId)) {
@@ -55,48 +59,65 @@ const handleJobSelection = (jobId) => {
 const fetchRoomDetails = async () => {
   try {
     roomId.value = route.params.roomId;
-    console.log(roomId.value)
+    console.log(roomId.value);
     const roomInfo = await getRoomInfo(roomId.value);
-    console.log('Room Info:', roomInfo); // roomInfo가 올바르게 반환되는지 확인
+    console.log('Room Info:', roomInfo);
 
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || require('@/assets/images/users/default.png');
 
     const memberInfo = await getMemberInfo();
-    console.log('Member Info:', memberInfo); // memberInfo가 올바르게 반환되는지 확인
+    console.log('Member Info:', memberInfo);
 
     const currentUserId = memberInfo.data.data.id;
-    console.log('GM ID:', roomInfo.gmID); // GM ID 확인
-    console.log('Current User ID:', currentUserId); // Current User ID 확인
+    console.log('GM ID:', roomInfo.gmID);
+    console.log('Current User ID:', currentUserId);
 
     if (roomInfo.gmID === currentUserId) {
-      isGM.value = true; // 현재 사용자가 GM이면 true로 설정
-      console.log('isGM:', isGM.value); // isGM이 true로 설정되었는지 확인
+      isGM.value = true;
+      console.log('isGM:', isGM.value);
     }
   } catch (error) {
     console.error('Error fetching room info or member info:', error);
   }
 };
 
-
 onMounted(() => {
   fetchRoomDetails();
+  GameLogWebSocketService.connect(route.params.roomId);
+
+  GameLogWebSocketService.onMessageReceived("GAME_START", (message) => {
+    console.log("Start Game message received:", message);
+    router.push(`/game/${route.params.roomId}/in-game`);
+  });
+});
+
+watch(players, (newPlayers) => {
+  canStartGame.value = newPlayers.every((player) => player.jobSelected);
+});
+
+onBeforeUnmount(() => {
+  GameLogWebSocketService.disconnect();
 });
 
 const startGame = () => {
+  GameLogWebSocketService.sendMessage({
+    roomID: route.params.roomId,
+    gameType: "GAME_START",
+  });
   if (isGM.value) {
     router.push(`/game/${route.params.roomId}/in-game`);
   }
 };
 
-const backgroundImage = require('@/assets/images/character_sheet/MainBackground.png');
+const backgroundImage = require("@/assets/images/character_sheet/MainBackground.png");
 const backgroundStyle = ref({
   backgroundImage: `url(${backgroundImage})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center'
+  backgroundSize: "cover",
+  backgroundPosition: "center",
 });
-
 </script>
+
 
 
 

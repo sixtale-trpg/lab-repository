@@ -1,5 +1,5 @@
 <template>
-  <section class="rule-book">
+  <section>
     <div v-if="data.error" class="alert alert-danger alert-dismissible fade show" role="alert">
       {{ data.error }}
     </div>
@@ -14,7 +14,7 @@
         <RuleResult :messages="generatedMessages" />
       </div>
       <div class="card-footer p-3">
-        <div class="loading" v-if="data.loads">
+        <div class="loading" v-if="data.loads">s
             <div class="loader2"></div>
         </div>
         <div class="input-group">
@@ -38,7 +38,7 @@
 
 <script setup>
 import { computed, reactive,watch } from 'vue';
-import RuleResult from './components/RuleResult.vue';
+import RuleResult from './components/RuleResult.vue'; // 수정
 import {
   createCompletion,
   createClient,

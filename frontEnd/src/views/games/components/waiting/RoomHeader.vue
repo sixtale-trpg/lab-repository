@@ -10,9 +10,12 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { leaveRoom } from '@/common/api/RoomsAPI';
+import { defineProps, ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { leaveRoom } from "@/common/api/RoomsAPI";
+import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 가져오기 API
+import { getRoomInfo } from "@/common/api/RoomsAPI";
+import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
 
 const props = defineProps({
   roomTitle: String,
@@ -23,20 +26,36 @@ const router = useRouter();
 const route = useRoute();
 
 const roomId = route.params.roomId;
-
+const room = ref({});
+const userId = ref(0);
 const goBack = async () => {
   try {
-    await leaveRoom(roomId); // 방에서 사용자 나가기 API 호출
-    router.push({ name: 'Lobby' }); // 로비로 이동
+    room.value = await getRoomInfo(roomId);
+    await getMemberInfo()
+      .then((response) => {
+        console.log(response.data.data);
+        userId.value = response.data.data.id;
+      })
+      .catch((error) => {
+        console.error("Failed to fetch member info:", error);
+      });
+
+    console.log("userId", userId.value);
+    console.log("room", room.value.gmID);
+    if (userId.value !== room.value.gmID) {
+      await leaveRoom(roomId); // 방에서 사용자 나가기 API 호출
+    } else {
+      WebSocketService.disconnect();
+    }
+    router.push({ name: "Lobby" }); // 로비로 이동
   } catch (error) {
-    console.error('Failed to leave the room:', error);
+    console.error("Failed to leave the room:", error);
     // 추가적인 오류 처리 가능
   }
 };
 
-
 const createSchedule = () => {
-  console.log('Creating new schedule');
+  console.log("Creating new schedule");
 };
 </script>
 
@@ -44,7 +63,7 @@ const createSchedule = () => {
 /* 스타일 코드는 그대로 유지 */
 .room-header {
   display: grid;
-  grid-template-columns: 1fr 1fr; 
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   background-color: #081017;
   color: white;
@@ -65,7 +84,7 @@ const createSchedule = () => {
 }
 
 .back-button img {
-  width: 30px; 
+  width: 30px;
   height: 30px;
   margin-right: 10px;
 }
@@ -76,19 +95,19 @@ const createSchedule = () => {
 
 .right-section {
   display: flex;
-  justify-content: align; 
+  justify-content: align;
   align-items: center;
-  gap: 10px; 
+  gap: 10px;
 }
 
 .next-schedule-box {
   display: flex;
   align-items: center;
-  background-color: #564307; 
+  background-color: #564307;
   border: 1px solid #ccc;
   padding: 5px 10px;
   border-radius: 5px;
-  color: white; 
+  color: white;
 }
 
 .next-schedule {
@@ -97,7 +116,7 @@ const createSchedule = () => {
 
 .create-button {
   padding: 5px 10px;
-  background-color: #564307; 
+  background-color: #564307;
   color: white; /* 하얀 글씨 */
   border: none;
   border-radius: 5px;

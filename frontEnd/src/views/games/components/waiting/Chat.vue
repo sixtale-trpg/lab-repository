@@ -11,7 +11,7 @@
         <span>{{ getTabText(tab) }}</span>
       </div>
     </div>
-    <div :style="chatWindowStyle" class="chat-window">
+    <div :style="chatWindowStyle" class="chat-window log-content">
       <!-- 필터링된 메시지 출력 -->
       <div v-for="message in filteredMessages" :key="message.id" class="chat-message">
         <span class="sender">{{ message.nickName }}:</span>
@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineProps } from "vue";
+import { ref, computed, onMounted, defineProps, nextTick, watch } from "vue";
 import WebSocketService from "@/store/websocket/waiting"; // WebSocket 서비스 가져오기
 import { getRoomInfo } from "@/common/api/RoomsAPI";
 import { getMemberInfo } from "@/common/api/mypageAPI";
@@ -60,6 +60,8 @@ const router = useRouter();
 // 현재 방 ID를 가져오기 위한 변수 (예: 실제로 사용하고자 하는 방 ID)
 const initialRoomId = 2; // 초기 방 ID 설정, 실제로 사용할 방 ID로 설정
 
+// const userId = ref(0);
+
 // 컴포넌트가 마운트되면 WebSocket 연결 설정 및 방 정보 가져오기
 onMounted(async () => {
   //회원 기본 정보
@@ -67,25 +69,46 @@ onMounted(async () => {
     .then((response) => {
       console.log(response.data.data);
       user.value = response.data.data;
+      console.log("-----------");
+      console.log("user", user.value);
+      // userId.value = response.data.data.id;
     })
     .catch((error) => {
       console.error("Failed to fetch member info:", error);
     });
 
+  // WebSocketService.connect(route.params.roomId, userId.value);
 
-  WebSocketService.connect(route.params.roomId, user.value.id);
-
-  // 서버로부터 메시지를 수신할 때마다 콜백 실행
-  WebSocketService.onMessageReceived((message) => {
-    console.log("경민"+" "+message)
-    switch(message.type){
-      case "ENTER":
-        console.log("222")
-      case "TALK":
-        console.log("222111")
-    }
+  // "TALK" 메시지 타입에 대한 콜백 등록
+  WebSocketService.onMessageReceived("CHAT", (message) => {
+    console.log("Talk message received:", message);
     messages.value.push(message); // 메시지 목록에 추가
+    console.log("메시지 목록에 추가");
   });
+
+  // "ENTER" 메시지 타입에 대한 콜백 등록
+  WebSocketService.onMessageReceived("ENTER", (message) => {
+    console.log("Enter message received:", message);
+    messages.value.push(message); // 메시지 목록에 추가
+    console.log("메시지 목록에 추가");
+    console.log(messages.value);
+    console.log("====================");
+  });
+
+  // WebSocketService.connect(route.params.roomId, user.value.id);
+
+  // // 서버로부터 메시지를 수신할 때마다 콜백 실행
+  // WebSocketService.onMessageReceived((message) => {
+  //   console.log("경민"+" "+message)
+  //   switch(message.type){
+  //     case "ENTER":
+  //       console.log("222")
+  //     case "TALK":
+  //       console.log("222111")
+  //   }
+  //   messages.value.push(message); // 메시지 목록에 추가
+  // });
+  scrollToBottom();
 });
 
 const selectTab = (tab) => {
@@ -122,7 +145,7 @@ const sendMessage = () => {
   if (newMessage.value.trim() === "") return;
 
   const messageData = {
-    roomID: parseInt(route.params.roomId,10), // 채팅방 ID
+    roomID: parseInt(route.params.roomId, 10), // 채팅방 ID
     memberID: user.value.id,
     // recipient: selectedTab.value === "whisper" ? "recipientUsername" : "", // 귓속말 대상자, 귓속말일 때만 설정
     content: newMessage.value, // 메시지 내용
@@ -151,6 +174,25 @@ const filteredMessages = computed(() => {
   }
   return messages.value.filter((message) => message.type === selectedTab.value); // 선택된 탭에 맞는 메시지 필터링
 });
+
+// 스크롤을 맨 아래로 이동시키는 함수
+const scrollToBottom = () => {
+  nextTick(() => {
+    const logContent = document.querySelector(".log-content");
+    if (logContent) {
+      logContent.scrollTop = logContent.scrollHeight;
+    }
+  });
+};
+
+// 메시지 배열의 깊은 변경을 감지
+watch(
+  filteredMessages,
+  (newMessages) => {
+    scrollToBottom();
+  },
+  { deep: true }
+);
 
 const chatSectionStyle = {
   height: "45%",
@@ -310,5 +352,19 @@ input::placeholder {
   .chat-tabs div {
     /* margin: 5px 0; */
   }
+}
+
+/* 스크롤바 스타일링 */
+.log-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-content::-webkit-scrollbar-track {
+}
+
+.log-content::-webkit-scrollbar-thumb {
+  background-color: #af8552;
+  border-radius: 5px;
+  border: 1px solid #274213;
 }
 </style>

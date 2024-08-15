@@ -2,6 +2,7 @@ package org.infinity.sixtalebackend.infra.websocket.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -17,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,5 +43,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
               //  .setAllowedOrigins("*");
             .setAllowedOriginPatterns("http://localhost:8083", "https://i11d108.p.ssafy.io")
                 .withSockJS();
+    }
+
+    // websocket 관련 설정
+    @Bean
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
+        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        container.setMaxTextMessageBufferSize(8192);
+        container.setMaxBinaryMessageBufferSize(8192);
+        return container;
     }
 }

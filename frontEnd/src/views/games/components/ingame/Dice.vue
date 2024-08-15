@@ -150,8 +150,6 @@ onMounted(() => {
       const newType = m.type.replace("D", "");
       setSelectedDice(parseInt(newType, 10), m.count);
     });
-
-    console.log("저장됨?", selectedDice.value);
   });
 });
 

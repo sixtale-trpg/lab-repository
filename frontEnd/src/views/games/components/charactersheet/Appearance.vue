@@ -6,9 +6,13 @@
           <img :src="titleImage" alt="Title" class="title-image">
           <span class="title-text">AI 캐릭터 만들기</span>
         </div>
+        <div class="description-warning">
+          <p>이미지를 생성하지 않으면 캐릭터 시트에 이미지가 저장되지 않습니다.</p>
+          <p>이미지가 생성되는 중 다른 탭으로 이동하지 마세요!</p>
+        </div>
         <div class="input-box">
           <textarea
-            v-model="formData.appearanceDescription"
+            v-model="formData.appearance"
             placeholder="예시: 착한 눈, 붉은 머리, 강인한 입술, 금발 곱슬머리"
             class="appearance-input"
           ></textarea>
@@ -38,7 +42,7 @@
             </button>
             <div class="help-icon-container" 
               @mouseenter="showTooltip = true"
-              @mouseleave="hideTooltip">
+              @mouseleave="showTooltip = false">
               <img
                 :src="helpIconImage"
                 alt="도움말"
@@ -81,6 +85,12 @@
               >
             </div>
           </div>
+          <button 
+            v-if="generatedImageUrl" 
+            @click="confirmImage" 
+            class="confirm-button">
+            이미지 확정
+          </button>
         </div>
       </div>
     </div>
@@ -88,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { handleGenerateImage } from '@/common/api/ImageAiAPI';
 
 // 이미지 경로 import
@@ -99,18 +109,25 @@ import helpIconImage from '@/assets/images/character_sheet/avatar/Help_Icon.png'
 import avatarFrameImage from '@/assets/images/character_sheet/avatar/Create_Avatar_Frame.png';
 import candidateFrameImage from '@/assets/images/character_sheet/avatar/Candidate_Frame.png';
 
-const props = defineProps(['formData']);
+const props = defineProps({
+  formData: {
+    type: Object,
+    required: true,
+  },
+  jobId: Number,
+  ruleId: Number,
+});
+
+const emit = defineEmits(['update:candidate-images', 'update:selected-image-url']);
+
 const generatedImageUrl = ref('');
-const previousImages = ref([]);
+const candidateImages = ref([null, null, null]); // 후보 이미지 목록
 const remainingClicks = ref(3);  // 남은 클릭 수
 const isButtonActive = ref(false);  // 버튼 활성화 상태
 const isLoading = ref(false); // 로딩 상태
 
-// 후보 액자에 사용할 이미지 목록
-const candidateImages = reactive([null, null, null]);
-
 const showTooltip = ref(false);
-const tooltipStyle = reactive({
+const tooltipStyle = ref({
   top: '0px',
   left: '0px'
 });
@@ -119,7 +136,7 @@ const tooltipRef = ref(null);
 
 const updateTooltipPosition = (event) => {
   if (!tooltipRef.value) return;
-  
+
   const rect = tooltipRef.value.getBoundingClientRect();
   const x = event.clientX + 20;
   const y = event.clientY + 20;
@@ -127,33 +144,41 @@ const updateTooltipPosition = (event) => {
   const maxX = window.innerWidth - rect.width;
   const maxY = window.innerHeight - rect.height;
 
-  tooltipStyle.left = `${Math.min(x, maxX)}px`;
-  tooltipStyle.top = `${Math.min(y, maxY)}px`;
+  tooltipStyle.value.left = `${Math.min(x, maxX)}px`;
+  tooltipStyle.value.top = `${Math.min(y, maxY)}px`;
   showTooltip.value = true;
 };
 
-const hideTooltip = () => {
-  showTooltip.value = false;
+// Local Storage에 저장된 클릭 횟수와 후보 이미지를 불러오기
+const loadJobSpecificData = () => {
+  // 부모 컴포넌트에서 데이터 로드
+  if (props.formData.candidateImages) {
+    candidateImages.value = props.formData.candidateImages;
+  }
+  if (props.formData.imageURL) {
+    generatedImageUrl.value = props.formData.imageURL;
+  }
+  remainingClicks.value = 3 - candidateImages.value.filter(img => img !== null).length;
 };
 
+// 이미지 생성 함수
 const generateImage = async () => {
   if (remainingClicks.value > 0 && !isLoading.value) {
     isLoading.value = true; // 로딩 상태 시작
     try {
-      const imageUrl = await handleGenerateImage(props.formData.appearanceDescription);
+      const imageUrl = await handleGenerateImage(props.formData.appearance);
+      console.log('API 응답:', imageUrl); // 콘솔에 데이터 구조 표시
       generatedImageUrl.value = imageUrl;
 
-      if (candidateImages[0] === null) {
-        candidateImages[0] = imageUrl;
-      } else if (candidateImages[1] === null) {
-        candidateImages[1] = imageUrl;
-      } else if (candidateImages[2] === null) {
-        candidateImages[2] = imageUrl;
+      // 후보 이미지 목록에 추가
+      const emptySlotIndex = candidateImages.value.findIndex(image => image === null);
+      if (emptySlotIndex !== -1) {
+        candidateImages.value[emptySlotIndex] = imageUrl;
+        emit('update:candidate-images', candidateImages.value); // 부모로 전송
       } else {
         console.log('모든 후보 액자가 이미 채워졌습니다.');
       }
 
-      previousImages.value.push(imageUrl);
       remainingClicks.value -= 1;  // 클릭 횟수 감소
     } catch (error) {
       console.error('이미지 생성 중 오류 발생:', error);
@@ -163,30 +188,38 @@ const generateImage = async () => {
   }
 };
 
-const onMouseDown = () => {
-  if (!isLoading.value && remainingClicks.value > 0) {
-    isButtonActive.value = true;
-  }
-};
-
-const onMouseUp = () => {
-  isButtonActive.value = false;
-};
-
-const onMouseLeave = () => {
-  isButtonActive.value = false;
-};
-
+// 이미지 선택 함수
 const selectImage = (image) => {
   generatedImageUrl.value = image;
 };
 
+// 이미지 확정 함수
+const confirmImage = () => {
+  props.formData.imageURL = generatedImageUrl.value; // 확정된 이미지를 부모 데이터로 전달
+  emit('update:selected-image-url', generatedImageUrl.value);
+  console.log('이미지 확정됨:', generatedImageUrl.value);
+};
+
+// 컴포넌트가 마운트될 때, 클릭 횟수와 후보 이미지를 로드
 onMounted(() => {
+  console.log('formData:', props.formData);
+  loadJobSpecificData();
+
   document.addEventListener('mousemove', updateTooltipPosition);
+  document.removeEventListener('mousemove', updateTooltipPosition);
 });
 
-onUnmounted(() => {
-  document.removeEventListener('mousemove', updateTooltipPosition);
+// 부모 데이터가 변경되었을 때 자동으로 업데이트
+watch(() => props.formData.candidateImages, (newVal) => {
+  if (newVal) {
+    candidateImages.value = newVal;
+  }
+});
+
+watch(() => props.formData.imageURL, (newVal) => {
+  if (newVal) {
+    generatedImageUrl.value = newVal;
+  }
 });
 </script>
 
@@ -239,6 +272,13 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   padding-bottom: 5%;
+}
+
+.description-warning {
+  text-align: center;
+  color: red;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .title-image {
@@ -310,11 +350,11 @@ onUnmounted(() => {
 }
 
 .create-button.not-allowed {
-  cursor: not-allowed; /* 클릭 불가 상태에서의 커서 모양 */
+  cursor: not-allowed;
 }
 
 .create-button img {
-  width: 100%; /* 버튼의 크기에 맞게 조정 */
+  width: 100%;
   height: auto;
 }
 
@@ -438,12 +478,28 @@ onUnmounted(() => {
 }
 
 .candidate-frame-wrapper:hover {
-  transform: scale(1.1); /* 호버 시 이미지와 액자가 살짝 커지도록 설정 */
+  transform: scale(1.1);
 }
 
 .candidate-frame-wrapper:not(.has-image) .candidate-frame {
   border-radius: 0;
   object-fit: contain;
+}
+
+.confirm-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #915B33;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.confirm-button:hover {
+  background-color: #7B4B28;
 }
 
 @media (max-width: 1024px) {

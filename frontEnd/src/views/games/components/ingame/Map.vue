@@ -11,7 +11,10 @@
         <div v-for="npc in npcList" :key="npc.id" class="npc-item">
           <p>{{ npc.description }}</p>
           <div class="npc-hp-bar">
-            <div class="npc-hp-fill" :style="{ width: npc.currentHp * 5 + '%' }"></div>
+            <div
+              class="npc-hp-fill"
+              :style="{ width: npc.currentHp * 5 + '%' }"
+            ></div>
           </div>
           <p v-if="isGM">
             <input
@@ -36,7 +39,11 @@
       class="token"
       v-for="token in placedTokens"
       :key="token.id"
-      :style="{ left: token.x + 'px', top: token.y + 'px', zIndex: token.zIndex || 2 }"
+      :style="{
+        left: token.x + 'px',
+        top: token.y + 'px',
+        zIndex: token.zIndex || 2,
+      }"
       @mousedown="startDrag(token, $event)"
       @dblclick="returnToken(token)"
     >
@@ -70,7 +77,11 @@
       v-if="hoveredLaserDescription"
       :style="{ left: tooltipPosition.x + 'px', top: tooltipPosition.y + 'px' }"
     >
-      <img class="info-background" :src="infoBackground" alt="Information Background" />
+      <img
+        class="info-background"
+        :src="infoBackground"
+        alt="Information Background"
+      />
       <div class="info-content">
         <h3>{{ hoveredLaserDescription.details }}</h3>
       </div>
@@ -100,7 +111,11 @@
             <p>현재 맵을 새 맵으로 교체하시겠습니까?</p>
           </div>
           <div class="modal-footer custom-modal-footer">
-            <button type="button" class="btn footer-button" data-bs-dismiss="modal">
+            <button
+              type="button"
+              class="btn footer-button"
+              data-bs-dismiss="modal"
+            >
               <img :src="cancelImage" alt="닫기" />
               <span class="button-text">아니요</span>
             </button>
@@ -135,8 +150,6 @@ import cancelImage from "@/assets/images/ingame/map/cancel.png";
 import okImage from "@/assets/images/ingame/map/ok.png";
 import backButtonImage from "@/assets/images/ingame/map/back_button.png";
 
-import InGameWebSocketService from "@/store/websocket/ingame"; // WebSocket 서비스 가져오기
-
 const props = defineProps({
   selectedMap: {
     type: Object,
@@ -157,7 +170,7 @@ const infoBackground = ref(require("@/assets/images/hover/token_hover.png"));
 const placedTokens = ref([]);
 const showGrid = ref(true);
 const gridSize = 50;
- 
+
 const npcData = ref({}); // NPC 정보를 저장할 객체
 const selectedMapIndex = ref(0);
 
@@ -170,7 +183,13 @@ const cellDescriptions = ref({});
 
 const messages = ref([]); // 모든 메시지를 저장하는 배열
 const newMessage = ref("");
-const { selectedMap, selectedToken, setSelectedMap, currentTokenX, currentTokenY } = mapStore;
+const {
+  selectedMap,
+  selectedToken,
+  setSelectedMap,
+  currentTokenX,
+  currentTokenY,
+} = mapStore;
 
 // selectedMap prop의 변경 사항 감시
 const tooltipPosition = ref({ x: 0, y: 0 });
@@ -278,29 +297,31 @@ const onLaserMouseEnter = (row, col, event) => {
   const description = getDescription(row, col);
   hoveredLaserDescription.value = { ...description, position: { row, col } };
 
-  const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
+  const mapRect = document
+    .querySelector(".map-section-container")
+    .getBoundingClientRect();
   const tooltipWidth = 300; // 툴팁의 예상 너비
   const tooltipHeight = 340; // 툴팁의 예상 높이
 
   let tooltipX = event.clientX + 10;
   let tooltipY = event.clientY + 10;
 
-    // 툴팁 위치 조정 로직
-    if (tooltipX + tooltipWidth > window.innerWidth) {
-        tooltipX = window.innerWidth - tooltipWidth - 10;
-    }
+  // 툴팁 위치 조정 로직
+  if (tooltipX + tooltipWidth > window.innerWidth) {
+    tooltipX = window.innerWidth - tooltipWidth - 10;
+  }
 
-    if (tooltipY + tooltipHeight > window.innerHeight) {
-        tooltipY = window.innerHeight - tooltipHeight - 10;
-    }
+  if (tooltipY + tooltipHeight > window.innerHeight) {
+    tooltipY = window.innerHeight - tooltipHeight - 10;
+  }
 
-    if (tooltipX < 0) {
-        tooltipX = 10;
-    }
+  if (tooltipX < 0) {
+    tooltipX = 10;
+  }
 
-    if (tooltipY < 0) {
-        tooltipY = 10;
-    }
+  if (tooltipY < 0) {
+    tooltipY = 10;
+  }
 
   tooltipPosition.value = { x: tooltipX, y: tooltipY };
 
@@ -361,7 +382,9 @@ const onDrop = (event) => {
         y: tokenY,
       });
 
-      console.log(`Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`);
+      console.log(
+        `Token placed at: (${tokenX.toFixed(1)}, ${tokenY.toFixed(1)})`
+      );
 
       // 토큰 좌표 이동 로그 전송
       sendMessage(tokenX.toFixed(1), tokenY.toFixed(1));
@@ -381,6 +404,8 @@ const sendMessage = (x, y) => {
   const currentX = parseInt(currentTokenX, 10);
   const currentY = parseInt(currentTokenY, 10);
 
+  console.log("selectedToken.value", selectedToken.value);
+
   const nextX = parseInt(x, 10);
   const nextY = parseInt(y, 10);
 
@@ -389,14 +414,14 @@ const sendMessage = (x, y) => {
     roomID: roomId.value,
     tokens: [
       {
-        sheetID: selectedToken.value.id,
+        playMemberID: selectedToken.value.id,
         currentPosition: { x: currentX, y: currentY },
         updatePosition: { x: nextX, y: nextY },
       },
     ],
   };
 
-  InGameWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
+  GameLogWebSocketService.sendMessage(messageData); // 서버로 메시지 전송
 };
 
 const deleteTokenFromMap = (token) => {
@@ -427,7 +452,9 @@ const startDrag = (token, event) => {
 
 const onDrag = (event) => {
   if (draggingToken) {
-    const mapRect = document.querySelector(".map-section-container").getBoundingClientRect();
+    const mapRect = document
+      .querySelector(".map-section-container")
+      .getBoundingClientRect();
     const newX = event.clientX - mapRect.left - offsetX;
     const newY = event.clientY - mapRect.top - offsetY;
 
@@ -438,7 +465,11 @@ const onDrag = (event) => {
 
 const stopDrag = () => {
   if (draggingToken) {
-    console.log(`Token dropped at: (${draggingToken.x.toFixed(1)}, ${draggingToken.y.toFixed(1)})`);
+    console.log(
+      `Token dropped at: (${draggingToken.x.toFixed(
+        1
+      )}, ${draggingToken.y.toFixed(1)})`
+    );
   }
   draggingToken = null;
   document.removeEventListener("mousemove", onDrag);
@@ -446,7 +477,9 @@ const stopDrag = () => {
 };
 
 const handleDiceRolled = (results) => {
-  results.forEach((result) => console.log(`${result.type}면체 주사위 결과: ${result.value}`));
+  results.forEach((result) =>
+    console.log(`${result.type}면체 주사위 결과: ${result.value}`)
+  );
 };
 
 const isLaserActive = (row, col) => {
@@ -468,19 +501,6 @@ const changeMap = async (description) => {
   console.log(description);
   if (description && description.nextMapUrl && description.nextMapId) {
     mapImage.value = description.nextMapUrl;
-
-      // 웹소켓 메시지 전송
-      // Log the map change event
-      const messageData = {
-        gameType: 'MAP_CHANGE',
-        roomID: parseInt(roomId.value, 10),
-        currentMapID: 0,// 현재 선택된 맵 ID
-        nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
-      };
-
-      GameLogWebSocketService.sendMessage(messageData);
-
-    // GameLogWebSocketService.sendMessage(messageData);
 
     try {
       const newMapId = description.nextMapId;
@@ -507,6 +527,16 @@ const changeMap = async (description) => {
           };
         });
 
+        // 웹소켓 메시지 전송
+        // Log the map change event
+        // const messageData = {
+        //   gameType: 'MAP_CHANGE',
+        //   roomID: parseInt(roomId.value, 10),
+        //   currentMapID: 0,// 현재 선택된 맵 ID
+        //   nextMapID: description.nextMapId, // 실제 다음 맵 ID로 업데이트 필요
+        // };
+
+        // GameLogWebSocketService.sendMessage(messageData);
         console.log("Updated Map Info:", mapInfo);
         console.log("Map Events on this map:", mapInfo.placeEvents); // 여기서 맵 이벤트 콘솔 출력
       } else {
@@ -556,10 +586,42 @@ const toggleNpcList = () => {
 };
 
 onMounted(async () => {
-  InGameWebSocketService.connect(roomId.value);
+  GameLogWebSocketService.connect(roomId.value);
+
   // 서버로부터 메시지를 수신할 때마다 콜백 실행
-  InGameWebSocketService.onMessageReceived((message) => {
+  GameLogWebSocketService.onMessageReceived("TOKEN_MOVE", (message) => {
+    console.log("Token Move message received:", message);
     messages.value.push(message); // 메시지 목록에 추가
+
+    // 토큰 이동
+    const { tokens } = message;
+    tokens.forEach((token) => {
+      const { playMemberID, updatePosition } = token;
+
+      //현재 맵에 있는 토큰 중에서 해당 ID를 가진 토큰 찾기
+      const movedToken = placedTokens.value.find((t) => t.id === playMemberID);
+
+      if (movedToken) {
+        movedToken.x = updatePosition.x;
+        movedToken.y = updatePosition.y;
+        console.log(
+          `Token with ID ${playMemberID} moved to (${updatePosition.x}, ${updatePosition.y})`
+        );
+      } else {
+        // 토큰 없으면 새로 추가
+        placedTokens.value.push({
+          id: playMemberID,
+          x: updatePosition.x,
+          y: updatePosition.y,
+          zIndex: 2,
+        });
+        console.log(
+          `Token with ID ${playMemberID} added at (${updatePosition.x}, ${updatePosition.y})`
+        );
+      }
+
+      console.log(placedTokens.value);
+    });
   });
 });
 
@@ -712,7 +774,7 @@ onUnmounted(() => {
 .info-panel {
   position: absolute;
   width: 30%;
-  height: 'auto';
+  height: "auto";
   background-color: rgba(0, 0, 0, 0.9);
   color: white;
   border-radius: 8px;
@@ -805,7 +867,6 @@ onUnmounted(() => {
   font-size: 10px; /* 본문 글씨 크기 줄이기 */
   line-height: 1.1; /* 줄 간격 줄이기 */
 }
-
 
 .modal-content {
   border-radius: 10px;

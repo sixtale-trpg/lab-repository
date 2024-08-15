@@ -164,7 +164,7 @@ const gmMaster = require('@/assets/images/character_sheet/Game_Master.png');
 }
 
 .gm-name {
-  font-size: 1.2rem;
+  font-size: 1.0rem;
   margin: 0;
   font-family: 'Abhaya Libre ExtraBold', sans-serif;
   font-style: normal;

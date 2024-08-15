@@ -55,6 +55,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { getRoomInfo } from '@/common/api/RoomsAPI';
+import { useRoute } from 'vue-router';
 
 // 탭 설정
 const tabs = [
@@ -83,14 +84,14 @@ const users = ref([
 const selectedUser = ref(null);
 const roomInfo = ref(null); // 방 정보를 저장할 변수
 
-// 초기 방 ID 설정
-const initialRoomId = 1; // 실제로 사용하고자 하는 방 ID
+const route = useRoute();
+const roomID = ref(Number(route.params.roomId));
 
 // 컴포넌트가 마운트되면 방 정보 가져오기
 onMounted(async () => {
   try {
     // 방 정보 가져오기
-    roomInfo.value = await getRoomInfo(initialRoomId);
+    roomInfo.value = await getRoomInfo(roomID);
     console.log('Room Info:', roomInfo.value);
   } catch (error) {
     console.error('Error fetching room info:', error);
@@ -132,7 +133,7 @@ const sendButtonStyle = {
 const sendMessage = () => {
   if (message.value.trim() !== '') {
     const messageData = {
-      roomID: roomInfo.value ? roomInfo.value.id : initialRoomId, // 가져온 방 정보에서 roomID 사용
+      roomID: roomInfo.value ? roomInfo.value.id : roomID, // 가져온 방 정보에서 roomID 사용
       memberID: 1, // 사용자 ID, 실제 값으로 설정
       content: message.value, // 메시지 내용
       type: selectedUser.value ? 'whisper' : 'chat', // 선택된 사용자가 있으면 귓속말, 없으면 일반 채팅

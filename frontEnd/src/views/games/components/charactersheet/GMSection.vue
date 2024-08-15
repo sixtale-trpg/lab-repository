@@ -1,5 +1,6 @@
 <template>
   <div class="gm-section-container">
+    <!-- GM 정보 및 게임 시작 버튼 -->
     <div class="gm-info">
       <div class="gm-name-box">
         <img :src="gmBoxImage" alt="GM Box" class="gm-box-image" />
@@ -11,7 +12,11 @@
           <VoiceChatButton :userId="gm.id" />
         </div>
       </div>
-      <button class="start-game-button" :disabled="!isGM" @click="startGame">
+      <button
+        class="start-game-button"
+        :disabled="!isGM" 
+        @click="startGame"
+      >
         <img :src="startButtonImagePath" alt="Start Game" class="start-button-image" />
         <span class="start-button-text">게임 시작</span>
       </button>
@@ -40,11 +45,10 @@ const props = defineProps({
   },
 });
 
-// GM 정보 객체 생성
 const gm = ref({
-  id: null, // GM의 고유 ID
-  name: '', // GM의 닉네임
-  profileImage: '', // GM 프로필 이미지
+  id: null,
+  name: '',
+  profileImage: '',
 });
 
 // 게임 로그 소켓을 캐릭터 시트에서 구독
@@ -58,6 +62,9 @@ onMounted(async () => {
     gm.value.name = roomInfo.gmNickname;
     gm.value.profileImage = roomInfo.gmImageURL || require('@/assets/images/users/default.png');
 
+    // 여기서 isGM을 콘솔에 출력하여 올바르게 설정되었는지 확인
+    console.log('isGM:', props.isGM);
+
     GameLogWebSocketService.connect(roomId.value);
   } catch (error) {
     console.error('Error fetching room info or connecting to WebSocket:', error);
@@ -70,7 +77,6 @@ onMounted(async () => {
         router.push(`/game/${route.params.roomId}/in-game`);
         break;
       default:
-        // 다른 메시지 타입의 처리 로직
         break;
     }
     console.log(message);
@@ -85,17 +91,17 @@ const startGame = () => {
     roomID: roomId.value, 
   };
 
-  // Send the log message via WebSocket
+  // WebSocket을 통해 게임 시작 메시지 전송
   GameLogWebSocketService.sendMessage(messageData);
   emit('start-game');
 };
 
-// GM 관련 이미지 설정
 const gmBoxImage = require('@/assets/images/character_sheet/gm_box.png');
 const gmMarkImage = require('@/assets/images/character_sheet/gm_mark.png');
 const startButtonImagePath = require('@/assets/images/room/start_button.png');
 const gmMaster = require('@/assets/images/character_sheet/Game_Master.png');
 </script>
+
 
 
 <style scoped>

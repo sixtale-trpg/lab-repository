@@ -121,6 +121,21 @@ export const getRoomInfo = async (roomId) => {
   }
 };
 
+
+// 게임 방 상태 변경
+export const updateRoomStatus = async (roomID, status) => {
+  try {
+    const response = await axios.patch(`${BASE_URL}/${roomID}/status`, { status }, {
+      headers: getHeaders()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating room status:', error);
+    throw error;
+  }
+};
+
+
 // 게임방에서 나가기
 export const leaveRoom = async (roomId) => {
   try {

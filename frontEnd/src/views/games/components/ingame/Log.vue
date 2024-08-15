@@ -29,14 +29,7 @@
 
 <script setup>
 import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
-import {
-  ref,
-  computed,
-  onMounted,
-  watch,
-  nextTick,
-  onBeforeUnmount,
-} from "vue";
+import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getRoomInfo } from "@/common/api/RoomsAPI";
 import { map } from "sockjs-client/lib/transport-list";
@@ -62,10 +55,7 @@ const loadMessagesFromLocalStorage = () => {
 };
 
 const saveMessagesToLocalStorage = () => {
-  localStorage.setItem(
-    `messages-${roomId.value}`,
-    JSON.stringify(messages.value)
-  );
+  localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
 };
 
 // 스크롤을 맨 아래로 이동시키는 함수
@@ -95,14 +85,52 @@ onMounted(async () => {
     // scrollToBottom();
     // saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
     // });
-
+    GameLogWebSocketService.onMessageReceived("GOLD", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+    GameLogWebSocketService.onMessageReceived("WEIGHT", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+    GameLogWebSocketService.onMessageReceived("TOKEN_MOVE", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+    GameLogWebSocketService.onMessageReceived("GAME_START", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+    GameLogWebSocketService.onMessageReceived("MAP_CHANGE", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+    GameLogWebSocketService.onMessageReceived("DICE_SETTING", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
+    GameLogWebSocketService.onMessageReceived("EVENT_HP_CHANGE", (message) => {
+      console.log("Talk message received:", message);
+      messages.value.push(message);
+      scrollToBottom();
+      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    });
     // 로컬 스토리지에서 메시지 로드
     loadMessagesFromLocalStorage();
   } catch (error) {
-    console.error(
-      "Error fetching room info or connecting to WebSocket:",
-      error
-    );
+    console.error("Error fetching room info or connecting to WebSocket:", error);
   }
 });
 

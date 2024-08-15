@@ -3,19 +3,24 @@ package org.infinity.sixtalebackend.domain.character_sheet.util;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.net.URLConnection;
 
 public class CustomMultipartFile implements MultipartFile {
     private byte[] input;
     private String filename;
+    private String contentType;
+
 
     public CustomMultipartFile(byte[] input,String filename) {
         this.input = input;
         this.filename = filename;
+        this.contentType = URLConnection.guessContentTypeFromName(filename);  // Content-Type 추측
+
     }
 
     @Override
     public String getName() {
-        return null;
+        return filename;
     }
 
     @Override
@@ -25,7 +30,7 @@ public class CustomMultipartFile implements MultipartFile {
 
     @Override
     public String getContentType() {
-        return null;
+        return contentType;
     }
 
     @Override

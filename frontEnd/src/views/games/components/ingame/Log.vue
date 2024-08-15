@@ -29,7 +29,14 @@
 
 <script setup>
 import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
-import { ref, computed, onMounted, watch, nextTick } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  watch,
+  nextTick,
+  onBeforeUnmount,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getRoomInfo } from "@/common/api/RoomsAPI";
 import { map } from "sockjs-client/lib/transport-list";
@@ -55,7 +62,10 @@ const loadMessagesFromLocalStorage = () => {
 };
 
 const saveMessagesToLocalStorage = () => {
-  localStorage.setItem(`messages-${roomId.value}`, JSON.stringify(messages.value));
+  localStorage.setItem(
+    `messages-${roomId.value}`,
+    JSON.stringify(messages.value)
+  );
 };
 
 // 스크롤을 맨 아래로 이동시키는 함수
@@ -80,38 +90,24 @@ onMounted(async () => {
     mapData.value = response.mapList || [];
 
     // 메세지 받아오는것
-    GameLogWebSocketService.onMessageReceived((message) => {
-      console.log(message);
-      console.log(11);
-      switch (message.gameType) {
-        case "MAP_CHANGE":
-          // 현재 선택된 맵의 데이터 가져오기
-          let selectedMap = mapData.value[message.nextMapID - 1];
-          mapStore.setSelectedMap(selectedMap);
-          break;
-        case "GAME_START":
-          // 게임 시작 시 페이지 이동
-          router.push(`/game/${route.params.roomId}/in-game`);
-          break;
-        case "WEIGHT":
-          // 시트 업데이트
-          // fetchUpdate(playMemberID);
-          break;
-        // case "GOLD":
-        default:
-          // 다른 메시지 타입의 처리 로직
-          break;
-      }
-      messages.value.push(message);
-      scrollToBottom();
-      saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
-    });
+    // GameLogWebSocketService.onMessageReceived((message) => {
+    // messages.value.push(message);
+    // scrollToBottom();
+    // saveMessagesToLocalStorage(); // 메시지를 로컬 스토리지에 저장
+    // });
 
     // 로컬 스토리지에서 메시지 로드
     loadMessagesFromLocalStorage();
   } catch (error) {
-    console.error("Error fetching room info or connecting to WebSocket:", error);
+    console.error(
+      "Error fetching room info or connecting to WebSocket:",
+      error
+    );
   }
+});
+
+onBeforeUnmount(() => {
+  GameLogWebSocketService.disconnect();
 });
 
 // 메시지 배열의 깊은 변경을 감지

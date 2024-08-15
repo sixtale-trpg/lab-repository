@@ -117,8 +117,12 @@ const naverLogin = async () => {
       <h2 class="modal-title">소셜 로그인</h2>
 
       <!-- 소셜 로그인 버튼 -->
-      <button class="social-btn google-btn" @click="googleLogin">Google 로그인</button>
-      <button class="social-btn naver-btn" @click="naverLogin">Naver 로그인</button>
+      <button class="social-btn google-btn" @click="googleLogin">
+        Google 로그인
+      </button>
+      <button class="social-btn naver-btn" @click="naverLogin">
+        Naver 로그인
+      </button>
     </div>
   </div>
 </template>
@@ -140,7 +144,8 @@ const closeModal = () => {
 
 // Google OAuth 로그인 처리
 const googleLogin = () => {
-  const clientId = "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
+  const clientId =
+    "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
   const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
   const responseType = "code";
   const scope = "email profile";

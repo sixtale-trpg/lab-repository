@@ -1,10 +1,20 @@
 <template>
   <div class="modal-overlay" v-if="isVisible">
     <div class="modal-content" :style="modalContentStyle">
-      <button class="close-button" :style="closeButtonStyle" @click="closeModal">✖</button>
+      <button
+        class="close-button"
+        :style="closeButtonStyle"
+        @click="closeModal"
+      >
+        ✖
+      </button>
       <div class="modal-header">
         <div class="modal-title-container">
-          <img src="@/assets/images/character_sheet/title.png" alt="제목" class="modal-title-image">
+          <img
+            src="@/assets/images/character_sheet/title.png"
+            alt="제목"
+            class="modal-title-image"
+          />
           <h2 class="modal-title-text">액션 설명</h2>
         </div>
       </div>
@@ -13,11 +23,19 @@
           <!-- 기존의 액션 정보 표시 -->
           <div class="info-item">
             <div class="title-container">
-              <img src="@/assets/images/character_sheet/nickname_light.png" alt="분류 배경" class="title-image">
+              <img
+                src="@/assets/images/character_sheet/nickname_light.png"
+                alt="분류 배경"
+                class="title-image"
+              />
               <span class="title-text">분류</span>
             </div>
             <div class="info-box">
-              <img src="@/assets/images/character_sheet/nickname_light.png" alt="분류명 배경" class="info-box-image">
+              <img
+                src="@/assets/images/character_sheet/nickname_light.png"
+                alt="분류명 배경"
+                class="info-box-image"
+              />
               <span class="info-text">{{ actionCategory }}</span>
             </div>
           </div>
@@ -25,21 +43,37 @@
           <div v-if="props.action.isDice" class="dice-info">
             <div class="info-item">
               <div class="title-container">
-                <img src="@/assets/images/character_sheet/nickname_light.png" alt="주사위 타입 배경" class="title-image">
+                <img
+                  src="@/assets/images/character_sheet/nickname_light.png"
+                  alt="주사위 타입 배경"
+                  class="title-image"
+                />
                 <span class="title-text">주사위 타입</span>
               </div>
               <div class="info-box">
-                <img src="@/assets/images/character_sheet/nickname_light.png" alt="타입명 배경" class="info-box-image">
+                <img
+                  src="@/assets/images/character_sheet/nickname_light.png"
+                  alt="타입명 배경"
+                  class="info-box-image"
+                />
                 <span class="info-text">D{{ props.action.diceType }}</span>
               </div>
             </div>
             <div class="info-item">
               <div class="title-container">
-                <img src="@/assets/images/character_sheet/nickname_light.png" alt="주사위 개수 배경" class="title-image">
+                <img
+                  src="@/assets/images/character_sheet/nickname_light.png"
+                  alt="주사위 개수 배경"
+                  class="title-image"
+                />
                 <span class="title-text">주사위 개수</span>
               </div>
               <div class="info-box">
-                <img src="@/assets/images/character_sheet/nickname_light.png" alt="개수명 배경" class="info-box-image">
+                <img
+                  src="@/assets/images/character_sheet/nickname_light.png"
+                  alt="개수명 배경"
+                  class="info-box-image"
+                />
                 <span class="info-text">{{ props.action.diceCount }}</span>
               </div>
             </div>
@@ -48,7 +82,11 @@
         <hr class="divider" />
         <div class="description-container">
           <div class="title-container">
-            <img src="@/assets/images/character_sheet/nickname_light.png" alt="설명 배경" class="title-image">
+            <img
+              src="@/assets/images/character_sheet/nickname_light.png"
+              alt="설명 배경"
+              class="title-image"
+            />
             <span class="title-text-large">설명</span>
           </div>
           <div class="description-box">
@@ -57,25 +95,51 @@
         </div>
       </div>
       <div class="modal-footer" :style="modalFooterStyle">
-        <button class="footer-button" :style="closeButtonStyle" @click="closeModal">닫기</button>
-        <button class="footer-button" :style="selectButtonStyle" @click="selectAction">선택</button>
+        <button
+          class="footer-button"
+          :style="closeButtonStyle"
+          @click="closeModal"
+        >
+          닫기
+        </button>
+        <button
+          class="footer-button"
+          :style="selectButtonStyle"
+          @click="selectAction"
+        >
+          선택
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, onMounted } from 'vue';
-import { setSelectedDice } from '@/store/state.js';
+import {
+  ref,
+  computed,
+  defineProps,
+  defineEmits,
+  onMounted,
+  onBeforeUnmount,
+} from "vue";
+import {
+  selectedPlayMemberID,
+  selectedDice,
+  setSelectedDice,
+} from "@/store/state.js";
+import { useRoute } from "vue-router";
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
-const props = defineProps(['action']);
-const emit = defineEmits(['close', 'select']);
+const props = defineProps(["action"]);
+const emit = defineEmits(["close", "select"]);
+const route = useRoute();
 
 const isVisible = ref(true);
 
 const closeModal = () => {
   isVisible.value = false;
-  emit('close');
+  emit("close");
 };
 
 const selectAction = () => {
@@ -83,65 +147,74 @@ const selectAction = () => {
     // 주사위 정보를 store의 상태에 저장
     setSelectedDice(props.action.diceType, props.action.diceCount);
   }
-  console.log(props.action)
-  // 여기
-  // 메시지 보내는 로직 추가
-  // ACTION
-  // playMemberID ? 
-  emit('select', props.action);
+  console.log(props.action);
+
+  // 메시지 보내는 로직
+  const messageData = {
+    gameType: "DICE_SETTING",
+    roomID: parseInt(route.params.roomId, 10),
+    playMemberID: selectedPlayMemberID.value,
+    diceRolls: [
+      {
+        type: selectedDice.value.type,
+        count: selectedDice.value.count,
+      },
+    ],
+  };
+
+  GameLogWebSocketService.sendMessage(messageData);
+
+  emit("select", props.action);
   closeModal();
 };
 
 const modalContentStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
-  width: '600px',
-  height: '600px'
+  background: `url(${require("@/assets/images/character_sheet/main_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
+  width: "600px",
+  height: "600px",
 }));
 
 const modalBodyStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/tab_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
-  marginTop: '10px',
-  padding: '20px'
+  background: `url(${require("@/assets/images/character_sheet/tab_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
+  marginTop: "10px",
+  padding: "20px",
 }));
 
 const modalFooterStyle = computed(() => ({
-  background: `url(${require('@/assets/images/character_sheet/main_background.png')}) no-repeat center center`,
-  backgroundSize: 'cover',
-  padding: '20px',
-  display: 'flex',
-  justifyContent: 'center',
-  borderRadius: '0 0 10px 10px'
+  background: `url(${require("@/assets/images/character_sheet/main_background.png")}) no-repeat center center`,
+  backgroundSize: "cover",
+  padding: "20px",
+  display: "flex",
+  justifyContent: "center",
+  borderRadius: "0 0 10px 10px",
 }));
 
 const closeButtonStyle = computed(() => ({
-  backgroundImage: `url(${require('@/assets/images/maps/background/close.png')})`,
-  backgroundSize: 'cover',
-  color: '#fff'
+  backgroundImage: `url(${require("@/assets/images/maps/background/close.png")})`,
+  backgroundSize: "cover",
+  color: "#fff",
 }));
 
 const selectButtonStyle = computed(() => ({
-  backgroundImage: `url(${require('@/assets/images/maps/background/save.png')})`,
-  backgroundSize: 'cover',
-  color: '#fff'
+  backgroundImage: `url(${require("@/assets/images/maps/background/save.png")})`,
+  backgroundSize: "cover",
+  color: "#fff",
 }));
 
 const actionCategory = computed(() => props.action.category);
 const actionName = computed(() => props.action.name);
 const formattedDescription = computed(() => {
-  let description = props.action.description.replace(/<br>/g, '<br/>');
+  let description = props.action.description.replace(/<br>/g, "<br/>");
   if (props.action.actionOption && props.action.actionOption.length > 0) {
-    const optionsList = props.action.actionOption.map(option => `<li>${option.content}</li>`).join('');
+    const optionsList = props.action.actionOption
+      .map((option) => `<li>${option.content}</li>`)
+      .join("");
     description += `<ul>${optionsList}</ul>`;
   }
   return description;
 });
-
-onMounted(() => {
-  console.log("Action data on modal open:", props.action);
-});
-
 </script>
 
 <style scoped>
@@ -228,7 +301,6 @@ onMounted(() => {
   border-radius: 5px;
   border: 2px solid #201805;
 }
-
 
 .action-info {
   display: flex;

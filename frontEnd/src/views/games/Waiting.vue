@@ -18,39 +18,31 @@
       <div class="right-section">
         <div :style="topSectionStyle" class="top-section">
           <Map :roomId="roomId" :mapList="mapList" :gmName="gm.name" />
-          <div :style="gmCardStyle" class="gm-section">
-            <div class="gm-info">
-              <div
-                :style="profileImageContainerStyle"
-                class="profile-image-container"
+            <div :style="gmCardStyle" class="gm-section">
+              <div class="gm-info">
+                <div class="profile-image-container">
+                  <div class="image-wrapper">
+                    <img
+                      :src="gm.profileImage || defaultImage"
+                      alt="GM 프로필"
+                      class="profile-image"
+                      @click="showGMModal = true"
+                    />
+                  </div>
+                  <img :src="avatarFrameImagePath" alt="테두리" class="avatar-frame" />
+                </div>
+                <div :style="gmNameStyle" class="gm-name" :title="gm.name">
+                  {{ truncatedGMName }}
+                </div>
+              </div>
+              <button
+                :disabled="nickName !== gm.name"
+                :style="[startGameButtonStyle, nickName !== gm.name ? disabledButtonStyle : {}]"
+                class="start-game-button"
+                @click="startGame"
               >
-                <img
-                  :src="gm.profileImage || defaultImage"
-                  alt="GM 프로필"
-                  class="profile-image"
-                  @click="showGMModal = true"
-                />
-                <img
-                  :src="avatarFrameImagePath"
-                  alt="테두리"
-                  class="avatar-frame"
-                />
-              </div>
-              <div :style="gmNameStyle" class="gm-name" :title="gm.name">
-                {{ truncatedGMName }}
-              </div>
-            </div>
-            <button
-              :disabled="nickName !== gm.name"
-              :style="[
-                startGameButtonStyle,
-                nickName !== gm.name ? disabledButtonStyle : {},
-              ]"
-              class="start-game-button"
-              @click="startGame"
-            >
-              게임 시작
-            </button>
+                게임 시작
+              </button>
           </div>
         </div>
         <div class="details">
@@ -395,13 +387,15 @@ const gmNameStyle = computed(() => ({
   color: "#ffffff",
   border: "1px solid #5a4d41",
   marginTop: "8%",
-  width: "110%",
+  marginBottom: "8%",
+  width: "100%",
   textAlign: "center",
-  display: "inline-block",
-  height: "15%",
-  lineHeight: "1.5",
+  display: "flex",
+  height: "100%",
   overflow: "hidden",
+  alignItems: "center",
   textOverflow: "ellipsis",
+  justifyContent: "center",
   whiteSpace: "nowrap",
 }));
 
@@ -440,7 +434,6 @@ const startGameButtonStyle = {
   marginTop: "8%",
   border: "none",
   textAlign: "center",
-  marginLeft: "6%",
 };
 
 const disabledButtonStyle = {
@@ -586,36 +579,70 @@ const calendarContainerStyle = {
   border: 1px solid #5a4d41;
 }
 
-.gm-profile {
+.gm-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.profile-image-container {
+  position: relative;
+  width: 80%;
+  padding-bottom: 80%;
+  margin-bottom: 10px;
+}
+
+.image-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gm-name {
+  margin-top: 10px;
+}
+
+/* .gm-profile {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   flex: 1;
-}
+} */
 
-.profile-image-container {
+/* .profile-image-container {
   position: relative;
-  width: 100%; /* 너비를 100%로 설정 */
-  padding-bottom: 100%; /* 정사각형을 유지 */
+  width: 100%;
+  padding-bottom: 100%;
   overflow: hidden;
-  border-radius: 50%; /* 원형으로 유지 */
+  border-radius: 50%;
   background-color: #291707;
   display: flex;
   align-items: center;
   justify-content: center;
-}
+} */
 
-.profile-image {
+/* .profile-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 이미지 비율을 유지하면서 컨테이너를 완전히 채움 */
-  border-radius: 50%; /* 이미지를 원형으로 만듦 */
-  position: absolute; /* 이미지가 컨테이너 내에서 정렬되도록 함 */
+  object-fit: cover; 
+  border-radius: 50%; 
+  position: absolute; 
   top: 0;
   left: 0;
-}
+} */
 
 .avatar-frame {
   position: absolute;
@@ -624,8 +651,17 @@ const calendarContainerStyle = {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  border-radius: 50%;
 }
+
+/* .avatar-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 50%;
+} */
 
 .info-icon {
   width: 1.04vw;

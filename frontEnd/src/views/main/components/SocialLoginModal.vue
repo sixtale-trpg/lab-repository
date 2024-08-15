@@ -111,16 +111,18 @@ const naverLogin = async () => {
 }
 </style> -->
 <template>
-  <div v-if="modelValue" class="modal" @click.self="closeModal">
-    <div class="modal-content">
-      <span class="close-btn" @click="closeModal">&times;</span>
-      <h2 class="modal-title">소셜 로그인</h2>
-
-      <!-- 소셜 로그인 버튼 -->
-      <button class="social-btn google-btn" @click="googleLogin">Google 로그인</button>
-      <button class="social-btn naver-btn" @click="naverLogin">Naver 로그인</button>
+  <Teleport to="body">
+    <div v-if="modelValue" class="modal" @click.self="closeModal">
+      <div class="modal-content">
+        <span class="close-btn" @click="closeModal">&times;</span>
+        <h2 class="modal-title">소셜 로그인</h2>
+        <div class="button-container">
+          <button class="social-btn google-btn" @click="googleLogin">Google 로그인</button>
+          <button class="social-btn naver-btn" @click="naverLogin">Naver 로그인</button>
+        </div>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -138,7 +140,6 @@ const closeModal = () => {
   emit("update:modelValue", false);
 };
 
-// Google OAuth 로그인 처리
 const googleLogin = () => {
   const clientId = "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
   const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
@@ -148,28 +149,7 @@ const googleLogin = () => {
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
   window.location.href = url;
 };
-// const googleLogin = async () => {
-//   const clientId =
-//     "288654374576-oakoiq7biqtduolbs3rfgef4cb30umr1.apps.googleusercontent.com";
-//   const redirectUri = "http://localhost:8888/api/v1/members/auth/login/google";
-//   const responseType = "code";
-//   const scope = "email profile";
 
-//   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
-
-//   window.location.href = url;
-// };
-// const naverLogin = async () => {
-//   const clientId = "jCJ25DM0P7fbySK5L9Fd";
-//   const redirectUri = "http://localhost:8888/api/v1/members/auth/login/naver";
-//   const responseType = "code";
-//   // const scope = 'email profile_image'
-
-//   const url = `https://nid.naver.com/oauth2.0/authorize?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}`;
-
-//   window.location.href = url;
-// };
-// Naver OAuth 로그인 처리
 const naverLogin = () => {
   const clientId = "jCJ25DM0P7fbySK5L9Fd";
   const redirectUri = "https://i11d108.p.ssafy.io/api/v1/members/auth/login/naver";
@@ -187,7 +167,7 @@ const naverLogin = () => {
   justify-content: center;
   align-items: center;
   position: fixed;
-  z-index: 1000;
+  z-index: 9999;
   left: 0;
   top: 0;
   width: 100%;
@@ -195,13 +175,16 @@ const naverLogin = () => {
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.7);
 }
-
 .modal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   background-color: #1c1c1c;
   color: #ffffff;
   padding: 30px;
   border: 2px solid #888;
   width: 400px;
+  height: 300px;
   text-align: center;
   box-shadow: 0px 0px 10px #000000;
   position: relative;
@@ -222,16 +205,22 @@ const naverLogin = () => {
   font-weight: bold;
   cursor: pointer;
 }
-
 .close-btn:hover {
   color: #ff0000;
 }
 
+.button-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+}
+
 .social-btn {
-  display: block;
-  width: 100%;
+  width: 80%;
   padding: 10px;
-  margin: 20px 0;
+  margin: 10px 0;
   font-size: 18px;
   color: white;
   border: none;
@@ -239,20 +228,19 @@ const naverLogin = () => {
   border-radius: 5px;
   transition: background-color 0.3s ease;
 }
-
 .google-btn {
-  background-color: #db4437;
+  background-color: #ae443a;
 }
 
 .google-btn:hover {
-  background-color: #c33d30;
+  background-color: #d16b62;
 }
 
 .naver-btn {
-  background-color: #1ec800;
+  background-color: #78b76d;
 }
 
 .naver-btn:hover {
-  background-color: #17a300;
+  background-color: #b3ceaf;
 }
 </style>

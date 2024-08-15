@@ -125,6 +125,7 @@ const gmMaster = require('@/assets/images/character_sheet/Game_Master.png');
   width: 80%;
   height: auto;
   border-radius: 10px;
+  border: 3px solid #4A3A2E;
 }
 
 .gm-info {

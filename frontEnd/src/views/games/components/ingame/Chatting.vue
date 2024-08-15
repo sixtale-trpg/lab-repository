@@ -130,7 +130,7 @@ const sendButtonImage = require('@/assets/images/ingame/Send_Button.png');
 
 // 배경 스타일 설정
 const backgroundStyle = {
-  backgroundImage: `url(${backgroundImage})`,
+  // backgroundImage: `url(${backgroundImage})`,
   backgroundSize: '100%',
   backgroundRepeat: "no-repeat",
   backgroundPosition: 'center',
@@ -139,6 +139,8 @@ const backgroundStyle = {
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
+  border: "1px solid #4A3A2E",
+  backgroundColor: '#251C15',
   
 };
 
@@ -288,7 +290,7 @@ const run = async () => {
   flex: 1;
   padding: 10px;
   cursor: pointer;
-  border: 1px solid #333;
+  border: 1px solid #4A3A2E;
   color: rgb(214, 205, 170);
   background: linear-gradient(to bottom, #444, #222);
 }
@@ -318,7 +320,7 @@ const run = async () => {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
-  border: 1px solid #444;
+  border: 1px solid #4A3A2E;
   color: rgb(214, 205, 170);
 }
 
@@ -332,13 +334,13 @@ const run = async () => {
 .chat-input input {
   flex: 1;
   padding: 8px;
-  border: 1px solid #444;
-  background-color: #222;
+  border: 1px solid #4A3A2E;
+  background-color: #251C15;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .chat-input input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(214, 205, 170);
 }
 
 .whisper-dropdown {

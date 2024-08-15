@@ -7,13 +7,13 @@
           <span class="title-text">AI 캐릭터 만들기</span>
         </div>
         <div class="description-warning">
-          <p>이미지를 생성하지 않으면 캐릭터 시트에 이미지가 저장되지 않습니다.</p>
-          <p>이미지가 생성되는 중 다른 탭으로 이동하지 마세요!</p>
+          <p>모든 정보를 입력하고 저장 버튼을 누르면 시트가 생성됩니다(4~5초)</p>
+          <p>음란 및 선정적인 문구나 잔인한 범죄행위 묘사요청은 불가능합니다.</p>
         </div>
         <div class="input-box">
           <textarea
             v-model="formData.appearance"
-            placeholder="예시: 착한 눈, 붉은 머리, 강인한 입술, 금발 곱슬머리"
+            placeholder="예시: 착한 눈, 붉은 머리, 강인한 입술, 금발 곱슬머리" 
             class="appearance-input"
           ></textarea>
         </div>
@@ -125,6 +125,7 @@ const candidateImages = ref([null, null, null]); // 후보 이미지 목록
 const remainingClicks = ref(3);  // 남은 클릭 수
 const isButtonActive = ref(false);  // 버튼 활성화 상태
 const isLoading = ref(false); // 로딩 상태
+const errorMessage = ref(''); // 에러 메시지
 
 const showTooltip = ref(false);
 const tooltipStyle = ref({
@@ -151,7 +152,6 @@ const updateTooltipPosition = (event) => {
 
 // Local Storage에 저장된 클릭 횟수와 후보 이미지를 불러오기
 const loadJobSpecificData = () => {
-  // 부모 컴포넌트에서 데이터 로드
   if (props.formData.candidateImages) {
     candidateImages.value = props.formData.candidateImages;
   }
@@ -165,12 +165,13 @@ const loadJobSpecificData = () => {
 const generateImage = async () => {
   if (remainingClicks.value > 0 && !isLoading.value) {
     isLoading.value = true; // 로딩 상태 시작
+    errorMessage.value = ''; // 기존 에러 메시지 초기화
+
     try {
       const imageUrl = await handleGenerateImage(props.formData.appearance);
-      console.log('API 응답:', imageUrl); // 콘솔에 데이터 구조 표시
+      console.log('API 응답:', imageUrl);
       generatedImageUrl.value = imageUrl;
 
-      // 후보 이미지 목록에 추가
       const emptySlotIndex = candidateImages.value.findIndex(image => image === null);
       if (emptySlotIndex !== -1) {
         candidateImages.value[emptySlotIndex] = imageUrl;
@@ -182,6 +183,7 @@ const generateImage = async () => {
       remainingClicks.value -= 1;  // 클릭 횟수 감소
     } catch (error) {
       console.error('이미지 생성 중 오류 발생:', error);
+      errorMessage.value = '이미지 생성 중 오류가 발생했습니다. 다시 시도해 주세요.';
     } finally {
       isLoading.value = false; // 로딩 상태 종료
     }
@@ -206,7 +208,6 @@ onMounted(() => {
   loadJobSpecificData();
 
   document.addEventListener('mousemove', updateTooltipPosition);
-  document.removeEventListener('mousemove', updateTooltipPosition);
 });
 
 // 부모 데이터가 변경되었을 때 자동으로 업데이트

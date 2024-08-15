@@ -119,10 +119,12 @@ public class CharacterSheetController {
     /**
      * 캐릭터 시트 작성 취소(삭제)
      */
-    @DeleteMapping("/{playMemberID}")
-    public ResponseEntity deleteCharacterSheet(@PathVariable Long roomID, @PathVariable Long playMemberID) {
+    @DeleteMapping
+    public ResponseEntity deleteCharacterSheet(@PathVariable Long roomID) {
         try {
-            characterSheetService.deleteCharacterSheet(roomID, playMemberID);
+            // 로그인 유저 아이디 가져오기
+            Long memberID = AuthenticationUtil.getMemberId();
+            characterSheetService.deleteCharacterSheet(roomID, memberID);
             return new ResponseEntity(DefaultResponse.res(StatusCode.OK, ResponseMessage.DELETE_CHARACTER_SHEET), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());

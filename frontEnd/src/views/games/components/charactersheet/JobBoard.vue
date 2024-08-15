@@ -89,8 +89,19 @@ onMounted(fetchRoomInfo);
 .jobs-board {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 2%;
-  justify-items: center;
+  grid-auto-rows: minmax(min-content, max-content);
+  gap: 20px;
+  padding: 20px;
+  max-height: 90vh; /* 뷰포트 높이의 70%로 제한 */
+  overflow-y: auto; /* 내용이 넘칠 경우 스크롤 표시 */
+  align-content: start; /* 컨텐츠를 위쪽으로 정렬 */
+}
+
+.job-card {
+  width: 100%;
+  aspect-ratio: 1.5 / 1.25; /* 카드의 비율을 3:4로 유지 */
+  max-width: 300px; /* 카드의 최대 너비 설정 */
+  justify-self: center;
 }
 
 @media (max-width: 1200px) {

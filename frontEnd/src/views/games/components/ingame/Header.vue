@@ -39,7 +39,13 @@ import ScenarioModal from '@/views/games/components/Modal/ScenarioModal.vue';
 import MapModal from '@/views/games/components/Modal/MapModal.vue';
 import GameEndModal from '@/views/games/components/Modal/GameEndModal.vue';
 
-const isGM = ref(true);
+const props = defineProps({
+  isGM: {
+    type: Boolean,
+    required: true,
+  },
+});
+
 const scenarioTitle = ref('로딩 중...');
 const timer = ref(0); // 타이머를 초 단위로 저장
 const showRulebookModal = ref(false);
@@ -118,6 +124,7 @@ const toggleGrid = () => {
   window.dispatchEvent(new CustomEvent('toggle-grid', { detail: showGrid.value }));
 };
 </script>
+
 
 <style scoped>
 .header {

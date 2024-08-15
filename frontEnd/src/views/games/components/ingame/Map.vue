@@ -499,9 +499,7 @@ const openModal = (row, col) => {
 };
 
 const changeMap = async (description) => {
-  if (!GameLogWebSocketService.connected) {
-    GameLogWebSocketService.connect(roomId.value);
-  }
+  GameLogWebSocketService.connect(roomId.value);
 
   console.log(description);
   if (description && description.nextMapUrl && description.nextMapId) {
@@ -582,8 +580,23 @@ isGM.value = true;
 const updateNpcHp = (id, newHp) => {
   const npcIndex = npcList.value.findIndex((npc) => npc.id === id);
   if (npcIndex !== -1) {
+    const currentTmp = npcList.value[npcIndex].currentHp;
     npcList.value[npcIndex].currentHp = newHp;
     console.log(`Updated NPC ${id} HP to ${newHp}`);
+
+    const eventList = ref([]);
+
+    GameLogWebSocketService.sendMessage({
+      gameType: "EVENT_HP_CHANGE",
+      roomID: roomId.value,
+      events: [
+        {
+          npcEventID: id,
+          currentHP: currentTmp,
+          updateHP: newHp,
+        },
+      ],
+    });
   }
 };
 
@@ -592,12 +605,14 @@ const toggleNpcList = () => {
 };
 
 onMounted(async () => {
-  console.log("ONMOUNT 입니다");
-
   // GameLogWebSocketService.connect(roomId.value);
 
   const response = await getMapList(roomId.value);
   mapData.value = response.mapList || [];
+
+  GameLogWebSocketService.onMessageReceived("EVNET_HP_CHANGE", (message) => {
+    console.log("Event Hp Change received:", message);
+  });
 
   GameLogWebSocketService.onMessageReceived("MAP_CHANGE", (message) => {
     console.log("Map Change received:", message);

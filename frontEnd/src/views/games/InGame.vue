@@ -22,8 +22,8 @@
 <script setup>
 import { ref, watch, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { getRoomInfo } from '@/common/api/RoomsAPI'; // 방 정보 API
-import { getMemberInfo } from '@/common/api/mypageAPI'; // 사용자 정보 API
+import { getRoomInfo } from "@/common/api/RoomsAPI"; // 방 정보 API
+import { getMemberInfo } from "@/common/api/mypageAPI"; // 사용자 정보 API
 
 import { useMapStore } from "@/store/map/mapStore"; // 맵 상태 관리
 import Header from "@/views/games/components/ingame/Header.vue";
@@ -51,7 +51,7 @@ watch(
 );
 
 // GM 여부를 저장하는 상태
-const isGM = ref(false);
+const isGM = ref(true);
 const roomId = ref(null);
 
 // 현재 사용자가 GM인지 확인하는 함수
@@ -67,7 +67,7 @@ const fetchRoomDetails = async () => {
       isGM.value = true;
     }
   } catch (error) {
-    console.error('Error fetching room info or member info:', error);
+    console.error("Error fetching room info or member info:", error);
   }
 };
 

@@ -2,19 +2,23 @@ import axios from 'axios';
 
 const BASE_SHEETS_URL = '/api/v1/rooms';
 
-// 토큰을 로컬 스토리지에서 가져오기
-const getAccessToken = () => {
-  return localStorage.getItem('accessToken');
+// 쿠키에서 토큰을 가져오기
+const getAccessTokenFromCookie = () => {
+  const cookieName = 'access-token';
+  const cookieString = document.cookie.split('; ').find(row => row.startsWith(`${cookieName}=`));
+  return cookieString ? cookieString.split('=')[1] : null;
 };
 
 // 공통 헤더 설정
 const getHeaders = () => {
-  const accessToken = getAccessToken();
+  const accessToken = getAccessTokenFromCookie();  // 쿠키에서 토큰 가져오기
   const headers = {
     'Content-Type': 'application/json'
   };
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
+  } else {
+    console.error('No access token found in cookies. Please log in.');
   }
   return headers;
 };
@@ -82,7 +86,6 @@ export const updateCharacterSheet = async (roomID, playMemberID, updatedData) =>
     throw error;
   }
 };
-
 
 
 // 캐릭터 시트 업데이트 - 플레이 후 (스탯 수정 시)

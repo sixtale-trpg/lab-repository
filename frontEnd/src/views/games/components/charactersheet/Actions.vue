@@ -1,130 +1,235 @@
 <template>
   <div class="action-container">
-    <div class="action-buttons">
+    <div class="description-bar">
+      <img src="@/assets/images/character_sheet/name_box.png" alt="설명 배경" class="description-bar-image">
+      <div class="description-text">
+        핵심 액션 중 1개를 골라야 합니다. 액션 옵션이 있다면 그 옵션도 1개를 고르세요.
+      </div>
+    </div>
+    <div class="action-buttons" v-if="coreActions.length">
       <div 
-        v-for="(action, index) in actions" 
+        v-for="(action, index) in coreActions" 
         :key="index" 
         class="action-button"
         :style="getActionStyle(action)"
-        :class="{ active: formData.selectedAction === index }"
-        @click="handleClick(index)"
+        :class="{ active: selectedActionIndex === index }"
+        @click="selectAction(index, action)"
       >
-        <span class="action-title">{{ action.title }}</span>
-        <div class="action-content">
-          <p v-for="(line, lineIndex) in action.content" :key="lineIndex">{{ line }}</p>
+        <span class="action-title">{{ action.name }}</span>
+        <div class="action-content" v-html="formatDescription(action.description)"></div>
+        <div v-if="action.actionOptions && action.actionOptions.length > 0" class="options-section">
+          <div 
+            v-for="option in action.actionOptions" 
+            :key="option.id" 
+            class="option-item"
+            :class="{ selected: selectedOptionId === option.id }"
+            @click="selectOption(option.id)"
+          >
+            {{ option.content }}
+          </div>
         </div>
       </div>
     </div>
+    <div v-if="showWarning" class="warning-text">핵심 액션 및 옵션을 선택하세요!</div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, toRefs } from 'vue';
-import actionBox from '@/assets/images/character_sheet/action_box.png';
+import { ref, computed, watch, onMounted } from 'vue';
 
-const props = defineProps(['formData']);
-const { formData } = toRefs(props);
+const props = defineProps({
+  formData: {
+    type: Object,
+    required: true
+  },
+  currentOptions: {
+    type: Array,
+    required: true
+  },
+  jobId: Number,  
+  ruleId: Number
+});
 
-// 액션 정보 등록
-const actions = reactive([
-  {
-    title: '덫 전문가',
-    content: [
-      '위험한 지역을 잠시 살피면, 민 판정을 합니다. 10+이면 예비 3점을, 7~9이면 예비 1점을 받습니다. 그 지역을 지나는 동안 말할 때 언제나 예비를 소비하여 다음 질문을 할 수 있습니다 (예비 1점마다 질문 하나씩):',
-      ' • 여기에 덫이 있는가? 있다면 어떻게 발동되는가?',
-      ' • 발동되면 무슨 일이 일어나는가?',
-      ' • 그 외에 숨겨진 것이 있는가?'
-    ]
-  },
-  {
-    title: '프로의 솜씨',
-    content: [
-      '자물쇠를 따거나 덫을 해체할 때, 민 판정을 합니다. 10+이면 아무 문제 없이 해냅니다. 7~9에도 성공은 하지만, 의심, 위험, 대가 중 두 가지를 마스터가 제시할 것입니다.'
-    ]
-  },
-  {
-    title: '암습',
-    content: [
-      '방어를 할 수 없거나 기술을 안한 적 근거리 무기로 공격할 때, 피해를 주지 않고 대신, 민 판정을 할 수 있습니다. 10+이면 다음 중 둘을 고릅니다. 7~9이면 하나만 고릅니다.',
-      ' • 상대의 근거리 전투에 말려들지 않습니다.',
-      ' • 통상적인 피해 +1d4을 줍니다.',
-      ' • 유리한 상황을 만듭니다. 자기 자신, 또는 그 상황을 이용하는 우리 편이 다음 판정에 +1을 받습니다.',
-      ' • 상대가 갖춘 수비를 깁까지 방어가 -1을 받습니다.'
-    ]
-  },
-  {
-    title: '희박한 도덕관념',
-    content: [
-      '누군가가 가진 것을 탐지하며 함 경우, 원하면 거짓으로 가르쳐 주어도 됩니다.'
-    ]
+const emit = defineEmits(['update:character-action']);
+
+const selectedActionIndex = ref(null);
+const selectedOptionId = ref(null);
+const showWarning = ref(false);
+
+// 핵심 액션만 필터링
+const coreActions = computed(() => {
+  return Array.isArray(props.currentOptions) ? props.currentOptions.filter(action => action.isCore) : [];
+});
+
+const selectAction = (index, action) => {
+  if (action && typeof index === 'number') {
+    selectedActionIndex.value = index;
+    selectedOptionId.value = null; // 옵션 초기화
+    updateCharacterAction(action.id, null);
+    console.log('선택된 액션:', action.id);
   }
-]);
-
-const handleClick = (index) => {
-  formData.value.selectedAction = index;
 };
 
-const getActionStyle = (action) => {
-  const baseHeight = 150; // 기본 높이
-  const additionalHeight = action.content.length * 30; // 내용 길이에 따른 추가 높이
-  const height = baseHeight + additionalHeight;
+const selectOption = (optionId) => {
+  if (selectedActionIndex.value !== null && coreActions.value[selectedActionIndex.value]) {
+    selectedOptionId.value = optionId;
+    const selectedAction = coreActions.value[selectedActionIndex.value];
+    if (selectedAction) {
+      updateCharacterAction(selectedAction.id, selectedOptionId.value);
+      console.log('선택된 옵션 ID:', optionId);
+    }
+  }
+};
 
+const updateCharacterAction = (actionId, optionId) => {
+  if (actionId) {
+    props.formData.characterAction = [{ actionID: actionId, actionOptionId: optionId }];
+    emit('update:character-action', props.formData.characterAction);
+    showWarning.value = false;
+  }
+};
+
+// formData가 업데이트될 때 선택한 액션과 옵션을 유지
+watch(() => props.formData.characterAction, (newActions) => {
+  if (newActions && newActions.length > 0) {
+    const selectedAction = newActions[0];
+    if (coreActions.value && Array.isArray(coreActions.value)) {
+      selectedActionIndex.value = coreActions.value.findIndex(a => a.id === selectedAction.actionID);
+      selectedOptionId.value = selectedAction.actionOptionId;
+    }
+  }
+}, { immediate: true });
+
+// onMounted에 저장된 액션과 옵션 로드
+onMounted(() => {
+  if (props.formData.characterAction && props.formData.characterAction.length > 0) {
+    const selectedAction = props.formData.characterAction[0];
+    if (coreActions.value && Array.isArray(coreActions.value)) {
+      selectedActionIndex.value = coreActions.value.findIndex(a => a.id === selectedAction.actionID);
+      selectedOptionId.value = selectedAction.actionOptionId;
+    }
+  }
+});
+
+const getActionStyle = (action) => {
+  if (!action || selectedActionIndex.value === null || !coreActions.value[selectedActionIndex.value]) {
+    return {};  // action 또는 선택된 액션이 undefined인 경우 빈 객체 반환
+  }
   return {
-    backgroundImage: `url(${actionBox})`,
-    width: '100%', // 너비를 100%로 설정
-    height: `${height}px`,
-    borderRadius: '15px',
+    backgroundImage: `url(${require('@/assets/images/character_sheet/action_box.png')})`,
     backgroundSize: 'cover',
-    backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
     padding: '20px',
     color: '#fff',
-    textAlign: 'left',
-    overflow: 'hidden', // 텍스트가 박스를 벗어나지 않도록 숨기기
-    boxSizing: 'border-box'
+    borderRadius: '8px',
+    overflow: 'hidden',
+    border: coreActions.value[selectedActionIndex.value].id === action.id ? '2px solid white' : 'none',
   };
+};
+
+const formatDescription = (description) => {
+  if (description) {
+    return description
+      .replace(/•/g, '\n•');    // • 기호 앞에 개행 문자 추가
+  } else {
+    return '';  // 기본값으로 빈 문자열 설정
+  }
 };
 </script>
 
 <style scoped>
 .action-container {
   padding: 20px;
-  border-radius: 10px;
-  color: #fff;
+}
+
+.description-bar {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.description-bar-image {
+  margin-left: 10%;
   width: 80%;
-  margin: auto;
+  height: 100px;
+  display: block;
+}
+
+.description-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
   text-align: center;
+  width: 90%;
 }
 
 .action-buttons {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  margin-top: 20px;
 }
 
 .action-button {
   position: relative;
   padding: 20px;
-  overflow: hidden; /* 박스를 넘치는 텍스트를 숨기기 */
-  transition: transform 0.3s, box-shadow 0.3s; /* 애니메이션 추가 */
+  transition: transform 0.3s, box-shadow 0.3s;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  max-width: 100%; /* Ensure the action button does not exceed the container width */
 }
 
 .action-button.active {
-  transform: scale(1.05); /* 크기 조정 */
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); /* 그림자 추가 */
-}
-
-.action-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 10px;
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .action-content {
+  margin: 10px 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-wrap; /* Preserve formatting including line breaks */
+}
+
+.options-section {
+  margin-top: 10px;
+}
+
+.option-item {
+  padding: 10px;
+  background-color: #0a0603; /* 황갈색 계열로 변경 */
+  color: #fff;
+  margin-top: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: 2px solid transparent; /* Transparent border for smooth selection transition */
+  max-width: 100%; /* Prevent overflow */
+}
+
+.option-item.selected {
+  background-color: #8B5A2B; 
+  border-color: white; /* 선택 시 하얀 테두리 */
+}
+
+.option-item:hover {
+  background-color: #8B5A2B; /* Hover 효과 */
+}
+
+.selected-option {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.warning-text {
+  color: red;
   font-size: 1.2rem;
-  line-height: 1.5;
-  max-height: calc(100% - 40px); /* 제목의 높이를 제외한 높이 */
-  overflow-y: auto; /* 텍스트가 넘치면 스크롤바 표시 */
+  margin-top: 20px;
+  text-align: center;
 }
 </style>

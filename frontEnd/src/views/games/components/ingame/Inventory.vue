@@ -95,7 +95,7 @@ import AddItemModal from "@/views/games/components/Modal/AddItemModal.vue";
 import ItemInfoModal from "@/views/games/components/Modal/ItemInfoModal.vue";
 import GoldModal from "@/views/games/components/Modal/GoldModal.vue";
 import ConfirmDeleteModal from "@/views/games/components/Modal/ConfirmDeleteModal.vue";
-import ChangeWeightWebSocketService from "@/store/websocket/changeWeight"; // WebSocket 서비스 가져오기
+import GameLogWebSocketService from "@/store/websocket/gameLog"; // WebSocket 서비스 가져오기
 
 const route = useRoute();
 const items = ref([]);
@@ -296,7 +296,7 @@ const hideTooltip = (event) => {
   }
 };
 
-const handleItemSelected = (item) => {
+const handleItemSelected = async (item) => {
   console.log("Item selected:", item);
   const existingItemIndex = items.value.findIndex(
     (existingItem) => existingItem.equipmentId === item.equipmentId
@@ -315,11 +315,15 @@ const handleItemSelected = (item) => {
   }
   updateCurrentWeight();
 
-  // Vue는 배열의 변경을 감지할 수 있도록 배열을 재할당합니다.
+
   items.value = [...items.value];
+
+  // 여기서 추가된 아이템을 바로 반영하기 위해 서버에서 다시 데이터 불러오기
+  await fetchUserItems(selectedPlayMemberID.value);
 
   closeAddItemModal();
 };
+
 
 const handleItemAdded = async (addedItem) => {
   console.log("Item added:", addedItem);
@@ -377,6 +381,22 @@ onMounted(async () => {
     currentGold.value = 0;
     jobId.value = null;
   }
+
+  // 메세지 받아오는것
+  GameLogWebSocketService.onMessageReceived(async (message) => {
+      console.log(message)
+      switch(message.gameType){
+        case "GOLD":
+          await fetchUserItems(message.playMemberID)
+          break;
+        case "WEIGHT":
+          await fetchUserItems(message.playMemberID)
+          break;
+        default:
+          // 다른 메시지 타입의 처리 로직
+          break;
+      }
+    })
 });
 </script>
 

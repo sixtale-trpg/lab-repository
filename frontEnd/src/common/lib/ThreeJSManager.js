@@ -13,6 +13,7 @@ class ThreeJSManager {
     this.updateCameraAndWalls(); // 초기 설정 시 카메라와 벽 업데이트
     this.renderer = new THREE.WebGLRenderer({ alpha: true }); // 렌더러 생성
     this.renderer.setSize(container.clientWidth, container.clientHeight); // 렌더러 크기 설정
+
     container.appendChild(this.renderer.domElement); // 렌더러 DOM 엘리먼트를 컨테이너에 추가
     this.clock = new THREE.Clock(); // 시계 생성
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -42,6 +43,21 @@ class ThreeJSManager {
 
     eventBus.on('roll-dice', this.rollDice.bind(this)); // roll-dice 이벤트 구독
     window.addEventListener('resize', this.onWindowResize.bind(this)); // 창 크기 조정 이벤트 핸들러 추가
+
+    // 여기서 pointer-events를 none으로 설정
+    this.renderer.domElement.style.pointerEvents = 'none';
+
+    // renderer-container 클래스에 pointer-events: none; 추가
+    const rendererContainer = this.renderer.domElement.parentElement;
+    if (rendererContainer && rendererContainer.classList.contains('renderer-container')) {
+      rendererContainer.style.pointerEvents = 'none';
+      
+      // renderer-container 내의 모든 캔버스 요소에 대해 pointer-events: none; 추가
+      const canvases = rendererContainer.querySelectorAll('canvas');
+      canvases.forEach(canvas => {
+        canvas.style.pointerEvents = 'none';
+      });
+    }
   }
 
   updateCameraAndWalls() {

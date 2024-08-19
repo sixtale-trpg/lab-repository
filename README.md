@@ -92,70 +92,33 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 좋아요 상위 15개의 피드를 보여줍니다.
 
 
-### 3. 여행 정보 조회 및 계획
-
-* 여행지 조회
-
-![Attraction1](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/95a5193e-c623-4516-a768-5a8351eef00e)
-
-시/도, 구/군, 검색 키워드, 관광지 유형 별로 조 가능합니다.
+### 3. 로비
 
 
-* 여행 계획 세우기
-
-![Attraction2](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/9c7c2d92-e6ee-4a13-a26b-283dd43d387b)
-
-저장한 계획은 마이페이지 - 여행 계획 캘린더에서 조회 가능합니다.
+![sixtale-lobby](/uploads/fa992c0a602cba08e41ee2a87e11dd98/sixtale-lobby.png)
 
 
-### 4. 핫플레이스 리뷰
+* 방 생성 모달
 
-![Hotplace1](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/b2ce842e-5356-4152-a00d-0e1a35d9aa6e)
-
-
-* 리뷰 모달
-
-![Hotplace3](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/215a93e0-1082-4ae1-bf01-f78290398c8e)
+![sixtale-lobby](/uploads/fa992c0a602cba08e41ee2a87e11dd98/sixtale-lobby.png)
 
 
-* 리뷰 작성하기
+### 4. 게임 대기 방
 
-![Hotplace-write](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/4bf5d30a-881d-4a45-a7e2-1d4eaf299400)
-
-
-### 5. 게시판
-
-* 게시글 목록
-
-![board1](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/ab837d6f-2f5d-40e4-b3a5-89b19af43c2f)
+![sixtale-wait](/uploads/435f1aa5c13b7f7524aa73921dd8977e/sixtale-wait.png)
 
 
-* 게시글 조회
+### 5. 캐릭터 시트
 
-![board2](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/50e1a965-509e-4977-babe-8d925dede23c)
-
-
-* 게시글 작성 및 수정
-
-![board3](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/0ef919d3-aada-460e-aa7c-dd5fdfdfcbe6)
+![sixtale-sheet](/uploads/8ee66a85380b9f7ebdff2b1acd66e02b/sixtale-sheet.png)
 
 
-### 6. 마이페이지
+### 6. 인게임 플레이
 
-![Mypage1](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/8acd356d-3495-44d4-b7a1-db5097db33dc)
+![sixtale-ingame](/uploads/bfdd451862b7dbd8c28a06d710d15b29/sixtale-ingame.png)
 
+### 7. 룰북 페이지
 
-* 회원 정보 수정 페이지
+### 8. 시나리오 목록 페이지
 
-![Mypage2](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/588562da-1869-437f-942c-1b8bc4617e03)
-
-
-* 여행 계획 캘린더
-
-![Plan1](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/99454827-a2d6-4c86-9d5d-54dab29589c4)
-
-
-* 여행 계획 모달
-
-![Plan2](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/654e3f0f-2b1f-40d8-a84d-c577511196a6)
-
+### 9. 마이페이지

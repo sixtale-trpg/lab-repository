@@ -3,7 +3,7 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ## 개요
 > 팀원 | 신건우, 강동완, 송근웅, 남경민, 안치숙, 정수현<br>
-> 개발 | Front-End (Vue3), Back-End (Spring Boot, JPA, QueryDSL)<br>
+> 개발 | Front-End (Vue3), Back-End (Spring Boot, JPA, QueryDSL), Infra(Jenkins, Docker)<br>
 > 이용 API | ChatPDF, DALL·E
 
 ## 유스케이스 다이어그램

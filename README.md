@@ -8,7 +8,7 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ## 테이블 구조도
 
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/51a0e120-d69d-4e84-b183-b7c499e4da27)
+![Copy_of_ORPG_ERD_](/uploads/13f0f88746a377af5fa485d0e1a1f9f7/Copy_of_ORPG_ERD_.png)
 
 ## 클래스 다이어그램
 

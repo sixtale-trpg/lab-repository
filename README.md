@@ -46,14 +46,14 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ## 구현 기능
 
-### 1. 소셜 로그인
-
-![sixtale-social-login](/uploads/2e657b886e2225eb0aaca5184283e4ba/sixtale-social-login.PNG)
-
-
-### 2. 홈 화면
+### 1. 홈 화면
 
 ![sixtale-home](/uploads/4096d2c6ff9ec0eee8d5a63569a4773a/sixtale-home.PNG)
+
+
+### 2. 소셜 로그인
+
+![sixtale-social-login](/uploads/2e657b886e2225eb0aaca5184283e4ba/sixtale-social-login.PNG)
 
 
 ### 3. 로비
@@ -81,12 +81,15 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ![sixtale-ingame](/uploads/bfdd451862b7dbd8c28a06d710d15b29/sixtale-ingame.png)
 
+
 ### 7. 룰 챗봇 페이지
 
 ![sixtale-rulebook](/uploads/7da4576e2ca1e0c7e19d3218e45e0d27/sixtale-rulebook.PNG)
 
+
 ### 8. 시나리오 목록 페이지
 
 ![sixtale-scenario-list](/uploads/d081b05db9c5c7b5f7982664ed6dee5f/sixtale-scenario-list.PNG)
+
 
 ### 9. 마이페이지

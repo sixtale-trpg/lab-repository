@@ -46,50 +46,14 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ## 구현 기능
 
-### 1. 회원 인증
+### 1. 소셜 로그인
 
-* 로그인
-  
-![Auth-Login](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/8e270626-9946-4150-b507-421e49c29265)
-
-
-* 회원가입
-  
-![Auth-Signup](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/c5f874b2-788b-4168-83c4-db2cca8ff168)
-
-
-* 비밀번호 찾기
-  
-![Auth-Password](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/01babb18-bdac-4d28-a8d2-1c40f4e01b9b)
+![sixtale-social-login](/uploads/2e657b886e2225eb0aaca5184283e4ba/sixtale-social-login.PNG)
 
 
 ### 2. 홈 화면
 
-![Main1](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/1e5e4b64-8c9b-4cea-adbf-5ee4b6e21fbf)
-
-
-* 날씨 정보
-
-![Main2](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/ddff32d5-e3f3-4505-a950-6d9e2584ae3a)
-
-
-* 추천 여행지
-
-![Main3](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/54a2b0b3-4a42-4235-9660-7a5036d8d5af)
-
-
-* 지역별 여행지
-
-![Main4](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/a9e950c1-32ea-4272-b2f4-3821ff289486)
-
-클릭하면 지역별 관광지 조회 페이지로 이동합니다.
-
-
-* 인기 리뷰
-
-![Main5](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/4ee08048-8ebd-4fb8-a836-cf85371fec0d)
-
-좋아요 상위 15개의 피드를 보여줍니다.
+![sixtale-home](/uploads/4096d2c6ff9ec0eee8d5a63569a4773a/sixtale-home.PNG)
 
 
 ### 3. 로비
@@ -100,7 +64,7 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 * 방 생성 모달
 
-![sixtale-lobby](/uploads/fa992c0a602cba08e41ee2a87e11dd98/sixtale-lobby.png)
+![sixtale-make-room](/uploads/360a1f6f3738d645409e9a78bf0dcd72/sixtale-make-room.PNG)
 
 
 ### 4. 게임 대기 방
@@ -117,8 +81,12 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ![sixtale-ingame](/uploads/bfdd451862b7dbd8c28a06d710d15b29/sixtale-ingame.png)
 
-### 7. 룰북 페이지
+### 7. 룰 챗봇 페이지
+
+![sixtale-rulebook](/uploads/7da4576e2ca1e0c7e19d3218e45e0d27/sixtale-rulebook.PNG)
 
 ### 8. 시나리오 목록 페이지
+
+![sixtale-scenario-list](/uploads/d081b05db9c5c7b5f7982664ed6dee5f/sixtale-scenario-list.PNG)
 
 ### 9. 마이페이지

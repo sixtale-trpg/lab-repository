@@ -6,23 +6,6 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 > 개발 | Front-End (Vue3), Back-End (Spring Boot, JPA, QueryDSL), Infra(Jenkins, Docker)<br>
 > 이용 API | ChatPDF, DALL·E
 
-## 유스케이스 다이어그램
-
-### 1. 기본 관리
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/a09dcb27-fb96-45f4-b9d8-3ed429a3a196)
-
-### 2. 여행 관리
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/0eb9a567-92e9-4660-8616-f10a4d057a77)
-
-### 3. 관광지 검색 화면 관리
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/85f1f4ff-c4e6-45c5-bc3c-8e151caae3dd)
-
-### 4. 핫플레이스 화면 관리
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/cf2e5387-d018-4c5a-8d27-33e59ce2f1da)
-
-### 5. 메인 화면 관리
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/4dc8982a-1eb6-41f8-a0ca-24ea53dcb465)
-
 ## 테이블 구조도
 
 ![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/51a0e120-d69d-4e84-b183-b7c499e4da27)
@@ -31,18 +14,6 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 ### 1. 회원
 ![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/4867a81c-e852-4764-baa2-267c5bb0d4c4)
-
-### 2. 게시판
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/971ae166-70e9-47fa-b9cc-c659964e562b)
-
-### 3. 핫플레이스
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/2baa1ca8-4509-447c-9ce8-f476de14f324)
-
-### 4. 여행 계획
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/578dd06a-7f44-44b5-a698-d5c1a9ce68de)
-
-### 5. 여행지
-![image](https://github.com/SSAFYJJANG/TravelNoTrouble/assets/108526743/3851a4cb-2fae-46a2-841c-042ecbfdd5e2)
 
 ## 구현 기능
 

@@ -93,3 +93,11 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 
 
 ### 9. 마이페이지
+
+* 플레이 기록
+
+![sixtale-play-report](/uploads/65389118e0a11a8add5cddeb963b1dc3/sixtale-play-report.PNG)
+
+* 좋아요한 시나리오
+
+![sixtale-like-scenario](/uploads/423dad4758526df91188b3acdda85260/sixtale-like-scenario.PNG)

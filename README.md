@@ -2,17 +2,15 @@
 
 ![sixtale-logo](/uploads/8e47f5f0f93220ec9343cbef4333a0db/sixtale-logo.png)
 
+<br><br>
+
+## 🐶 개요
+
 TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(Online Role Playing Game) 플랫폼 입니다. <br>
 룰 챗봇을 이용하여 GM은 번거롭지 않게 룰에 대한 정보를 습득하고 플레이어들에게 다이스, 스탯, 맵 등을 세팅할 수 있습니다. <br>
 플레이어들은 세팅된 값으로 게임을 진행할 수 있으며 플레이에 집중할 수 있습니다.
 
-<br><br>
-
-## 🐶 개요
-> **프로젝트 진행 기간 |** 2024.07.02 ~ 2024.08.16 <br>
-> **팀원 |** 신건우, 강동완, 송근웅, 남경민, 안치숙, 정수현 <br>
-> **개발 |** Front-End (Vue3), Back-End (Spring Boot, JPA, QueryDSL), Infra(Jenkins, Docker) <br>
-> **이용 API |** ChatPDF, DALL·E
+**프로젝트 진행 기간 |** 2024.07.02 ~ 2024.08.16 <br>
 
 <br><br>
 
@@ -87,3 +85,15 @@ TRPG(Table-top Role Playing Game)를 온라인 상에서 즐길 수 있는 ORPG(
 * 좋아요한 시나리오
 ![sixtale-like-scenario](/uploads/423dad4758526df91188b3acdda85260/sixtale-like-scenario.PNG)
 <br>
+
+<br>
+
+## 👥 팀 구성
+|이름|포지션|
+|------|---|
+|신건우|팀장, FE|
+|강동완|FE|
+|송근웅|FE|
+|남경민|BE, Infra|
+|안치숙|BE, Infra|
+|정수현|BE, Infra|
